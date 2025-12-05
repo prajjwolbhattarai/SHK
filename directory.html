@@ -51,6 +51,15 @@ async function loadDataFromServer() {
     const cachedData = localStorage.getItem('shk_data_cache');
     const cacheTimestamp = localStorage.getItem('shk_data_cache_timestamp');
     
+    // Listen for sync updates from the CMS tab
+    window.addEventListener('storage', (event) => {
+        if (event.key === 'shk_cms_synced') {
+            console.log('Sync signal received. Reloading page for fresh data...');
+            localStorage.removeItem('shk_data_cache_timestamp'); // Invalidate cache
+            window.location.reload();
+        }
+    });
+
     if (cachedData && cacheTimestamp && (Date.now() - cacheTimestamp < CACHE_DURATION_MS)) {
         console.log("Loading directory data from cache.");
         const data = JSON.parse(cachedData);
@@ -62,7 +71,9 @@ async function loadDataFromServer() {
     console.log("Fetching live directory data...");
     try {
         const response = await fetch(SCRIPT_URL);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) {
+            throw new Error(`Network response was not ok. Status: ${response.status}. Check if the Google Apps Script URL is correct and deployed for 'Anyone' access.`);
+        }
         const data = await response.json();
         
         DIRECTORY_LIST = data.directory || [];
@@ -78,7 +89,12 @@ async function loadDataFromServer() {
             DIRECTORY_LIST = data.directory || [];
             CATEGORIES_LIST = data.categories || [];
         }
-        // You might want to show an error message in the UI
+        document.getElementById('loader').innerHTML = `
+            <div class="col-span-full p-8 bg-red-50 border border-red-200 rounded-sm text-left">
+                <h3 class="font-bold text-red-800">Fehler beim Laden des Verzeichnisses</h3>
+                 <p class="text-sm text-red-700 mt-2">Die Verbindung zum Daten-Server konnte nicht hergestellt werden. Bitte versuchen Sie es später erneut.</p>
+            </div>
+        `;
     }
 }
 

@@ -78,7 +78,6 @@ function loadData() {
     const sMedia = localStorage.getItem('shk_media');
     mediaLibrary = sMedia ? JSON.parse(sMedia) : [];
 
-    // Seed if empty
     if (articles.length === 0 || directory.length === 0 || categories.length === 0) {
       seedMockData();
     }
@@ -98,58 +97,29 @@ function saveData() {
 function seedMockData() {
     categories = ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
 
-    const generateContent = (title, topic, imageKeyword) => `
-      <p class="lead">In der heutigen Ausgabe von SHK Rhein-Neckar widmen wir uns dem Thema <strong>${topic}</strong>. Ein Bereich, der für Fachhandwerker in der Region immer wichtiger wird.</p>
-      <h2>Warum ${topic} jetzt relevant ist</h2>
-      <p>Die Branche befindet sich im Wandel. Experten sind sich einig: Wer jetzt nicht handelt, verliert den Anschluss. In Mannheim und Heidelberg sehen wir bereits, wie führende Betriebe diese Entwicklung für sich nutzen.</p>
-      <figure>
-        <img src="https://images.unsplash.com/photo-${imageKeyword}?auto=format&fit=crop&q=80&w=1200" alt="${topic}" style="width: 100%; border-radius: 4px; margin: 32px 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-        <figcaption style="text-align: center; font-size: 0.9em; color: #666; margin-top: -20px; margin-bottom: 32px; font-style: italic;">Praxisbeispiel: ${topic} im Einsatz.</figcaption>
-      </figure>
-      <h3>Herausforderungen in der Praxis</h3>
-      <p>Natürlich ist die Umstellung nicht ohne Hürden. Materialengpässe, Fachkräftemangel und bürokratische Hürden bremsen oft die Euphorie. Doch die Zahlen sprechen eine klare Sprache: Die Investition lohnt sich langfristig.</p>
-      <blockquote>"Wir haben unsere Prozesse komplett auf ${topic} ausgerichtet und konnten die Effizienz um 30% steigern." – Ein lokaler Handwerksmeister</blockquote>
-      <h3>Fazit für Ihren Betrieb</h3>
-      <p>Nutzen Sie die kommenden Monate, um sich in diesem Bereich weiterzubilden. Die Handwerkskammer und lokale Innungen bieten entsprechende Schulungen an.</p>
-      <ul><li>Prüfen Sie Ihre aktuelle Aufstellung bezüglich ${topic}.</li><li>Sprechen Sie mit Ihren Lieferanten über neue Möglichkeiten.</li><li>Schulen Sie Ihre Mitarbeiter frühzeitig.</li></ul>`;
-
-    const ARTICLE_DATA_MAP = {
-      'Branchen-News': [{ t: 'Neue Energieverordnungen 2025: Was gilt ab Januar?', img: '1497366216548-37526070297c' }, { t: 'Rückblick ISH Messe Frankfurt: Die Highlights', img: '1542744173-8e7e53415bb0' }, { t: 'Großhandelspreise stabilisieren sich endlich', img: '1586528116311-ad8dd3c8310d' }, { t: 'Fusion von zwei großen Heizungs-Herstellern', img: '1507679721845-63bd00e6183b' }, { t: 'Handwerkermangel erreicht neuen Höhepunkt', img: '1504328345606-18bbc8c9d7d1' }, { t: 'Digitalisierungspflicht für Bauanträge kommt', img: '1454165804606-c3d57bc86b40' }],
-      'Betriebs-Features': [{ t: 'Wie Müller & Söhne komplett papierlos wurden', img: '1516321318423-f06f85e504b3' }, { t: 'Erfolgsgeschichte: Vom Ein-Mann-Betrieb zur GmbH', img: '1556761175-5973dc0f32e7' }, { t: 'Nachfolgeplanung: Wenn der Junior übernimmt', img: '1519389950476-295375a3c876' }, { t: 'Werkstatt-Optimierung nach Lean-Prinzipien', img: '1581091226825-a6a2a5aee158' }, { t: 'Kundenbindung durch digitale Wartungsverträge', img: '1551288049-bebda4e38f71' }],
-      'Personal & Karriere': [{ t: 'Azubi-Recruiting auf TikTok: Ein Leitfaden', img: '1611162616305-c69b3fa7fbe0' }, { t: 'Frauen im SHK-Handwerk: Ein Porträt', img: '1573496359142-b8d87734a5a2' }, { t: 'Gehaltsreport 2025: Was verdient ein Meister?', img: '1554224155-8d04cb21cd6c' }],
-      'Technologie': [{ t: 'KI in der Heizungswartung: Predictive Maintenance', img: '1518770660439-4636190af475' }, { t: 'Drohnen für Dach- und Kamininspektionen', img: '1506947411449-b64ff92201ed' }, { t: '3D-Badplanung mit der VR-Brille erleben', img: '1592478411213-61532f94c038' }],
-      'Energie & Nachhaltigkeit': [{ t: 'Wärmepumpen im Altbau: Was ist möglich?', img: '1592833159057-65a2d0856048' }, { t: 'Solarthermie vs. Photovoltaik: Der Vergleich', img: '1509391366360-2e959784a276' }, { t: 'Grauwassernutzung im Einfamilienhaus', img: '1517478347898-1317d7b13998' }],
-      'Regional': [{ t: 'Großprojekt: Sanierung Mannheim Klinikum', img: '1504917595217-d4dc5ebe6122' }, { t: 'Herausforderung: Heidelberger Schloss', img: '1568632168969-92b425b04169' }, { t: 'Neubaugebiet Ludwigshafen Süd: Ein Bericht', img: '1597217329598-a620b784a440' }]
-    };
-
-    let tempArticles = [];
-    let idCounter = 1;
-    Object.entries(ARTICLE_DATA_MAP).forEach(([category, items]) => {
-      items.forEach((item, index) => {
-        tempArticles.push({ 
-            id: `art-${idCounter++}`, 
-            type: 'article', 
-            title: item.t, 
-            summary: `Ein umfassender Bericht über ${item.t.split(':')[0]}. Erfahren Sie, was dies für die Region Rhein-Neckar bedeutet.`, 
-            content: generateContent(item.t, item.t.split(':')[0], item.img), 
-            imageUrl: `https://images.unsplash.com/photo-${item.img}?auto=format&fit=crop&q=80&w=1200`, 
-            category: category, 
-            author: index % 3 === 0 ? 'Redaktion' : (index % 3 === 1 ? 'Markus Weber' : 'Julia Schmidt'), 
-            publishedAt: new Date(Date.now() - (index * 86400000) - (Math.random() * 1000000000)).toISOString(), 
-            featured: index === 0 && category === 'Branchen-News', 
-            status: 'published',
-            views: Math.floor(Math.random() * 5000) + 500, 
-            shares: Math.floor(Math.random() * 300), 
-            readTime: Math.floor(Math.random() * 300) + 120, 
-            videoUrl: index === 3 ? 'https://www.youtube.com/watch?v=Fj0X1Wn6Eew' : undefined,
-            slug: item.t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
-            metaTitle: `${item.t} | SHK Magazin`,
-            metaDescription: `Aktuelle News und Analysen zum Thema: ${item.t}`,
-            tags: [category.split(' ')[0]],
-            revisions: [{date: new Date().toISOString(), user: 'System', note: 'Initial Seed'}]
-        });
-      });
-    });
+    const generateContent = (title, topic) => `
+      <p class="lead">Ein exklusiver Bericht von SHK Rhein-Neckar zum Thema <strong>${topic}</strong>. Erfahren Sie, welche Auswirkungen die aktuellen Entwicklungen auf das Handwerk in der Metropolregion haben.</p>
+      <h2>Hintergrund und aktuelle Lage</h2>
+      <p>Die SHK-Branche steht vor großen Herausforderungen und Chancen. Die ${topic} ist dabei ein zentraler Punkt, der Betriebe in Mannheim, Heidelberg und Ludwigshafen gleichermaßen beschäftigt. Wir haben mit Experten gesprochen und die wichtigsten Fakten für Sie zusammengefasst.</p>
+      <h3>Was bedeutet das für Ihren Betrieb?</h3>
+      <p>Konkret müssen Handwerksbetriebe jetzt handeln. Die Anpassung an neue Vorschriften und Technologien ist unerlässlich, um wettbewerbsfähig zu bleiben. Dies betrifft sowohl die technische Ausstattung als auch die Weiterbildung der Mitarbeiter.</p>
+      <blockquote>"Wer jetzt die Weichen richtig stellt, sichert sich die Aufträge von morgen." – Zitat eines Innungsmeisters aus der Region.</blockquote>
+      <h4>Checkliste für die Praxis:</h4>
+      <ul><li>Analyse des eigenen Betriebs im Hinblick auf ${topic}.</li><li>Investitionsplan für neue Technologien erstellen.</li><li>Weiterbildungsmaßnahmen für Mitarbeiter planen und umsetzen.</li><li>Kunden proaktiv über neue Möglichkeiten und gesetzliche Anforderungen informieren.</li></ul>
+      <p>Bleiben Sie dran für weitere Analysen und Praxisbeispiele hier im SHK Rhein-Neckar Magazin.</p>`;
+    
+    let tempArticles = [
+        { id: 'art-1', type: 'article', title: 'Die neue BAFA-Förderung für Wärmepumpen 2025: Was sich jetzt ändert', summary: 'Bis zu 70% Zuschuss sind möglich, doch die Antragsbedingungen wurden verschärft. Wir zeigen, worauf Betriebe und Kunden achten müssen.', content: generateContent('BAFA-Förderung 2025', 'Wärmepumpen-Subventionen'), imageUrl: 'https://images.unsplash.com/photo-1632558555363-8e13511b9b53?auto=format&fit=crop&q=80&w=1200', category: 'Energie & Nachhaltigkeit', author: 'Julia Schmidt', publishedAt: new Date(Date.now() - 86400000 * 2).toISOString(), featured: true, status: 'published', views: 4812, shares: 215, readTime: 300, slug: 'bafa-foerderung-waermepumpen-2025', metaTitle: 'BAFA-Förderung Wärmepumpen 2025 | SHK Magazin', metaDescription: 'Alle Änderungen der BAFA-Förderung für Wärmepumpen ab 2025. Ein Leitfaden für Handwerker und Endkunden.', tags: ['Förderung', 'Wärmepumpe', 'BAFA'], revisions: [{date: new Date().toISOString(), user: 'System', note: 'Initial Seed'}] },
+        { id: 'art-2', type: 'article', title: 'Azubi-Recruiting 2.0: Wie SHK-Betriebe auf Instagram und TikTok punkten', summary: 'Der Kampf um Nachwuchskräfte ist in vollem Gange. Ein Heidelberger Betrieb zeigt, wie man mit kreativen Social-Media-Kampagnen die Generation Z erreicht.', content: generateContent('Azubi-Recruiting 2.0', 'Nachwuchsgewinnung'), imageUrl: 'https://images.unsplash.com/photo-1611162616475-46b635cb6868?auto=format&fit=crop&q=80&w=1200', category: 'Personal & Karriere', author: 'Markus Weber', publishedAt: new Date(Date.now() - 86400000 * 5).toISOString(), featured: false, status: 'published', views: 2345, shares: 120, readTime: 240, slug: 'azubi-recruiting-social-media', metaTitle: 'Azubi-Recruiting auf TikTok & Instagram', metaDescription: 'Erfolgsstrategien für SHK-Betriebe zur Gewinnung von Auszubildenden über Social Media.', tags: ['Azubi', 'Recruiting', 'Social Media'], revisions: [{date: new Date().toISOString(), user: 'System', note: 'Initial Seed'}] },
+        { id: 'art-3', type: 'article', title: 'Digitales Aufmaß per App: 5 Werkzeuge im Praxistest', summary: 'Zollstock und Klemmbrett waren gestern. Wir haben fünf führende Apps für das digitale Aufmaß auf der Baustelle getestet und vergleichen Funktionen, Preise und Benutzerfreundlichkeit.', content: generateContent('Digitales Aufmaß per App', 'digitale Werkzeuge'), imageUrl: 'https://images.unsplash.com/photo-1581092446347-a5a1f3a2c6f2?auto=format&fit=crop&q=80&w=1200', category: 'Technologie', author: 'Redaktion', publishedAt: new Date(Date.now() - 86400000 * 8).toISOString(), featured: false, status: 'published', views: 1987, shares: 95, readTime: 360, slug: 'digitales-aufmass-apps-test', metaTitle: 'Test: Apps für digitales Aufmaß', metaDescription: 'Ein Vergleich von 5 Apps für das digitale Aufmaß im SHK-Handwerk.', tags: ['Digitalisierung', 'App', 'Aufmaß'], revisions: [{date: new Date().toISOString(), user: 'System', note: 'Initial Seed'}] },
+        { id: 'art-4', type: 'article', title: 'Betriebs-Feature: Firma Sanitär-Schulze aus Heidelberg meistert die 4-Tage-Woche', summary: 'Weniger Arbeitszeit bei vollem Lohnausgleich – kann das im Handwerk funktionieren? Die Firma Schulze hat es gewagt und zieht nach einem Jahr Bilanz.', content: generateContent('4-Tage-Woche im Handwerk', 'Arbeitszeitmodelle'), imageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=1200', category: 'Betriebs-Features', author: 'Julia Schmidt', publishedAt: new Date(Date.now() - 86400000 * 12).toISOString(), featured: false, status: 'published', views: 3120, shares: 180, readTime: 280, slug: 'feature-sanitaer-schulze-4-tage-woche', metaTitle: 'Sanitär Schulze: Erfolg mit 4-Tage-Woche', metaDescription: 'Ein Betriebs-Feature über die Einführung der 4-Tage-Woche bei einem SHK-Betrieb in Heidelberg.', tags: ['Arbeitszeit', 'New Work', 'Betriebsführung'], revisions: [{date: new Date().toISOString(), user: 'System', note: 'Initial Seed'}] },
+        { id: 'art-5', type: 'article', title: 'Neue Trinkwasserverordnung (TrinkwV): Strengere Grenzwerte und Prüfpflichten', summary: 'Seit diesem Jahr gelten neue Regeln für die Trinkwasserinstallation. Was sich bei Legionellenprüfung, Materialien und Dokumentation geändert hat.', content: generateContent('Neue Trinkwasserverordnung', 'Gesetze und Normen'), imageUrl: 'https://images.unsplash.com/photo-1594903335804-6a09a5c75464?auto=format&fit=crop&q=80&w=1200', category: 'Branchen-News', author: 'Redaktion', publishedAt: new Date(Date.now() - 86400000 * 15).toISOString(), featured: false, status: 'published', views: 2890, shares: 155, readTime: 220, slug: 'neue-trinkwasserverordnung', metaTitle: 'Trinkwasserverordnung: Die Änderungen', metaDescription: 'Ein Überblick über die wichtigsten Änderungen der neuen Trinkwasserverordnung für Installateure.', tags: ['Trinkwasser', 'Gesetz', 'Hygiene'], revisions: [{date: new Date().toISOString(), user: 'System', note: 'Initial Seed'}] },
+        { id: 'art-6', type: 'article', title: 'Smart-Home im Bad: Intelligente WCs und digitale Armaturen im Kommen', summary: 'Das Badezimmer wird smart. Wir zeigen die neuesten Trends von der Dusch-App bis zum sprachgesteuerten Wasserhahn und erörtern die Chancen für das Fachhandwerk.', content: generateContent('Smart-Home im Bad', 'Badezimmer-Technologie'), imageUrl: 'https://images.unsplash.com/photo-1586798271654-0513903a3a5f?auto=format&fit=crop&q=80&w=1200', category: 'Technologie', author: 'Markus Weber', publishedAt: new Date(Date.now() - 86400000 * 20).toISOString(), featured: false, status: 'published', views: 1540, shares: 70, readTime: 180, slug: 'smart-home-bad-trends', metaTitle: 'Trends im Smart-Bad', metaDescription: 'Die neuesten Smart-Home-Technologien für das Badezimmer und ihre Relevanz für SHK-Betriebe.', tags: ['Smart Home', 'Bad', 'IoT'], revisions: [{date: new Date().toISOString(), user: 'System', note: 'Initial Seed'}] },
+        { id: 'art-7', type: 'article', title: 'Großprojekt in Mannheim: Die Rolle der SHK-Branche bei der Sanierung des Quartiers Franklin', summary: 'Ein Blick hinter die Kulissen eines der größten Bauvorhaben der Region. Welche SHK-Technik kommt zum Einsatz und welche Betriebe sind beteiligt?', content: generateContent('Sanierung Franklin Mannheim', 'Regionalprojekte'), imageUrl: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&q=80&w=1200', category: 'Regional', author: 'Redaktion', publishedAt: new Date(Date.now() - 86400000 * 25).toISOString(), featured: false, status: 'published', views: 4200, shares: 250, readTime: 320, slug: 'projekt-franklin-mannheim-shk', metaTitle: 'SHK-Technik im Franklin-Quartier', metaDescription: 'Ein Bericht über die Sanitär-, Heizungs- und Klimatechnik im Mannheimer Franklin-Quartier.', tags: ['Mannheim', 'Großprojekt', 'Sanierung'], revisions: [{date: new Date().toISOString(), user: 'System', note: 'Initial Seed'}] },
+        { id: 'art-8', type: 'article', title: 'Heizen ohne Gas und Öl: Alternativen von Pellet bis Wasserstoff im Überblick', summary: 'Die Energiewende zwingt zum Umdenken. Wir vergleichen die gängigsten Alternativen zu fossilen Brennstoffen im Hinblick auf Kosten, Effizienz und Zukunftsfähigkeit.', content: generateContent('Heizen ohne Gas und Öl', 'alternative Heizsysteme'), imageUrl: 'https://images.unsplash.com/photo-1621233923627-12820330df87?auto=format&fit=crop&q=80&w=1200', category: 'Energie & Nachhaltigkeit', author: 'Julia Schmidt', publishedAt: new Date(Date.now() - 86400000 * 30).toISOString(), featured: false, status: 'published', views: 3850, shares: 205, readTime: 400, slug: 'heizen-alternativen-gas-oel', metaTitle: 'Alternative Heizsysteme im Vergleich', metaDescription: 'Ein umfassender Vergleich von Heizungsalternativen wie Pellet, Solarthermie und Wasserstoff.', tags: ['Heizung', 'Energiewende', 'Technik'], revisions: [{date: new Date().toISOString(), user: 'System', note: 'Initial Seed'}] },
+        { id: 'art-9', type: 'article', title: 'Fachkräftemangel bekämpfen: Quereinsteiger erfolgreich integrieren', summary: 'Neue Wege im Recruiting: Wie SHK-Betriebe erfolgreich Personal aus anderen Branchen gewinnen und qualifizieren können. Ein Leitfaden mit Praxisbeispielen.', content: generateContent('Quereinsteiger im Handwerk', 'Fachkräftemangel'), imageUrl: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&q=80&w=1200', category: 'Personal & Karriere', author: 'Markus Weber', publishedAt: new Date(Date.now() - 86400000 * 35).toISOString(), featured: false, status: 'published', views: 2150, shares: 110, readTime: 260, slug: 'quereinsteiger-shk-integrieren', metaTitle: 'Quereinsteiger im SHK-Handwerk', metaDescription: 'So gelingt die Integration von Quereinsteigern in SHK-Betrieben zur Bekämpfung des Fachkräftemangels.', tags: ['Fachkräfte', 'Quereinsteiger', 'HR'], revisions: [{date: new Date().toISOString(), user: 'System', note: 'Initial Seed'}] },
+        { id: 'art-10', type: 'article', title: 'Kundenkommunikation per WhatsApp & Co: Chancen und rechtliche Fallstricke', summary: 'Schnell, direkt und persönlich: Messenger-Dienste verändern die Kundenkommunikation. Was ist erlaubt, worauf müssen Betriebe achten und welche Tools helfen?', content: generateContent('Kundenkommunikation per WhatsApp', 'digitale Kundenbindung'), imageUrl: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?auto=format&fit=crop&q=80&w=1200', category: 'Branchen-News', author: 'Redaktion', publishedAt: new Date(Date.now() - 86400000 * 40).toISOString(), featured: false, status: 'published', views: 1890, shares: 85, readTime: 190, slug: 'whatsapp-kundenkommunikation-handwerk', metaTitle: 'WhatsApp im Handwerk: Recht & Praxis', metaDescription: 'Praxistipps und rechtliche Hinweise zur Nutzung von WhatsApp in der Kundenkommunikation für SHK-Betriebe.', tags: ['Kommunikation', 'DSGVO', 'Digitalisierung'], revisions: [{date: new Date().toISOString(), user: 'System', note: 'Initial Seed'}] }
+    ];
 
     tempArticles.push(
       { id: 'page-imprint', type: 'page', title: 'Impressum', summary: 'Rechtliche Informationen', content: `<h2>Impressum</h2><p><strong>Angaben gemäß § 5 TMG</strong></p><p>SHK Rhein-Neckar Magazin GmbH<br>Wasserturmstraße 12<br>68161 Mannheim<br>Deutschland</p><p><strong>Vertreten durch:</strong><br>Max Mustermann</p><p><strong>Kontakt:</strong><br>Telefon: +49 (0) 621 12345-0<br>E-Mail: kontakt@shk-rhein-neckar.de</p>`, imageUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200', category: 'Page', author: 'Admin', publishedAt: new Date().toISOString(), status: 'published', featured: false, views: 0, shares: 0, readTime: 0 },
@@ -399,7 +369,7 @@ function renderDashboard() {
                         <span class="text-gray-500">${a.views}</span>
                     </div>
                     <div class="w-full bg-gray-100 rounded-full h-1.5">
-                        <div class="bg-brand-copper h-1.5 rounded-full" style="width: ${Math.min((a.views/1500)*100, 100)}%"></div>
+                        <div class="bg-brand-copper h-1.5 rounded-full" style="width: ${Math.min((a.views/5000)*100, 100)}%"></div>
                     </div>
                 </div>`).join('')}
             </div>
@@ -1058,16 +1028,16 @@ async function triggerSync() {
             method: 'POST',
             body: JSON.stringify({ action: 'sync', articles, directory, categories, users, mediaLibrary }),
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            mode: 'no-cors' // Use no-cors for simple cross-origin POST to Apps Script
+            mode: 'no-cors' 
         });
         
-        // With no-cors, we can't read the response, so we optimistically assume success.
         setTimeout(() => {
             appState.syncState = 'success';
-            localStorage.removeItem('shk_data_cache_timestamp'); // Invalidate cache after sync
+            localStorage.removeItem('shk_data_cache_timestamp'); // Invalidate public cache
+            localStorage.setItem('shk_cms_synced', Date.now()); // Signal other tabs to reload
             render();
             setTimeout(() => { appState.syncState = 'idle'; render(); }, 3000);
-        }, 1500); // Simulate network delay
+        }, 1500);
 
     } catch (e) {
         console.error('Sync Error:', e);
