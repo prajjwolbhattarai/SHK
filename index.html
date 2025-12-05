@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -9,24 +8,49 @@
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+      .writing-mode-vertical { writing-mode: vertical-rl; }
       .loader {
         border: 3px solid #f3f3f3;
         border-radius: 50%;
         border-top: 3px solid #b45309;
         width: 24px;
         height: 24px;
+        -webkit-animation: spin 1s linear infinite; /* Safari */
         animation: spin 1s linear infinite;
       }
-      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-      .fade-in { animation: fadeIn 0.5s ease-in; }
-      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
     </style>
     <script>
       tailwind.config = {
         theme: {
           extend: {
-            fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Montserrat', 'sans-serif'] },
-            colors: { 'brand-dark': '#0f172a', 'brand-copper': '#b45309', 'brand-steel': '#475569', 'brand-surface': '#f8fafc' }
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              display: ['Montserrat', 'sans-serif'],
+            },
+            colors: {
+              'brand-dark': '#0f172a',
+              'brand-copper': '#b45309',
+              'brand-steel': '#475569',
+              'brand-surface': '#f8fafc',
+            },
+            animation: {
+              'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+              'fade-in': 'fadeIn 1s ease-out forwards',
+            },
+            keyframes: {
+              fadeInUp: {
+                '0%': { opacity: '0', transform: 'translateY(20px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              fadeIn: {
+                '0%': { opacity: '0' },
+                '100%': { opacity: '1' },
+              }
+            }
           }
         }
       }
@@ -43,191 +67,594 @@
 }
 </script>
 </head>
-<body class="bg-brand-surface text-slate-900 antialiased">
-    <div id="app">
-        <!-- APP SHELL -->
-        <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
-            <div class="max-w-7xl mx-auto px-4 h-20 flex justify-between items-center">
-                <a href="index.html" class="flex items-center"><img src="shklogo.jpg" alt="SHK" class="h-12 w-auto object-contain" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"/><span class="hidden font-display font-black text-2xl tracking-tighter">SHK<span class="text-brand-copper">.RN</span></span></a>
-                <div class="hidden md:flex space-x-8">
-                    <a href="index.html" class="text-xs font-bold uppercase tracking-widest text-brand-dark hover:text-brand-copper">Magazin</a>
-                    <a href="index.html?view=directory" class="text-xs font-bold uppercase tracking-widest text-brand-steel hover:text-brand-copper">Verzeichnis</a>
-                </div>
-                <a href="admin.html" class="bg-brand-dark text-white px-5 py-2 rounded-sm text-xs font-bold uppercase tracking-wider">Login</a>
-            </div>
-        </nav>
-
-        <main id="main-content" class="min-h-screen fade-in">
-            <!-- Content Injected Here -->
-            <div class="flex flex-col items-center justify-center py-40">
-                <div class="loader mb-4"></div>
-                <p class="text-brand-steel text-sm">Lade Inhalte...</p>
-            </div>
-        </main>
-
-        <footer class="bg-white border-t border-gray-200 py-12 mt-12">
-            <div class="max-w-7xl mx-auto px-4 text-center text-gray-400 text-xs">
-                <p>&copy; 2025 SHK Rhein-Neckar Magazin.</p>
-            </div>
-        </footer>
-    </div>
+<body class="bg-brand-surface text-slate-900 antialiased selection:bg-brand-copper selection:text-white">
+    <div id="progress-bar-container" class="fixed top-0 left-0 w-full h-1 z-[60] bg-transparent"></div>
+    <div id="header-container"></div>
+    <main id="main-content" class="min-h-screen">
+        <!-- Content is rendered by JavaScript -->
+    </main>
+    <div id="footer-container"></div>
 
 <script>
-// --- FRONTEND LOGIC ---
+// V A N I L L A   J S   A P P L I C A T I O N
 
+// --- 1. CONFIG & DATA STORE ---
+// The Web App URL that connects to your Google Doc/Sheet
 const API_URL = 'https://script.google.com/macros/s/AKfycbxw9Sw74S1Yy5W0zVCRHZ7ZxTTOISUKZzk793WkeR8TW9eF61Mws4aGcOPRg1JaiUBuPQ/exec';
 
-let appData = { articles: [], directory: [] };
+const INITIAL_CATEGORIES = ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
 
-async function init() {
+// Static pages are always available immediately
+const STATIC_PAGES = [
+  { id: 'page-imprint', type: 'page', title: 'Impressum', summary: 'Rechtliche Informationen', content: `<h2>Impressum</h2><p><strong>Angaben gemäß § 5 TMG</strong></p><p>SHK Rhein-Neckar Magazin GmbH<br>Wasserturmstraße 12<br>68161 Mannheim<br>Deutschland</p><p><strong>Vertreten durch:</strong><br>Max Mustermann</p><p><strong>Kontakt:</strong><br>Telefon: +49 (0) 621 12345-0<br>E-Mail: kontakt@shk-rhein-neckar.de</p>`, imageUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200', category: 'Page', author: 'Admin', publishedAt: new Date().toISOString(), featured: false, views: 0, shares: 0, readTime: 0 },
+  { id: 'page-privacy', type: 'page', title: 'Datenschutzerklärung', summary: 'Datenschutz', content: '<h2>Datenschutz</h2><p>Wir nehmen den Schutz Ihrer Daten ernst...</p>', imageUrl: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=1200', category: 'Page', author: 'Admin', publishedAt: new Date().toISOString(), featured: false, views: 0, shares: 0, readTime: 0 },
+  { id: 'page-terms', type: 'page', title: 'AGB', summary: 'Allgemeine Geschäftsbedingungen', content: '<h2>AGB</h2><p>Allgemeine Geschäftsbedingungen für die Nutzung...</p>', imageUrl: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&q=80&w=1200', category: 'Page', author: 'Admin', publishedAt: new Date().toISOString(), featured: false, views: 0, shares: 0, readTime: 0 },
+  { id: 'page-submit', type: 'page', title: 'Story einreichen', summary: 'Senden Sie uns Ihre Story', content: `<h2>Ihre Geschichte im Magazin</h2><p>Senden Sie uns Ihre Projektberichte an <a href="mailto:redaktion@shk-rhein-neckar.de">redaktion@shk-rhein-neckar.de</a></p>`, imageUrl: 'https://images.unsplash.com/photo-1512486130939-2c4f79935e4f?auto=format&fit=crop&q=80&w=1200', category: 'Page', author: 'Redaktion', publishedAt: new Date().toISOString(), featured: false, views: 0, shares: 0, readTime: 0 },
+  { id: 'page-advertising', type: 'page', title: 'Werben & Partner', summary: 'Werbemöglichkeiten', content: `<h2>Media-Daten</h2><p>Erreichen Sie 5000+ Fachkräfte. Kontakt: <a href="mailto:ads@shk-rhein-neckar.de">ads@shk-rhein-neckar.de</a></p>`, imageUrl: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=1200', category: 'Page', author: 'Sales', publishedAt: new Date().toISOString(), featured: false, views: 0, shares: 0, readTime: 0 },
+  { id: 'page-jobs', type: 'page', title: 'Stellenmarkt', summary: 'Jobs in der Region', content: `<h2>SHK Jobs Rhein-Neckar</h2><p>Inserieren Sie hier. Kontakt: <a href="mailto:jobs@shk-rhein-neckar.de">jobs@shk-rhein-neckar.de</a></p>`, imageUrl: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&q=80&w=1200', category: 'Page', author: 'HR', publishedAt: new Date().toISOString(), featured: false, views: 0, shares: 0, readTime: 0 }
+];
+
+// State
+let ALL_ARTICLES = [...STATIC_PAGES]; // Initially only static pages
+let DIRECTORY_DATA = [];
+let IS_LOADING = true;
+let FETCH_ERROR = false;
+
+// --- 2. LANGUAGE MANAGER ---
+const translations = {
+  en: { 'nav.home': 'Home', 'nav.directory': 'Directory', 'hero.title': 'The Leading SHK Industry Magazine.', 'hero.subtitle': 'Trusted industry coverage, insights, and success stories for sanitary, heating, and climate professionals in the Rhein-Neckar region.', 'hero.read_latest': 'Read Latest', 'hero.submit_story': 'Submit a Story', 'section.top_story': 'Top Story', 'section.latest_news': 'Latest Industry News', 'section.trust_title': 'Deeply Rooted in Rhein-Neckar', 'section.trust_text': 'We don\'t just report on the industry; we are part of the local ecosystem. Connecting businesses in Mannheim, Heidelberg, Ludwigshafen, and beyond.', 'section.explore_categories': 'Explore Topics', 'newsletter.title': 'Stay Informed. No Spam.', 'newsletter.text': 'Get the weekly digest of the most important SHK news in Rhein-Neckar. Used by over 2,000 local professionals.', 'newsletter.placeholder': 'Your work email...', 'newsletter.button': 'Subscribe', 'footer.about': 'The independent voice for the Sanitary, Heating, and Climate industry in the metropolitan region.', 'article.read_story': 'Read Story', 'article.watch_video': 'Watch Video', 'search.placeholder': 'Search articles...', 'search.no_results': 'No articles found matching your search.', 'btn.show_more': 'Show More', 'btn.load_more': 'Load More Articles', 'btn.view_category': 'View Category', 'nav.get_featured': 'Get Featured', 'cat.Branchen-News': 'Industry News', 'cat.Betriebs-Features': 'Company Features', 'cat.Personal & Karriere': 'HR & Careers', 'cat.Technologie': 'Technology', 'cat.Energie & Nachhaltigkeit': 'Energy & Sustainability', 'cat.Regional': 'Regional', 'article.read_time': 'min read', 'article.share': 'Share', 'loading.title': 'Loading Content...', 'loading.subtitle': 'Fetching the latest stories from our database.', 'error.title': 'Connection Error', 'error.subtitle': 'Could not load live articles. Showing cached/static content.' },
+  de: { 'nav.home': 'Startseite', 'nav.directory': 'Verzeichnis', 'hero.title': 'Das führende SHK-Branchenmagazin.', 'hero.subtitle': 'Verlässliche Berichterstattung, Einblicke und Erfolgsgeschichten für Sanitär-, Heizungs- und Klimaprofis in der Metropolregion Rhein-Neckar.', 'hero.read_latest': 'Aktuelles lesen', 'hero.submit_story': 'Story einreichen', 'section.top_story': 'Top Story', 'section.latest_news': 'Neueste Branchennachrichten', 'section.trust_title': 'Tief verwurzelt in Rhein-Neckar', 'section.trust_text': 'Wir berichten nicht nur über die Branche; wir sind Teil des lokalen Ökosystems. Wir verbinden Unternehmen in Mannheim, Heidelberg, Ludwigshafen und darüber hinaus.', 'section.explore_categories': 'Themen Entdecken', 'newsletter.title': 'Informiert bleiben. Kein Spam.', 'newsletter.text': 'Erhalten Sie die wöchentliche Zusammenfassung der wichtigsten SHK-Nachrichten. Gelesen von über 2.000 lokalen Profis.', 'newsletter.placeholder': 'Ihre geschäftliche E-Mail...', 'newsletter.button': 'Abonnieren', 'footer.about': 'Die unabhängige Stimme für die Sanitär-, Heizungs- und Klimabranche in der Metropolregion.', 'article.read_story': 'Artikel lesen', 'article.watch_video': 'Video ansehen', 'search.placeholder': 'Artikel suchen...', 'search.no_results': 'Keine Artikel gefunden.', 'btn.show_more': 'Mehr Anzeigen', 'btn.load_more': 'Weitere Artikel laden', 'btn.view_category': 'Kategorie ansehen', 'nav.get_featured': 'Artikel Einreichen', 'cat.Branchen-News': 'Branchen-News', 'cat.Betriebs-Features': 'Betriebs-Features', 'cat.Personal & Karriere': 'Personal & Karriere', 'cat.Technologie': 'Technologie', 'cat.Energie & Nachhaltigkeit': 'Energie & Nachhaltigkeit', 'cat.Regional': 'Regional', 'article.read_time': 'Min Lesezeit', 'article.share': 'Teilen', 'loading.title': 'Lade Inhalte...', 'loading.subtitle': 'Die neuesten Stories werden abgerufen.', 'error.title': 'Verbindungsfehler', 'error.subtitle': 'Live-Artikel konnten nicht geladen werden.' }
+};
+const languageManager = {
+    currentLanguage: 'de',
+    getLanguage: () => {
+        const lang = localStorage.getItem('shk_lang') || 'de';
+        languageManager.currentLanguage = lang;
+        return lang;
+    },
+    setLanguage: (lang) => {
+        languageManager.currentLanguage = lang;
+        localStorage.setItem('shk_lang', lang);
+        renderPage(); 
+    },
+    t: (key) => {
+        return translations[languageManager.currentLanguage]?.[key] || translations['de'][key] || key;
+    }
+};
+
+// --- 3. FETCH LOGIC ---
+async function fetchLiveContent() {
     try {
-        // Fetch Live Data
-        // We use redirect: "follow" because GAS often returns 302
+        console.log("Fetching live content from:", API_URL);
         const response = await fetch(API_URL);
-        const data = await response.json();
-
-        appData.articles = data.articles || [];
-        appData.directory = data.directory || [];
-
-        render();
-    } catch (e) {
-        console.error("Fetch failed", e);
-        // Fallback to static skeleton if fetch fails completely
-        document.getElementById('main-content').innerHTML = `
-            <div class="max-w-7xl mx-auto px-4 py-12 text-center">
-                <div class="bg-yellow-50 border border-yellow-200 p-4 rounded-sm inline-block mb-8">
-                    <p class="text-yellow-800 text-sm font-bold">Offline Mode: Could not connect to live database.</p>
-                </div>
-                <h1 class="text-4xl font-display font-black text-brand-dark mb-4">SHK Rhein-Neckar</h1>
-                <p class="text-brand-steel">Bitte versuchen Sie es später erneut.</p>
-            </div>
-        `;
-    }
-}
-
-function render() {
-    const params = new URLSearchParams(window.location.search);
-    const view = params.get('view');
-    const id = params.get('id');
-
-    const main = document.getElementById('main-content');
-
-    if (view === 'directory') {
-        renderDirectory(main);
-    } else if (id) {
-        renderArticle(main, id);
-    } else {
-        renderMagazine(main);
-    }
-}
-
-function renderMagazine(container) {
-    const featured = appData.articles.find(a => a.featured);
-    const others = appData.articles.filter(a => a.id !== featured?.id);
-
-    let html = `
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        ${featured ? `
-        <div class="mb-16 group cursor-pointer" onclick="window.location.href='?id=${featured.id}'">
-            <div class="relative h-[500px] w-full overflow-hidden rounded-sm shadow-xl">
-                <img src="${featured.imageUrl}" class="w-full h-full object-cover transition duration-700 group-hover:scale-105" />
-                <div class="absolute inset-0 bg-gradient-to-t from-brand-dark via-transparent to-transparent opacity-90"></div>
-                <div class="absolute bottom-0 left-0 p-8 md:p-12 text-white">
-                    <span class="bg-brand-copper px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-sm mb-4 inline-block">Top Story</span>
-                    <h1 class="text-4xl md:text-6xl font-display font-black mb-4 leading-tight">${featured.title}</h1>
-                    <p class="text-gray-200 max-w-2xl text-lg line-clamp-2">${featured.summary}</p>
-                </div>
-            </div>
-        </div>` : ''}
-
-        <div class="flex items-center justify-between mb-8 border-b border-gray-200 pb-4">
-            <h2 class="text-2xl font-display font-bold text-brand-dark">Aktuelle Nachrichten</h2>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            ${others.map(a => `
-            <a href="?id=${a.id}" class="group block bg-white border border-gray-100 rounded-sm overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <div class="h-48 overflow-hidden relative">
-                    <img src="${a.imageUrl}" class="w-full h-full object-cover transition duration-500 group-hover:scale-110" />
-                    <span class="absolute top-4 left-4 bg-white/90 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-brand-dark rounded-sm">${a.category}</span>
-                </div>
-                <div class="p-6">
-                    <div class="flex items-center text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-3">
-                        <span>${new Date(a.publishedAt).toLocaleDateString()}</span>
-                        <span class="mx-2">•</span>
-                        <span>${a.author}</span>
-                    </div>
-                    <h3 class="text-xl font-display font-bold text-brand-dark mb-3 leading-tight group-hover:text-brand-copper transition-colors">${a.title}</h3>
-                    <p class="text-brand-steel text-sm line-clamp-3 mb-4">${a.summary}</p>
-                    <span class="text-brand-copper text-xs font-bold uppercase tracking-wider flex items-center">Mehr Lesen &rarr;</span>
-                </div>
-            </a>
-            `).join('')}
-        </div>
+        if (!response.ok) throw new Error('Network response was not ok');
         
-        ${others.length === 0 && !featured ? '<div class="text-center py-20 text-gray-400">Keine Artikel gefunden. Bitte im CMS synchronisieren.</div>' : ''}
-    </div>`;
+        const data = await response.json();
+        
+        // Update Articles
+        if (data.articles && Array.isArray(data.articles)) {
+            // Combine with static pages, but prefer live articles if IDs clash (though IDs should be unique)
+            ALL_ARTICLES = [...data.articles, ...STATIC_PAGES];
+        }
 
-    container.innerHTML = html;
+        // Update Directory
+        if (data.directory && Array.isArray(data.directory)) {
+            DIRECTORY_DATA = data.directory;
+        }
+
+        IS_LOADING = false;
+        renderPage(); // Re-render with new data
+
+    } catch (error) {
+        console.error("Fetch Error:", error);
+        FETCH_ERROR = true;
+        IS_LOADING = false;
+        renderPage(); // Re-render to show error/fallback
+    }
 }
 
-function renderArticle(container, id) {
-    const article = appData.articles.find(a => a.id === id);
-    if (!article) return container.innerHTML = '<p class="text-center py-20">Artikel nicht gefunden.</p>';
+// --- 4. COMPONENT TEMPLATES ---
+const createHeaderHTML = (categories, activeCategory) => {
+    const t = languageManager.t;
+    return `
+    <nav class="sticky top-0 z-50 transition-all duration-300 bg-white/95 backdrop-blur-md shadow-md border-b border-gray-200 py-0">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-20 items-center">
+          <div class="flex items-center lg:hidden">
+            <button id="mobile-menu-btn" class="p-2 text-brand-dark"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg></button>
+          </div>
+          <div class="flex-shrink-0 flex items-center justify-center lg:justify-start w-full lg:w-auto cursor-pointer" onclick="window.location.href='index.html'">
+            <img src="shklogo.jpg" alt="SHK Rhein-Neckar" class="w-auto object-contain h-12"/>
+          </div>
+          <div class="hidden lg:flex space-x-8 items-center h-full">
+              <a href="index.html" data-category="All" class="nav-category-link relative h-full text-xs font-bold uppercase tracking-widest transition-colors flex items-center ${activeCategory === 'All' ? 'text-brand-copper' : 'text-brand-steel hover:text-brand-dark'}">
+                ${t('nav.home')}
+                ${activeCategory === 'All' ? '<span class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-copper"></span>' : ''}
+              </a>
+              <a href="index.html?view=directory" class="relative h-full text-xs font-bold uppercase tracking-widest transition-colors flex items-center text-brand-steel hover:text-brand-dark">${t('nav.directory')}</a>
+              ${categories.slice(0, 4).map(cat => `
+                <a href="index.html?category=${encodeURIComponent(cat)}" data-category="${cat}" class="nav-category-link relative h-full text-xs font-bold uppercase tracking-widest transition-colors flex items-center ${activeCategory === cat ? 'text-brand-copper' : 'text-brand-steel hover:text-brand-dark'}">
+                  ${t(`cat.${cat}`)}
+                  ${activeCategory === cat ? '<span class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-copper"></span>' : ''}
+                </a>
+              `).join('')}
+          </div>
+          <div class="flex items-center space-x-4">
+            <div id="search-container" class="flex items-center transition-all duration-300 w-8">
+              <button id="search-toggle-btn" class="p-2 text-brand-steel hover:text-brand-copper transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+              </button>
+            </div>
+            <div class="hidden lg:block relative group">
+              <button id="lang-menu-btn" class="flex items-center space-x-2 text-xs font-bold uppercase text-brand-steel hover:text-brand-dark transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20z"/><path d="M2 12h20"/></svg>
+                  <span>${languageManager.currentLanguage.toUpperCase()}</span>
+              </button>
+              <div id="lang-menu" class="absolute hidden right-0 mt-4 w-40 bg-white border border-gray-100 shadow-xl rounded-sm py-2 z-50">
+                <div class="absolute -top-2 right-4 w-4 h-4 bg-white border-t border-l border-gray-100 transform rotate-45"></div>
+                ${['de', 'en'].map(lang => `<button data-lang="${lang}" class="lang-option-btn w-full text-left px-4 py-3 text-xs font-bold flex items-center hover:bg-gray-50 transition-colors ${languageManager.currentLanguage === lang ? 'text-brand-copper bg-orange-50/50' : 'text-gray-700'}">${lang === 'de' ? '🇩🇪' : '🇬🇧'} ${lang === 'de' ? 'Deutsch' : 'English'}</button>`).join('')}
+              </div>
+            </div>
+            <a href="index.html?id=page-submit" class="hidden lg:block group relative bg-brand-dark text-white px-6 py-3 text-xs font-bold uppercase tracking-wider overflow-hidden rounded-sm transition-all hover:shadow-lg">
+              <span class="relative z-10 group-hover:text-brand-copper transition-colors">${t('nav.get_featured')}</span>
+              <div class="absolute inset-0 bg-white transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out z-0"></div>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div id="mobile-menu" class="hidden lg:hidden border-t border-gray-100 bg-white absolute w-full z-50 shadow-2xl"></div>
+    </nav>
+    `;
+};
 
-    container.innerHTML = `
-    <article class="max-w-4xl mx-auto bg-white shadow-sm mt-8 mb-16 overflow-hidden rounded-sm">
-        <img src="${article.imageUrl}" class="w-full h-[400px] object-cover" />
-        <div class="px-8 py-12 md:px-16">
-            <div class="text-center mb-12">
-                <span class="text-brand-copper font-bold uppercase tracking-widest text-xs">${article.category}</span>
-                <h1 class="text-4xl md:text-5xl font-display font-black text-brand-dark mt-4 mb-6 leading-tight">${article.title}</h1>
-                <div class="flex items-center justify-center text-sm text-gray-500 space-x-4">
-                    <span>${article.author}</span>
-                    <span>•</span>
-                    <span>${new Date(article.publishedAt).toLocaleDateString()}</span>
+const createFooterHTML = (categories) => {
+    const t = languageManager.t;
+    return `
+    <footer class="bg-white border-t border-gray-200 pt-16 pb-8">
+      <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-12">
+        <div class="col-span-1 md:col-span-4 lg:col-span-2">
+          <img src="shklogo.jpg" alt="SHK Rhein-Neckar" class="h-16 w-auto mb-4"/>
+          <p class="text-sm text-brand-steel leading-relaxed max-w-sm">${t('footer.about')}</p>
+        </div>
+        <div class="lg:col-start-3">
+          <h3 class="text-xs font-bold uppercase tracking-widest text-brand-dark mb-6">Magazin</h3>
+          <ul class="space-y-3 text-sm text-brand-steel">
+            <li><a href="index.html" class="hover:text-brand-copper transition">${t('nav.home')}</a></li>
+            <li><a href="index.html?view=directory" class="hover:text-brand-copper transition">${t('nav.directory')}</a></li>
+            ${categories.slice(0, 4).map(c => `<li><a href="index.html?category=${encodeURIComponent(c)}" class="hover:text-brand-copper transition">${t(`cat.${c}`)}</a></li>`).join('')}
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-widest text-brand-dark mb-6">Unternehmen</h3>
+          <ul class="space-y-3 text-sm text-brand-steel">
+            <li><a href="index.html?id=page-submit" class="hover:text-brand-copper transition">${t('hero.submit_story')}</a></li>
+            <li><a href="index.html?id=page-advertising" class="hover:text-brand-copper transition">Advertising</a></li>
+            <li><a href="index.html?id=page-jobs" class="hover:text-brand-copper transition">Job Board</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-widest text-brand-dark mb-6">Kontakt</h3>
+          <ul class="space-y-3 text-sm text-brand-steel">
+            <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2 mt-1 flex-shrink-0"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> redaktion@shk-rhein-neckar.de</li>
+            <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2 mt-1 flex-shrink-0"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> Mannheim, Germany</li>
+          </ul>
+        </div>
+      </div>
+      <div class="max-w-7xl mx-auto px-4 mt-16 pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
+        <div class="flex space-x-6">
+          <a href="index.html?id=page-imprint" class="hover:text-brand-copper">Impressum</a>
+          <a href="index.html?id=page-privacy" class="hover:text-brand-copper">Datenschutz</a>
+          <a href="index.html?id=page-terms" class="hover:text-brand-copper">AGB</a>
+        </div>
+        <div class="mt-4 md:mt-0 text-center md:text-right">
+          <span>© 2025 SHK Rhein-Neckar. Alle Rechte vorbehalten.</span>
+          <a href="admin.html" class="ml-4 text-gray-300 hover:text-brand-copper transition">Mitarbeiter Login</a>
+        </div>
+      </div>
+    </footer>
+    `;
+};
+
+const createArticleCardHTML = (article, variant = 'standard') => {
+    const t = languageManager.t;
+    const title = article.translations?.[languageManager.currentLanguage]?.title || article.title;
+    const summary = article.translations?.[languageManager.currentLanguage]?.summary || article.summary;
+
+    if (variant === 'featured') {
+        return `
+        <a href="index.html?id=${article.id}" class="group relative block w-full h-[600px] overflow-hidden rounded-sm shadow-2xl cursor-pointer">
+            <img src="${article.imageUrl}" alt="${title}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"/>
+            <div class="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/70 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-100"></div>
+            <div class="absolute bottom-0 left-0 p-8 md:p-12 text-white max-w-5xl z-20">
+                <div class="overflow-hidden mb-6"><span class="inline-block uppercase tracking-[0.2em] text-[10px] font-bold bg-brand-copper text-white px-3 py-1.5 rounded-sm transform translate-y-0 transition-transform group-hover:-translate-y-1">${article.category}</span></div>
+                <h2 class="text-3xl md:text-5xl lg:text-6xl font-display font-black mb-6 leading-none tracking-tight group-hover:text-gray-100 transition-colors">${title}</h2>
+                <p class="text-gray-300 mb-8 line-clamp-2 max-w-2xl font-light text-lg md:text-xl leading-relaxed opacity-90 group-hover:opacity-100 transition-opacity">${summary}</p>
+                <div class="flex items-center space-x-6 text-xs font-bold text-gray-400 uppercase tracking-widest border-t border-white/10 pt-6">
+                    <span class="text-brand-copper">${article.author}</span>
+                    <span class="w-1 h-1 bg-gray-600 rounded-full"></span>
+                    <span class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 mr-2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${new Date(article.publishedAt).toLocaleDateString()}</span>
                 </div>
             </div>
-            <div class="prose prose-lg prose-slate max-w-none text-gray-700 leading-relaxed">
-                ${article.content}
+        </a>`;
+    }
+    return `
+    <a href="index.html?id=${article.id}" class="flex flex-col group cursor-pointer h-full bg-white rounded-sm overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border border-transparent hover:border-gray-100">
+      <div class="overflow-hidden aspect-[16/10] relative">
+        <img src="${article.imageUrl}" alt="${title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"/>
+        <div class="absolute top-4 left-4"><span class="bg-white/90 backdrop-blur-sm text-brand-dark text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 shadow-sm rounded-sm">${article.category}</span></div>
+        <div class="absolute inset-0 bg-brand-dark/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      </div>
+      <div class="flex flex-col flex-grow p-6 relative">
+        <div class="mb-4 flex items-center text-[10px] font-bold text-gray-400 uppercase tracking-wider space-x-2">
+           <span>${new Date(article.publishedAt).toLocaleDateString()}</span>
+           <span class="w-px h-3 bg-gray-300"></span>
+           <span class="text-brand-copper">${article.readTime ? Math.ceil(article.readTime / 60) : 5} min read</span>
+        </div>
+        <h3 class="text-xl font-display font-bold text-brand-dark mb-3 leading-snug group-hover:text-brand-copper transition-colors">${title}</h3>
+        <p class="text-brand-steel text-sm line-clamp-3 mb-6 flex-grow leading-relaxed">${summary}</p>
+        <div class="mt-auto pt-4 border-t border-gray-50 flex items-center text-xs font-bold uppercase tracking-wider text-brand-dark group-hover:text-brand-copper transition-colors">
+           ${t('article.read_story')} 
+           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 ml-1 transform group-hover:translate-x-1 transition-transform"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+    </a>`;
+};
+
+const createDirectoryCardHTML = (business) => {
+    const categoryColors = { Heizung: 'bg-red-100 text-red-800 border-red-200', Sanitär: 'bg-blue-100 text-blue-800 border-blue-200', Klima: 'bg-sky-100 text-sky-800 border-sky-200', Lüftung: 'bg-green-100 text-green-800 border-green-200', Elektro: 'bg-yellow-100 text-yellow-800 border-yellow-200' };
+    return `
+    <div class="bg-white rounded-sm border border-gray-100 p-6 flex flex-col h-full hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+        <div class="flex items-start mb-4">
+            <img src="${business.logoUrl}" alt="${business.name} logo" class="w-16 h-16 rounded-sm object-contain border border-gray-100 p-1 mr-4 bg-white" onerror="this.onerror=null;this.src='https://via.placeholder.com/150';">
+            <div class="flex-grow">
+                <h3 class="font-display font-bold text-lg text-brand-dark leading-tight">${business.name}</h3>
+                <span class="mt-1 inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm border ${categoryColors[business.category] || 'bg-gray-100 text-gray-800'}">${business.category}</span>
             </div>
+        </div>
+        <p class="text-sm text-brand-steel mb-5 leading-relaxed flex-grow">${business.description}</p>
+        <div class="mt-auto space-y-3 text-sm text-brand-steel border-t border-gray-100 pt-5">
+            <div class="flex items-start"><span>${business.address}, ${business.zip} ${business.city}</span></div>
+            <div class="flex items-center"><span>${business.phone}</span></div>
+            ${business.website ? `<div class="flex items-center"><a href="${business.website}" target="_blank" rel="noopener noreferrer" class="text-brand-copper hover:underline truncate">${business.website.replace(/^(https?:\/\/)?(www\.)?/, '')}</a></div>` : ''}
+        </div>
+    </div>`;
+};
+
+// --- 5. PAGE LOGIC ---
+const appState = {
+    activeCategory: 'All',
+    searchQuery: '',
+    displayedCount: 6
+};
+
+function renderMagazinePage() {
+    document.getElementById('progress-bar-container').innerHTML = '';
+    const t = languageManager.t;
+    const mainContent = document.getElementById('main-content');
+    
+    // Filter logic
+    let displayArticles = ALL_ARTICLES.filter(a => a.type !== 'page');
+
+    if (appState.searchQuery) {
+        const lowerQuery = appState.searchQuery.toLowerCase();
+        displayArticles = displayArticles.filter(a => 
+            a.title.toLowerCase().includes(lowerQuery) || 
+            a.summary.toLowerCase().includes(lowerQuery) ||
+            (a.content && a.content.toLowerCase().includes(lowerQuery))
+        );
+    } else if (appState.activeCategory !== 'All') {
+        displayArticles = displayArticles.filter(a => a.category === appState.activeCategory);
+    }
+
+    const featuredArticle = !appState.searchQuery && appState.activeCategory === 'All' ? displayArticles.find(a => a.featured) : null;
+    let gridArticles = displayArticles;
+    if (featuredArticle) {
+        gridArticles = gridArticles.filter(a => a.id !== featuredArticle.id);
+    }
+
+    // --- HTML GENERATION ---
+    let contentHTML = '';
+
+    // HERO (Always visible)
+    if (appState.activeCategory === 'All' && !appState.searchQuery) {
+        contentHTML += `
+        <div class="relative w-full h-[650px] flex items-center bg-brand-dark overflow-hidden group">
+            <div class="absolute inset-0 z-0">
+               <img src="https://images.unsplash.com/photo-1581092334651-ddf26d9a09d0?auto=format&fit=crop&q=80&w=2000" class="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-[20s] ease-linear" alt="Industrial Background" />
+               <div class="absolute inset-0 bg-gradient-to-r from-brand-dark via-brand-dark/90 to-transparent"></div>
+            </div>
+            <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+              <div class="max-w-3xl space-y-8 animate-fade-in-up">
+                 <h1 class="text-5xl md:text-7xl lg:text-8xl font-display font-black text-white leading-[0.9] tracking-tighter">${t('hero.title')}</h1>
+                 <p class="text-xl md:text-2xl text-gray-300 font-light leading-relaxed max-w-xl border-l-4 border-white/10 pl-6">${t('hero.subtitle')}</p>
+                 <div class="flex flex-wrap gap-4 pt-8">
+                    <button onclick="window.scrollTo({ top: 800, behavior: 'smooth'})" class="bg-brand-copper text-white px-10 py-4 text-xs font-bold uppercase tracking-widest hover:bg-white hover:text-brand-dark transition-all duration-300 rounded-sm shadow-xl hover:shadow-2xl hover:-translate-y-1">${t('hero.read_latest')}</button>
+                    <a href="index.html?id=page-submit" class="group px-10 py-4 text-xs font-bold uppercase tracking-widest text-white border border-white/30 hover:bg-white/10 transition-all duration-300 rounded-sm backdrop-blur-sm flex items-center">${t('hero.submit_story')}</a>
+                 </div>
+              </div>
+            </div>
+        </div>`;
+    }
+
+    contentHTML += `<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">`;
+    
+    // SEARCH HEADER
+    if (appState.searchQuery) {
+      contentHTML += `<div class="mb-12"><h2 class="text-3xl font-display font-bold text-brand-dark mb-4">Search Results: "${appState.searchQuery}"</h2><p class="text-brand-steel">${displayArticles.length} articles found.</p></div>`;
+    }
+
+    // ARTICLES SECTION
+    contentHTML += `<section class="animate-fade-in-up">`;
+    contentHTML += `<div class="flex items-end justify-between mb-12 border-b border-gray-200 pb-6">
+            <h2 class="text-3xl font-display font-bold text-brand-dark">${appState.activeCategory === 'All' ? t('section.latest_news') : (t(`cat.${appState.activeCategory}`) || appState.activeCategory)}</h2>
+            ${!IS_LOADING ? `<span class="text-xs font-bold text-gray-400 uppercase tracking-widest hidden sm:block">${gridArticles.length} Stories</span>` : ''}
+        </div>`;
+
+    // LOADING STATE (Spinner)
+    if (IS_LOADING) {
+        contentHTML += `
+        <div class="py-24 flex flex-col items-center justify-center text-center">
+            <div class="loader mb-4"></div>
+            <h3 class="text-lg font-bold text-brand-dark">${t('loading.title')}</h3>
+            <p class="text-sm text-gray-500">${t('loading.subtitle')}</p>
+        </div>`;
+    } 
+    // ERROR STATE
+    else if (FETCH_ERROR && gridArticles.length === 0) {
+        contentHTML += `
+        <div class="text-center py-32 bg-red-50 rounded-sm border border-red-100">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto text-red-400 mb-4"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+            <h3 class="text-lg font-bold text-red-800">${t('error.title')}</h3>
+            <p class="text-sm text-red-600 mb-4">${t('error.subtitle')}</p>
+            <button onclick="window.location.reload()" class="underline text-red-800 font-bold">Try Refreshing</button>
+        </div>`;
+    }
+    // CONTENT STATE
+    else {
+        // Featured Article
+        if (featuredArticle) {
+            contentHTML = contentHTML.replace('<section class="animate-fade-in-up">', `<section class="animate-fade-in-up"><div class="mb-24 animate-fade-in-up"><div class="flex items-center space-x-6 mb-10"><div class="h-px bg-gray-200 flex-grow"></div><span class="text-brand-steel uppercase tracking-[0.2em] text-xs font-bold">${t('section.top_story')}</span><div class="h-px bg-gray-200 flex-grow"></div></div>${createArticleCardHTML(featuredArticle, 'featured')}</div>`);
+        }
+
+        // Grid
+        contentHTML += `<div id="article-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+            ${gridArticles.slice(0, appState.displayedCount).map((article, idx) => `<div key="${article.id}" style="animation-delay: ${0.1 * idx}s" class="animate-fade-in-up">${createArticleCardHTML(article)}</div>`).join('')}
+        </div>`;
+        
+        // Empty State
+        if (gridArticles.length === 0 && !FETCH_ERROR) {
+            contentHTML += `<div class="text-center py-32 bg-gray-50 rounded-sm border border-dashed border-gray-300"><p class="text-brand-steel font-medium text-lg">${appState.searchQuery ? t('search.no_results') : 'No stories found.'}</p></div>`;
+        }
+        
+        // Load More
+        if (gridArticles.length > appState.displayedCount) {
+            contentHTML += `<div class="mt-16 text-center"><button id="load-more-btn" class="inline-flex items-center bg-white border border-gray-200 px-8 py-3 text-xs font-bold uppercase tracking-widest text-brand-dark hover:border-brand-copper hover:text-brand-copper transition-colors shadow-sm">${appState.activeCategory === 'All' ? t('btn.show_more') : t('btn.load_more')}</button></div>`;
+        }
+    }
+    contentHTML += `</section></div>`;
+
+    // Static Sections (Trust, Newsletter)
+    if (appState.activeCategory === 'All' && !appState.searchQuery) {
+        contentHTML += `
+        <section class="bg-white py-24 border-y border-gray-100">
+            <div class="max-w-7xl mx-auto px-4 text-center">
+                <h2 class="text-3xl font-display font-bold text-brand-dark mb-6">${t('section.trust_title')}</h2>
+                <p class="text-brand-steel text-lg max-w-2xl mx-auto mb-16 leading-relaxed">${t('section.trust_text')}</p>
+            </div>
+        </section>
+        <section class="py-24 px-4 bg-brand-surface">
+            <div class="max-w-6xl mx-auto bg-brand-dark rounded-sm overflow-hidden shadow-2xl relative">
+                <div class="relative z-10 grid md:grid-cols-2 gap-12 p-12 md:p-20 items-center">
+                    <div class="text-left space-y-6">
+                       <h2 class="text-4xl font-display font-bold text-white leading-tight">${t('newsletter.title')}</h2>
+                       <p class="text-gray-400 text-lg leading-relaxed">${t('newsletter.text')}</p>
+                    </div>
+                    <div class="bg-white/5 backdrop-blur-sm p-8 rounded-sm border border-white/10">
+                       <form class="flex flex-col gap-4" onsubmit="event.preventDefault();">
+                         <input type="email" placeholder="${t('newsletter.placeholder')}" class="w-full px-6 py-4 bg-white/10 border border-white/10 rounded-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-copper focus:bg-white/20 transition-all"/>
+                         <button class="w-full bg-brand-copper text-white px-6 py-4 font-bold uppercase tracking-widest text-xs hover:bg-white hover:text-brand-dark transition-all rounded-sm shadow-lg hover:shadow-xl mt-2">${t('newsletter.button')}</button>
+                       </form>
+                    </div>
+                </div>
+            </div>
+        </section>`;
+    }
+    
+    mainContent.innerHTML = contentHTML;
+    attachMagazineEventListeners();
+}
+
+function renderArticleReader(articleId) {
+    const mainContent = document.getElementById('main-content');
+    const article = ALL_ARTICLES.find(a => a.id === articleId);
+
+    if (!article) {
+        if(IS_LOADING) {
+             mainContent.innerHTML = `<div class="py-40 flex flex-col items-center justify-center text-center"><div class="loader mb-4"></div><h3 class="text-lg font-bold">Lade Artikel...</h3></div>`;
+             return;
+        }
+        mainContent.innerHTML = `<div class="text-center py-40"><h1 class="text-2xl font-bold">Artikel nicht gefunden</h1><a href="index.html" class="text-brand-copper mt-4 inline-block">Zurück zur Startseite</a></div>`;
+        return;
+    }
+
+    document.title = `${article.title} | SHK Rhein-Neckar`;
+    document.getElementById('progress-bar-container').innerHTML = `<div id="progress-bar" class="h-full bg-brand-copper transition-all duration-100 ease-out shadow-[0_0_10px_#b45309]" style="width: 0%"></div>`;
+
+    const t = languageManager.t;
+    const isPage = article.type === 'page';
+    
+    mainContent.innerHTML = `
+    <article class="max-w-6xl mx-auto my-0 bg-white">
+        <header class="px-4 py-16 md:py-24 text-center max-w-4xl mx-auto">
+           ${!isPage ? `<div class="mb-8"><a href="index.html?category=${encodeURIComponent(article.category)}" class="inline-block px-4 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-white bg-brand-dark rounded-sm hover:bg-brand-copper transition">${article.category}</a></div>` : ''}
+           <h1 class="text-4xl md:text-6xl font-display font-black text-brand-dark leading-[1.1] mb-10 tracking-tight">${article.title}</h1>
+           ${!isPage ? `
+             <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-8 text-sm text-brand-steel border-t border-b border-gray-100 py-6">
+               <div class="flex items-center"><span class="font-bold text-brand-dark uppercase tracking-wide text-xs">${article.author}</span></div>
+               <div class="hidden md:block w-px h-4 bg-gray-300"></div>
+               <div class="flex items-center"><span class="uppercase tracking-wide text-xs">${new Date(article.publishedAt).toLocaleDateString()}</span></div>
+             </div>` : ''}
+        </header>
+
+        ${article.imageUrl ? `<div class="w-full aspect-video md:aspect-[21/9] overflow-hidden bg-gray-100 shadow-sm"><img src="${article.imageUrl}" alt="${article.title}" class="w-full h-full object-cover" /></div>` : ''}
+
+        <div class="px-4 py-16 grid grid-cols-1 lg:grid-cols-12 gap-12 max-w-7xl mx-auto">
+           <div class="col-span-1 ${isPage ? 'lg:col-span-8 lg:col-start-3' : 'lg:col-span-8'}">
+             <div class="prose prose-lg md:prose-xl prose-slate max-w-none text-gray-700 leading-loose prose-headings:font-display prose-headings:font-bold prose-headings:text-brand-dark">
+               ${article.content}
+             </div>
+           </div>
         </div>
     </article>`;
+
+    // Simple scroll progress
+    window.addEventListener('scroll', () => {
+      const scroll = document.documentElement.scrollTop / (document.documentElement.scrollHeight - document.documentElement.clientHeight);
+      const bar = document.getElementById('progress-bar');
+      if(bar) bar.style.width = `${scroll * 100}%`;
+    });
 }
 
-function renderDirectory(container) {
-    container.innerHTML = `
-    <div class="max-w-7xl mx-auto px-4 py-12">
-        <div class="text-center mb-16">
-            <h1 class="text-4xl font-display font-black text-brand-dark mb-4">Branchenverzeichnis</h1>
-            <p class="text-brand-steel">Finden Sie Fachbetriebe in der Region.</p>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            ${appData.directory.map(d => `
-            <div class="bg-white p-6 border border-gray-100 rounded-sm hover:shadow-md transition">
-                <div class="flex items-center mb-4">
-                    <div class="w-12 h-12 bg-gray-50 rounded-sm flex items-center justify-center text-gray-300 font-bold text-xl mr-4">
-                        ${d.logoUrl ? `<img src="${d.logoUrl}" class="w-full h-full object-contain"/>` : d.name.charAt(0)}
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-brand-dark leading-tight">${d.name}</h3>
-                        <span class="text-[10px] font-bold uppercase text-brand-copper bg-orange-50 px-2 py-0.5 rounded-sm">${d.category}</span>
-                    </div>
-                </div>
-                <p class="text-sm text-gray-500 mb-4 line-clamp-2">${d.description || 'Keine Beschreibung.'}</p>
-                <div class="text-xs text-gray-400 space-y-1">
-                    <p>${d.city}</p>
-                    <p>${d.phone || ''}</p>
-                </div>
+function renderDirectoryPage() {
+    const t = languageManager.t;
+    const mainContent = document.getElementById('main-content');
+    
+    let directoryHTML = `
+        <div class="bg-white py-16 md:py-24 border-b border-gray-100">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-4xl md:text-6xl font-display font-black text-brand-dark mb-4">${t('nav.directory')}</h1>
+                <p class="text-lg md:text-xl text-brand-steel max-w-2xl mx-auto">Finden Sie qualifizierte SHK-Fachbetriebe in der Rhein-Neckar-Region.</p>
             </div>
-            `).join('')}
         </div>
-        ${appData.directory.length === 0 ? '<div class="text-center py-20 text-gray-400">Keine Einträge gefunden.</div>' : ''}
-    </div>`;
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">`;
+
+    if (IS_LOADING) {
+        directoryHTML += `<div class="col-span-full flex flex-col items-center justify-center py-20"><div class="loader mb-4"></div><p>Lade Verzeichnis...</p></div>`;
+    } else if (DIRECTORY_DATA.length === 0) {
+        directoryHTML += `<div class="col-span-full text-center py-20 bg-gray-50 rounded"><p class="text-brand-steel">Keine Einträge gefunden. Bitte synchronisieren Sie das Verzeichnis im CMS.</p></div>`;
+    } else {
+        directoryHTML += DIRECTORY_DATA.map(createDirectoryCardHTML).join('');
+    }
+    
+    directoryHTML += `</div></div>`;
+    mainContent.innerHTML = directoryHTML;
 }
 
-// Start
-document.addEventListener('DOMContentLoaded', init);
+function attachMagazineEventListeners() {
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', () => {
+            appState.displayedCount += 9;
+            renderMagazinePage();
+        });
+    }
+
+    document.querySelectorAll('.nav-category-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const category = link.getAttribute('data-category');
+            appState.activeCategory = category;
+            appState.searchQuery = '';
+            appState.displayedCount = category === 'All' ? 6 : 9;
+            window.history.pushState({category}, '', `index.html?category=${encodeURIComponent(category)}`);
+            renderPage();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+}
+
+function attachGlobalEventListeners() {
+    document.querySelectorAll('.lang-option-btn').forEach(btn => {
+        btn.addEventListener('click', () => languageManager.setLanguage(btn.getAttribute('data-lang')));
+    });
+    
+    const langMenuBtn = document.getElementById('lang-menu-btn');
+    if (langMenuBtn) {
+        langMenuBtn.addEventListener('click', () => document.getElementById('lang-menu').classList.toggle('hidden'));
+    }
+
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    if(mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', () => {
+            const menu = document.getElementById('mobile-menu');
+            if (menu.innerHTML === '') {
+                menu.innerHTML = `
+                <div class="px-6 py-6 space-y-4">
+                    <a href="index.html" class="block w-full text-left py-3 text-sm font-bold uppercase tracking-wide text-brand-dark hover:text-brand-copper">Home</a>
+                    <a href="index.html?view=directory" class="block w-full text-left py-3 text-sm font-bold uppercase tracking-wide text-brand-dark hover:text-brand-copper">Directory</a>
+                    ${INITIAL_CATEGORIES.map(cat => `<a href="index.html?category=${encodeURIComponent(cat)}" class="block w-full text-left py-3 text-sm font-bold uppercase tracking-wide text-brand-dark hover:text-brand-copper">${languageManager.t(`cat.${cat}`)}</a>`).join('')}
+                </div>`;
+            }
+            menu.classList.toggle('hidden');
+        });
+    }
+
+    const searchToggleBtn = document.getElementById('search-toggle-btn');
+    if(searchToggleBtn) {
+        searchToggleBtn.addEventListener('click', () => {
+            const container = document.getElementById('search-container');
+            container.classList.remove('w-8');
+            container.classList.add('w-full', 'md:w-96');
+            container.innerHTML = `
+            <form id="search-form" class="relative w-full flex items-center">
+                <input type="text" id="search-input" placeholder="${languageManager.t('search.placeholder')}" class="w-full bg-gray-100 border-none rounded-sm px-4 py-2 pr-10 text-sm focus:ring-2 focus:ring-brand-copper outline-none" />
+                <button type="button" id="search-close-btn" class="absolute right-2 p-1 text-gray-400 hover:text-brand-dark"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg></button>
+            </form>`;
+            document.getElementById('search-input').focus();
+
+            document.getElementById('search-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                appState.searchQuery = document.getElementById('search-input').value;
+                appState.displayedCount = 100;
+                renderPage();
+            });
+
+            document.getElementById('search-close-btn').addEventListener('click', () => {
+                appState.searchQuery = '';
+                renderPage(); 
+            });
+        });
+    }
+}
+
+function renderPage() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const articleId = urlParams.get('id');
+    const category = urlParams.get('category');
+    const view = urlParams.get('view');
+    
+    languageManager.getLanguage();
+    
+    if (category) {
+        appState.activeCategory = category;
+        appState.displayedCount = 9;
+    } else if (!articleId && !view) {
+        appState.activeCategory = 'All';
+    }
+
+    document.getElementById('header-container').innerHTML = createHeaderHTML(INITIAL_CATEGORIES, appState.activeCategory);
+    document.getElementById('footer-container').innerHTML = createFooterHTML(INITIAL_CATEGORIES);
+    
+    if (view === 'directory') {
+        renderDirectoryPage();
+    } else if (articleId) {
+        renderArticleReader(articleId);
+    } else {
+        renderMagazinePage();
+    }
+    
+    attachGlobalEventListeners();
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Initial Render (Shows loading state in article area, but header/hero immediately)
+    renderPage();
+    // 2. Fetch Data
+    fetchLiveContent();
+});
+
 </script>
 </body>
 </html>

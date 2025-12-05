@@ -21,7 +21,7 @@ interface CMSProps {
 
 type ViewMode = 'dashboard' | 'articles' | 'pages' | 'categories' | 'directory' | 'analytics' | 'sync';
 
-export const CMS: React.FC<CMSProps> = ({ articles, setArticles, categories, setCategories, directory, setDirectory, onLogout }) => {
+const CMS: React.FC<CMSProps> = ({ articles, setArticles, categories, setCategories, directory, setDirectory, onLogout }) => {
   const [activeView, setActiveView] = useState<ViewMode>('dashboard');
   
   // Article State
@@ -371,3 +371,5 @@ export const CMS: React.FC<CMSProps> = ({ articles, setArticles, categories, set
     </div>
   );
 };
+
+export default CMS;

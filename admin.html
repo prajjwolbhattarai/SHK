@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -7,7 +6,6 @@
     <title>CMS | SHK Rhein-Neckar</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
@@ -20,14 +18,6 @@
         }
       }
     </script>
-    <style>
-        .editor-content:empty:before {
-            content: attr(placeholder);
-            color: #9ca3af;
-            pointer-events: none;
-            display: block;
-        }
-    </style>
 </head>
 <body class="bg-gray-100 font-sans text-brand-dark">
     <div id="app-root"></div>
@@ -35,41 +25,21 @@
 <script>
 // --- V A N I L L A   J S   C M S ---
 
-// CONFIG
 const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxw9Sw74S1Yy5W0zVCRHZ7ZxTTOISUKZzk793WkeR8TW9eF61Mws4aGcOPRg1JaiUBuPQ/exec';
 
-// STATE
 let articles = [];
 let directory = [];
 let categories = [];
-let settings = { articlesScriptUrl: DEFAULT_SCRIPT_URL };
+let settings = { articlesScriptUrl: DEFAULT_SCRIPT_URL, userRole: 'Administrator' };
 
-const appState = {
-    isAuthenticated: false,
-    activeView: 'dashboard',
-    modalOpen: false,
-    modalType: null, // 'article' | 'business'
-    editingItem: null,
-    syncState: 'idle'
-};
-
-// --- DATA MANAGEMENT ---
+const appState = { isAuthenticated: false, activeView: 'dashboard', modalOpen: false, modalType: null, editingItem: null, syncState: 'idle' };
 
 function loadData() {
-    const sArticles = localStorage.getItem('shk_articles');
-    articles = sArticles ? JSON.parse(sArticles) : [];
-    
-    const sDirectory = localStorage.getItem('shk_directory');
-    directory = sDirectory ? JSON.parse(sDirectory) : [];
-    
-    const sCategories = localStorage.getItem('shk_categories');
-    categories = sCategories ? JSON.parse(sCategories) : ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
-    
-    const sSettings = localStorage.getItem('shk_settings');
-    settings = sSettings ? JSON.parse(sSettings) : settings;
-
-    // Seed if empty
-    if (articles.length === 0) seedMockData();
+    articles = JSON.parse(localStorage.getItem('shk_articles')) || [];
+    directory = JSON.parse(localStorage.getItem('shk_directory')) || [];
+    categories = JSON.parse(localStorage.getItem('shk_categories')) || ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
+    settings = JSON.parse(localStorage.getItem('shk_settings')) || settings;
+    if (articles.length === 0) seedMockArticles();
 }
 
 function saveData() {
@@ -79,530 +49,51 @@ function saveData() {
     localStorage.setItem('shk_settings', JSON.stringify(settings));
 }
 
-function seedMockData() {
+function seedMockArticles() {
     articles = [
-        { 
-            id: '1', title: 'Wärmepumpen-Boom in Mannheim: Ein Praxisbericht', 
-            summary: 'Wie lokale Betriebe die Nachfrage bewältigen und wo die Engpässe liegen.', 
-            content: '<h2>Markt im Wandel</h2><p>Die Nachfrage nach Wärmepumpen in der Metropolregion hat sich im letzten Jahr verdoppelt. Für SHK-Betriebe bedeutet das volle Auftragsbücher, aber auch logistische Herausforderungen.</p><ul><li>Lieferzeiten von bis zu 6 Monaten</li><li>Fachkräftemangel bei der Montage</li></ul><p>Wir haben mit der Müller GmbH aus Käfertal gesprochen...</p>', 
-            author: 'Redaktion', category: 'Branchen-News', status: 'published', publishedAt: new Date().toISOString(), featured: true, 
-            imageUrl: 'https://images.unsplash.com/photo-1581092334651-ddf26d9a09d0?auto=format&fit=crop&q=80&w=800', views: 1250 
-        },
-        { 
-            id: '2', title: 'GEG 2024: Was SHK-Profis jetzt wissen müssen', 
-            summary: 'Das Gebäudeenergiegesetz bringt neue Pflichten. Wir fassen zusammen.', 
-            content: '<h2>Die 65%-Regel</h2><p>Ab Januar gilt: Jede neu eingebaute Heizung muss zu 65% mit erneuerbaren Energien betrieben werden. Das stellt Planer vor neue Aufgaben.</p><blockquote>"Beratung ist jetzt das wichtigste Produkt", sagt Innungsobermeister Schmidt.</blockquote>', 
-            author: 'Markus Weber', category: 'Technologie', status: 'published', publishedAt: new Date(Date.now() - 86400000).toISOString(), featured: false, 
-            imageUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800', views: 890 
-        },
-        { 
-            id: '3', title: 'Azubi-Mangel: Innovative Wege der Gewinnung', 
-            summary: 'Warum Instagram und TikTok für Handwerksbetriebe Pflicht werden.', 
-            content: '<p>Der klassische Weg über die Zeitungsanzeige funktioniert nicht mehr. Junge Talente sind digital unterwegs.</p>', 
-            author: 'Sarah Klein', category: 'Personal & Karriere', status: 'published', publishedAt: new Date(Date.now() - 172800000).toISOString(), featured: false, 
-            imageUrl: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&q=80&w=800', views: 450 
-        }
-    ];
-    directory = [
-        { id: 'd1', name: 'Müller Sanitär GmbH', category: 'Sanitär', city: 'Mannheim', address: 'Hauptstr. 1', description: 'Ihr Partner für Bad & WC.', phone: '0621-12345', website: 'https://mueller-shk.de', logoUrl: 'https://via.placeholder.com/100' },
-        { id: 'd2', name: 'Klima Profis HD', category: 'Klima', city: 'Heidelberg', address: 'Bergheimer Str. 5', description: 'Klimatechnik für Gewerbe.', phone: '06221-55555', website: '', logoUrl: '' },
-        { id: 'd3', name: 'Elektro & Heizung Schmitt', category: 'Heizung', city: 'Ludwigshafen', address: 'Rheinufer 10', description: 'Wärmepumpen Spezialist.', phone: '0621-98765', website: 'https://schmitt-energy.de', logoUrl: '' }
+        { id: '1', title: 'Wärmepumpen-Boom in Mannheim', summary: 'Die Nachfrage steigt rasant.', content: '<h2>Markt im Wandel</h2><p>Die Zahlen sprechen eine klare Sprache...</p>', author: 'Redaktion', category: 'Branchen-News', status: 'published', publishedAt: new Date().toISOString(), featured: true, views: 1250 },
     ];
 }
 
-// --- RENDER ENGINE ---
-
 function render() {
     const root = document.getElementById('app-root');
-    // Simple auth check
-    const authUser = sessionStorage.getItem('shk_auth_user');
-    appState.isAuthenticated = !!authUser;
-
+    appState.isAuthenticated = sessionStorage.getItem('shk_auth') === 'true';
     if (!appState.isAuthenticated) {
-        root.innerHTML = renderLogin();
-        attachLoginListeners();
+        root.innerHTML = `<div class="min-h-screen bg-brand-dark flex flex-col justify-center items-center p-4"><div class="bg-white w-full max-w-sm rounded-sm shadow-2xl p-8"><div class="text-center mb-8"><img src="shklogo.jpg" alt="Logo" class="h-16 mx-auto mb-2"/><p class="text-xs font-bold text-gray-400 uppercase tracking-widest">CMS Login</p></div><form id="login-form" class="space-y-4"><div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Password</label><input type="password" id="password" class="w-full border border-gray-300 p-3 rounded-sm text-sm focus:border-brand-copper outline-none" required></div><button type="submit" class="w-full bg-brand-dark text-white py-3 rounded-sm font-bold uppercase text-xs tracking-wider hover:bg-brand-copper transition">Sign In</button></form></div></div>`;
+        document.getElementById('login-form').addEventListener('submit', (e) => { e.preventDefault(); sessionStorage.setItem('shk_auth', 'true'); render(); });
     } else {
-        root.innerHTML = `
-            <div class="flex h-screen overflow-hidden">
-                ${renderSidebar()}
-                <main class="flex-1 overflow-auto bg-gray-50">
-                    <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center sticky top-0 z-30">
-                        <h2 class="text-xl font-bold font-display text-gray-800 capitalize">${appState.activeView}</h2>
-                        <div class="flex items-center space-x-3">
-                            <span class="text-xs font-bold text-gray-400">ADMIN</span>
-                            <div class="w-8 h-8 rounded-full bg-brand-copper text-white flex items-center justify-center font-bold">A</div>
-                        </div>
-                    </header>
-                    <div class="p-8">
-                        ${renderMainContent()}
-                    </div>
-                </main>
-            </div>
-            ${appState.modalOpen ? renderModal() : ''}
-        `;
+        root.innerHTML = `<div class="flex h-screen overflow-hidden"><aside class="w-64 bg-brand-dark flex flex-col"><div class="h-20 flex items-center justify-center border-b border-gray-800"><img src="shklogo.jpg" class="h-8 bg-white p-1 rounded-sm"/></div><div class="flex-grow py-4 space-y-1">${['dashboard','articles','directory','settings'].map(v=>`<button onclick="appState.activeView='${v}';render()" class="w-full text-left px-6 py-3 text-sm font-bold uppercase text-gray-400 hover:text-white hover:bg-white/5 ${appState.activeView===v?'bg-brand-copper text-white':''}">${v}</button>`).join('')}</div></aside><main class="flex-1 p-8 overflow-auto">${renderMainContent()}</main></div>`;
         lucide.createIcons();
     }
 }
 
-// --- TEMPLATES ---
-
-function renderLogin() {
-    return `
-    <div class="min-h-screen bg-brand-dark flex flex-col justify-center items-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-sm shadow-2xl p-8">
-            <div class="text-center mb-8">
-                <img src="shklogo.jpg" alt="Logo" class="h-16 mx-auto mb-2" onerror="this.src='https://via.placeholder.com/150x50?text=SHK+Logo'"/>
-                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Internal CMS</p>
-            </div>
-            <form id="login-form" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Password</label>
-                    <input type="password" id="password" class="w-full border border-gray-300 p-3 rounded-sm text-sm focus:border-brand-copper outline-none" placeholder="Enter anything" required>
-                </div>
-                <button type="submit" class="w-full bg-brand-dark text-white py-3 rounded-sm font-bold uppercase text-xs tracking-wider hover:bg-brand-copper transition">Sign In</button>
-            </form>
-        </div>
-    </div>`;
-}
-
-function renderSidebar() {
-    const navItem = (id, icon, label) => `
-        <button onclick="navigate('${id}')" class="flex items-center w-full px-6 py-3 text-sm font-bold transition-colors duration-200 ${appState.activeView === id ? 'bg-brand-copper text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}">
-            <i data-lucide="${icon}" class="w-4 h-4 mr-3"></i> ${label}
-        </button>`;
-
-    return `
-    <aside class="w-64 bg-brand-dark flex-shrink-0 flex flex-col h-full">
-        <div class="h-20 flex items-center justify-center border-b border-gray-800">
-             <span class="text-white font-display font-black text-xl tracking-tighter">SHK<span class="text-brand-copper">.ADMIN</span></span>
-        </div>
-        <nav class="flex-grow py-6 space-y-1">
-            ${navItem('dashboard', 'layout-dashboard', 'Dashboard')}
-            ${navItem('articles', 'file-text', 'Articles')}
-            ${navItem('directory', 'building-2', 'Directory')}
-            ${navItem('sync', 'refresh-cw', 'Sync Center')}
-            ${navItem('settings', 'settings', 'Settings')}
-        </nav>
-        <div class="p-6 border-t border-gray-800">
-            <button onclick="logout()" class="flex items-center text-gray-500 hover:text-white transition text-xs font-bold uppercase"><i data-lucide="log-out" class="w-4 h-4 mr-2"></i> Logout</button>
-        </div>
-    </aside>`;
-}
-
 function renderMainContent() {
-    switch(appState.activeView) {
-        case 'dashboard': return renderDashboard();
-        case 'articles': return renderArticles();
-        case 'directory': return renderDirectory();
-        case 'sync': return renderSyncCenter();
-        case 'settings': return renderSettings();
-        default: return '';
+    if(appState.activeView === 'settings') {
+        return `<div class="bg-white p-8 rounded-sm shadow-sm max-w-2xl"><h2 class="text-xl font-bold mb-6">Settings</h2><label class="block text-xs font-bold mb-2">Google Apps Script URL</label><input id="script-url" value="${settings.articlesScriptUrl}" class="w-full border p-2 mb-4 rounded-sm text-sm"><button onclick="saveSettings()" class="bg-brand-dark text-white px-6 py-2 text-xs font-bold uppercase rounded-sm">Save</button><hr class="my-8"><button onclick="triggerSync()" class="border border-gray-300 px-6 py-3 text-xs font-bold uppercase rounded-sm hover:bg-gray-50 flex items-center">${appState.syncState==='loading'?'Syncing...':'Sync Now'}</button></div>`;
     }
+    if(appState.activeView === 'articles') return renderArticlesList();
+    return `<div class="bg-white p-8"><h2 class="text-2xl font-bold mb-4">Dashboard</h2><p>Welcome to SHK CMS.</p></div>`;
 }
 
-function renderDashboard() {
-    const totalViews = articles.reduce((a,c) => a + (c.views||0), 0);
-    return `
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Articles</p>
-            <p class="text-3xl font-display font-bold text-brand-dark mt-2">${articles.length}</p>
-        </div>
-        <div class="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
-             <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Directory Entries</p>
-            <p class="text-3xl font-display font-bold text-brand-dark mt-2">${directory.length}</p>
-        </div>
-        <div class="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
-             <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Views</p>
-            <p class="text-3xl font-display font-bold text-brand-dark mt-2 text-brand-copper">${totalViews}</p>
-        </div>
-    </div>
-    <div class="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
-        <h3 class="font-bold text-gray-800 mb-4">Recent Articles</h3>
-        <table class="w-full text-left text-sm">
-            <thead><tr class="text-gray-400 border-b"><th class="pb-2">Title</th><th class="pb-2">Category</th><th class="pb-2 text-right">Date</th></tr></thead>
-            <tbody>
-                ${articles.slice(0,5).map(a => `
-                    <tr class="border-b last:border-0 hover:bg-gray-50">
-                        <td class="py-3 font-medium text-brand-dark">${a.title}</td>
-                        <td class="py-3"><span class="px-2 py-1 bg-gray-100 rounded text-[10px] font-bold uppercase">${a.category}</span></td>
-                        <td class="py-3 text-right text-gray-500">${new Date(a.publishedAt).toLocaleDateString()}</td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    </div>`;
-}
-
-function renderArticles() {
-    if (appState.editingItem) return renderArticleEditor();
-    
-    return `
-    <div class="flex justify-between items-center mb-6">
-        <div class="relative">
-            <input type="text" placeholder="Search articles..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-sm text-sm focus:border-brand-copper outline-none w-64">
-            <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3 top-2.5"></i>
-        </div>
-        <button onclick="createNew('article')" class="bg-brand-copper text-white px-6 py-2 rounded-sm font-bold uppercase text-xs tracking-wider hover:bg-orange-800 transition flex items-center">
-            <i data-lucide="plus" class="w-4 h-4 mr-2"></i> New Article
-        </button>
-    </div>
-    <div class="bg-white shadow-sm border border-gray-200 rounded-sm overflow-hidden">
-        <table class="w-full text-left">
-            <thead class="bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase">
-                <tr>
-                    <th class="p-4 pl-6">Title</th>
-                    <th class="p-4">Category</th>
-                    <th class="p-4">Featured</th>
-                    <th class="p-4 text-right pr-6">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                ${articles.map(a => `
-                <tr class="hover:bg-gray-50 transition">
-                    <td class="p-4 pl-6">
-                        <div class="font-bold text-brand-dark">${a.title}</div>
-                        <div class="text-xs text-gray-500 truncate w-64">${a.summary}</div>
-                    </td>
-                    <td class="p-4"><span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wide border border-gray-200">${a.category}</span></td>
-                    <td class="p-4">${a.featured ? '<span class="text-brand-copper font-bold text-xs"><i data-lucide="star" class="w-4 h-4 fill-current"></i></span>' : ''}</td>
-                    <td class="p-4 text-right pr-6 space-x-2">
-                        <button onclick="editItem('${a.id}', 'article')" class="text-gray-400 hover:text-brand-copper"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                        <button onclick="deleteItem('${a.id}', 'article')" class="text-gray-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                    </td>
-                </tr>
-                `).join('')}
-            </tbody>
-        </table>
-        ${articles.length === 0 ? '<div class="p-8 text-center text-gray-400 text-sm">No articles found. Create one or sync sample data.</div>' : ''}
-    </div>`;
-}
-
-function renderArticleEditor() {
-    const a = appState.editingItem;
-    return `
-    <div class="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
-        <h3 class="font-bold text-xl text-gray-800">${a.id ? 'Edit Article' : 'New Article'}</h3>
-        <div class="space-x-3">
-            <button onclick="cancelEdit()" class="text-gray-500 hover:text-gray-800 text-sm font-bold uppercase">Cancel</button>
-            <button onclick="saveArticle()" class="bg-green-600 text-white px-6 py-2 rounded-sm font-bold uppercase text-xs tracking-wider hover:bg-green-700 transition flex items-center"><i data-lucide="save" class="w-4 h-4 mr-2"></i> Save</button>
-        </div>
-    </div>
-    
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-20">
-        <div class="lg:col-span-2 space-y-6">
-            <div class="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Headline</label>
-                <input type="text" id="edit-title" value="${a.title}" class="w-full text-2xl font-bold border-b border-gray-200 focus:border-brand-copper outline-none py-2 mb-6 placeholder-gray-300" placeholder="Enter title here...">
-                
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Summary (Teaser)</label>
-                <textarea id="edit-summary" rows="3" class="w-full border border-gray-200 rounded-sm p-3 text-sm focus:border-brand-copper outline-none resize-none mb-6" placeholder="Short intro...">${a.summary}</textarea>
-
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Content (Rich Text)</label>
-                <!-- RICH TEXT EDITOR TOOLBAR -->
-                <div class="border border-gray-200 rounded-sm overflow-hidden">
-                    <div class="bg-gray-50 border-b border-gray-200 p-2 flex items-center gap-1 flex-wrap">
-                        <button onclick="execCmd('bold')" class="p-1.5 hover:bg-gray-200 rounded text-gray-600" title="Bold"><i data-lucide="bold" class="w-4 h-4"></i></button>
-                        <button onclick="execCmd('italic')" class="p-1.5 hover:bg-gray-200 rounded text-gray-600" title="Italic"><i data-lucide="italic" class="w-4 h-4"></i></button>
-                        <div class="w-px h-4 bg-gray-300 mx-1"></div>
-                        <button onclick="execCmd('formatBlock', 'H2')" class="p-1.5 hover:bg-gray-200 rounded text-gray-600 font-bold text-xs">H2</button>
-                        <button onclick="execCmd('formatBlock', 'H3')" class="p-1.5 hover:bg-gray-200 rounded text-gray-600 font-bold text-xs">H3</button>
-                        <button onclick="execCmd('formatBlock', 'P')" class="p-1.5 hover:bg-gray-200 rounded text-gray-600 font-bold text-xs">P</button>
-                        <div class="w-px h-4 bg-gray-300 mx-1"></div>
-                        <button onclick="execCmd('insertUnorderedList')" class="p-1.5 hover:bg-gray-200 rounded text-gray-600"><i data-lucide="list" class="w-4 h-4"></i></button>
-                        <div class="w-px h-4 bg-gray-300 mx-1"></div>
-                        <label class="p-1.5 hover:bg-gray-200 rounded text-gray-600 cursor-pointer" title="Insert Image">
-                            <i data-lucide="image" class="w-4 h-4"></i>
-                            <input type="file" class="hidden" accept="image/*" onchange="insertImage(this)">
-                        </label>
-                    </div>
-                    <div id="edit-content" contenteditable="true" class="editor-content p-6 min-h-[400px] outline-none prose prose-slate max-w-none" placeholder="Start writing...">${a.content}</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="space-y-6">
-            <div class="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
-                <h4 class="font-bold text-sm text-gray-800 uppercase mb-4 border-b pb-2">Settings</h4>
-                
-                <div class="mb-4">
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Category</label>
-                    <select id="edit-category" class="w-full border border-gray-300 rounded-sm p-2 text-sm bg-white outline-none">
-                        ${categories.map(c => `<option value="${c}" ${a.category===c?'selected':''}>${c}</option>`).join('')}
-                    </select>
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Featured Image URL</label>
-                    <input type="text" id="edit-image" value="${a.imageUrl||''}" class="w-full border border-gray-300 rounded-sm p-2 text-sm outline-none" placeholder="https://...">
-                </div>
-
-                <div class="flex items-center p-3 bg-gray-50 rounded-sm border border-gray-200">
-                    <input type="checkbox" id="edit-featured" ${a.featured ? 'checked' : ''} class="mr-3 h-4 w-4 text-brand-copper focus:ring-brand-copper border-gray-300 rounded">
-                    <label for="edit-featured" class="text-sm font-bold text-gray-700 select-none cursor-pointer">Top Story (Featured)</label>
-                </div>
-            </div>
-        </div>
-    </div>`;
-}
-
-function renderDirectory() {
-    return `
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-xl font-bold">Business Directory</h2>
-        <button onclick="createNew('business')" class="bg-brand-copper text-white px-6 py-2 rounded-sm font-bold uppercase text-xs tracking-wider hover:bg-orange-800 transition flex items-center">
-            <i data-lucide="plus" class="w-4 h-4 mr-2"></i> New Entry
-        </button>
-    </div>
-    <div class="bg-white shadow-sm border border-gray-200 rounded-sm overflow-hidden">
-        <table class="w-full text-left">
-            <thead class="bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase">
-                <tr><th>Name</th><th>Category</th><th>City</th><th class="text-right">Action</th></tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 text-sm">
-                ${directory.map(b => `
-                <tr class="hover:bg-gray-50">
-                    <td class="p-4 font-bold text-brand-dark">${b.name}</td>
-                    <td class="p-4">${b.category}</td>
-                    <td class="p-4 text-gray-500">${b.city}</td>
-                    <td class="p-4 text-right space-x-2">
-                        <button onclick="deleteItem('${b.id}', 'business')" class="text-gray-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                    </td>
-                </tr>`).join('')}
-            </tbody>
-        </table>
-    </div>`;
-}
-
-function renderSyncCenter() {
-    return `
-    <div class="max-w-2xl mx-auto text-center py-12">
-        <div class="bg-white p-10 rounded-sm shadow-sm border border-gray-200">
-            <div class="bg-brand-surface w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-                <i data-lucide="refresh-cw" class="w-8 h-8 text-brand-copper ${appState.syncState==='loading'?'animate-spin':''}"></i>
-            </div>
-            <h2 class="text-3xl font-display font-bold text-brand-dark mb-4">Sync Center</h2>
-            <p class="text-brand-steel mb-8 leading-relaxed">
-                Push your local content to the Google Cloud Database. 
-                This will make your articles and directory entries live on the public website.
-            </p>
-            
-            <button onclick="triggerSync()" 
-                class="w-full sm:w-auto bg-brand-dark text-white px-8 py-4 rounded-sm font-bold uppercase tracking-widest text-sm hover:bg-brand-copper transition disabled:opacity-50"
-                ${appState.syncState==='loading' ? 'disabled' : ''}>
-                ${appState.syncState==='loading' ? 'Syncing...' : 'Sync Now'}
-            </button>
-
-            ${appState.syncState === 'success' ? `
-                <div class="mt-6 p-4 bg-green-50 text-green-700 rounded-sm text-sm font-bold flex items-center justify-center animate-bounce">
-                    <i data-lucide="check-circle" class="w-4 h-4 mr-2"></i> Sync Successful!
-                </div>` : ''}
-            
-            ${appState.syncState === 'error' ? `
-                <div class="mt-6 p-4 bg-red-50 text-red-700 rounded-sm text-sm font-bold flex items-center justify-center">
-                    <i data-lucide="alert-circle" class="w-4 h-4 mr-2"></i> Sync Failed. Check URL in Settings.
-                </div>` : ''}
-        </div>
-    </div>`;
-}
-
-function renderSettings() {
-    return `
-    <div class="max-w-xl bg-white p-8 rounded-sm shadow-sm border border-gray-200">
-        <h2 class="text-xl font-bold mb-6">Configuration</h2>
-        <div class="space-y-4">
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Google Apps Script URL</label>
-                <input type="text" id="script-url" value="${settings.articlesScriptUrl}" class="w-full border border-gray-300 p-3 rounded-sm text-sm focus:border-brand-copper outline-none transition">
-                <p class="text-[10px] text-gray-400 mt-2">The Web App URL from your Google Apps Script deployment.</p>
-            </div>
-            <button onclick="saveSettings()" class="bg-brand-dark text-white px-6 py-2 rounded-sm font-bold uppercase text-xs tracking-wider">Save Settings</button>
-        </div>
-    </div>`;
-}
-
-function renderModal() {
-    // Basic modal for business creation
-    if (appState.modalType === 'business') {
-        const b = appState.editingItem;
-        return `
-        <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div class="bg-white w-full max-w-md rounded-sm shadow-xl p-6">
-                <h3 class="font-bold text-lg mb-4">New Directory Entry</h3>
-                <div class="space-y-4">
-                    <input id="biz-name" placeholder="Company Name" class="w-full border p-2 rounded-sm">
-                    <input id="biz-city" placeholder="City" class="w-full border p-2 rounded-sm">
-                    <select id="biz-cat" class="w-full border p-2 rounded-sm bg-white">
-                        <option value="Heizung">Heizung</option>
-                        <option value="Sanitär">Sanitär</option>
-                        <option value="Klima">Klima</option>
-                    </select>
-                </div>
-                <div class="mt-6 flex justify-end space-x-2">
-                    <button onclick="closeModal()" class="px-4 py-2 text-gray-500">Cancel</button>
-                    <button onclick="saveBusiness()" class="bg-brand-copper text-white px-4 py-2 rounded-sm font-bold">Save</button>
-                </div>
-            </div>
-        </div>`;
-    }
-    return '';
-}
-
-// --- CONTROLLER ACTIONS ---
-
-function attachLoginListeners() {
-    document.getElementById('login-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        sessionStorage.setItem('shk_auth_user', 'admin');
-        render();
-    });
-}
-
-function logout() {
-    sessionStorage.removeItem('shk_auth_user');
-    render();
-}
-
-function navigate(view) {
-    appState.activeView = view;
-    appState.editingItem = null;
-    render();
-}
-
-function createNew(type) {
-    if (type === 'article') {
-        appState.editingItem = { 
-            id: '', title: '', summary: '', content: '<p>Start writing...</p>', 
-            author: 'Redaktion', category: 'Branchen-News', status: 'draft', featured: false 
-        };
-        render(); // Re-render to show editor
-    } else {
-        appState.editingItem = {};
-        appState.modalType = 'business';
-        appState.modalOpen = true;
-        render();
-    }
-}
-
-function editItem(id, type) {
-    if (type === 'article') {
-        appState.editingItem = { ...articles.find(a => a.id === id) };
-        render();
-    }
-}
-
-function deleteItem(id, type) {
-    if (!confirm('Are you sure?')) return;
-    if (type === 'article') articles = articles.filter(a => a.id !== id);
-    if (type === 'business') directory = directory.filter(d => d.id !== id);
-    saveData();
-    render();
-}
-
-function cancelEdit() {
-    appState.editingItem = null;
-    render();
-}
-
-function saveArticle() {
-    const item = appState.editingItem;
-    item.title = document.getElementById('edit-title').value;
-    item.summary = document.getElementById('edit-summary').value;
-    item.content = document.getElementById('edit-content').innerHTML;
-    item.category = document.getElementById('edit-category').value;
-    item.imageUrl = document.getElementById('edit-image').value;
-    item.featured = document.getElementById('edit-featured').checked;
-    item.publishedAt = item.publishedAt || new Date().toISOString();
-    
-    if (!item.id) item.id = 'art-' + Date.now();
-
-    const idx = articles.findIndex(a => a.id === item.id);
-    if (idx >= 0) articles[idx] = item;
-    else articles.unshift(item);
-
-    saveData();
-    appState.editingItem = null;
-    render();
-}
-
-function saveBusiness() {
-    const item = {
-        id: 'dir-' + Date.now(),
-        name: document.getElementById('biz-name').value,
-        city: document.getElementById('biz-city').value,
-        category: document.getElementById('biz-cat').value,
-        description: 'New entry', logoUrl: ''
-    };
-    directory.unshift(item);
-    saveData();
-    closeModal();
-}
-
-function closeModal() {
-    appState.modalOpen = false;
-    appState.modalType = null;
-    render();
+function renderArticlesList() {
+    return `<div class="flex justify-between mb-6"><h2 class="text-xl font-bold">Articles</h2><button onclick="seedMockArticles();saveData();render()" class="text-xs underline text-gray-500">Reset Data</button></div><div class="bg-white shadow-sm border border-gray-200"><table class="w-full text-left"><thead class="bg-gray-50 text-xs uppercase font-bold text-gray-500"><tr><th class="p-4">Title</th><th class="p-4">Status</th></tr></thead><tbody>${articles.map(a=>`<tr><td class="p-4">${a.title}</td><td class="p-4">${a.status}</td></tr>`).join('')}</tbody></table></div>`;
 }
 
 function saveSettings() {
     settings.articlesScriptUrl = document.getElementById('script-url').value;
     saveData();
-    alert('Settings Saved');
+    alert('Saved');
 }
 
-// RICH TEXT EDITOR COMMANDS
-function execCmd(cmd, val) {
-    document.execCommand(cmd, false, val);
-}
-function insertImage(input) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.execCommand('insertImage', false, e.target.result);
-        };
-        reader.readAsDataURL(input.files[0]);
-    }
-}
-
-// SYNC LOGIC
 async function triggerSync() {
-    if (!settings.articlesScriptUrl) return alert('Please set Script URL in Settings');
-    appState.syncState = 'loading';
-    render();
-
+    appState.syncState = 'loading'; render();
     try {
-        // Send as text/plain to avoid CORS options preflight issues with Google Apps Script
-        const response = await fetch(settings.articlesScriptUrl, {
-            method: 'POST',
-            mode: 'no-cors', // Important for simple requests to GAS
-            headers: { 'Content-Type': 'text/plain' }, 
-            body: JSON.stringify({ 
-                action: 'sync', 
-                articles: articles, 
-                directory: directory 
-            })
-        });
-
-        // Since no-cors returns opaque response, we simulate success if no network error thrown
-        // In a real app, you might want to proxy this or use a more complex CORS setup
-        setTimeout(() => {
-            appState.syncState = 'success';
-            render();
-            setTimeout(() => { appState.syncState = 'idle'; render(); }, 3000);
-        }, 1500);
-
-    } catch (error) {
-        console.error(error);
-        appState.syncState = 'error';
-        render();
-    }
+        await fetch(settings.articlesScriptUrl, { method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({action:'sync', articles, directory}) });
+        setTimeout(() => { appState.syncState = 'idle'; alert('Sync command sent! Check site in 30s.'); render(); }, 2000);
+    } catch(e) { console.error(e); appState.syncState = 'idle'; render(); }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadData();
-    render();
-});
-
+document.addEventListener('DOMContentLoaded', () => { loadData(); render(); });
 </script>
 </body>
 </html>
