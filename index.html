@@ -11,6 +11,9 @@
       .writing-mode-vertical { writing-mode: vertical-rl; }
       .loader { border-top-color: #b45309; animation: spin 1s linear infinite; }
       @keyframes spin { to { transform: rotate(360deg); } }
+      /* Custom typography overrides */
+      .prose img { border-radius: 0.5rem; margin-top: 2em; margin-bottom: 2em; }
+      .prose h2, .prose h3 { color: #0f172a; font-family: 'Montserrat', sans-serif; }
     </style>
     <script>
       tailwind.config = {
@@ -57,30 +60,23 @@
 // V A N I L L A   J S   A P P L I C A T I O N
 
 // --- 1. CONFIGURATION ---
+// This URL allows public read access to the data synced by the CMS
 const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxiD4ryVZpHISk_L275irKaNb8dRzAmZDCrZQvloe5S_GEaXEVjPp22ECavhF-9KHfSGg/exec';
 
 // --- 2. DATA STORE ---
-// Skeleton Data for instant load
-const SKELETON_ARTICLES = [{"id":"art-1","type":"article","title":"Neue Energieverordnungen 2025: Was gilt ab Januar?","summary":"Ein umfassender Bericht über die neuen Vorschriften für Heizungssysteme in der Rhein-Neckar Region.","imageUrl":"https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200","category":"Branchen-News","author":"Redaktion","publishedAt":"2025-10-25T10:00:00.000Z","featured":true},{"id":"art-2","type":"article","title":"Wärmepumpen-Boom in Mannheim","summary":"Wie lokale Betriebe mit der steigenden Nachfrage umgehen und welche Förderungen aktuell verfügbar sind.","imageUrl":"https://images.unsplash.com/photo-1581092334651-ddf26d9a09d0?auto=format&fit=crop&q=80&w=1200","category":"Technologie","author":"Markus Weber","publishedAt":"2025-10-24T10:00:00.000Z","featured":false},{"id":"art-3","type":"article","title":"Fachkräftemangel: Strategien für 2026","summary":"Experteninterviews mit Handwerksmeistern aus Heidelberg über erfolgreiche Recruiting-Methoden.","imageUrl":"https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=1200","category":"Personal & Karriere","author":"Julia Schmidt","publishedAt":"2025-10-23T10:00:00.000Z","featured":false}];
+// Skeleton Data for instant load while fetching
+const SKELETON_ARTICLES = [{"id":"art-1","type":"article","title":"Laden der Inhalte...","summary":"Bitte warten Sie einen Moment, während wir die neuesten Artikel für Sie abrufen.","imageUrl":"https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200","category":"Branchen-News","author":"System","publishedAt":new Date().toISOString(),"featured":true}];
+const SKELETON_DIRECTORY = [{"id":"dir-1","name":"Laden...","category":"Allgemein","address":"...","city":"...","zip":"...","phone":"...","website":"","description":"Verzeichnis wird geladen.","logoUrl":""}];
 
-const SKELETON_DIRECTORY = [
-  { id: 'dir-1', name: 'Heizungstechnik Müller GmbH', category: 'Heizung', address: 'Hauptstraße 10', city: 'Mannheim', zip: '68159', phone: '0621 123456', website: 'https://heizung-mueller.de', description: 'Spezialist für moderne Heizsysteme und Wärmepumpen.', logoUrl: 'https://logo.clearbit.com/heizung-mueller.de' },
-  { id: 'dir-2', name: 'Sanitär-Service Weber', category: 'Sanitär', address: 'Bergheimer Straße 58', city: 'Heidelberg', zip: '69115', phone: '06221 654321', website: 'https://sanitaer-weber.de', description: 'Komplettbäder aus einer Hand. Barrierefreie Umbauten.', logoUrl: 'https://logo.clearbit.com/sanitaer-weber.de' },
-  { id: 'dir-3', name: 'Klima-Profis Rhein-Neckar', category: 'Klima', address: 'Industriestraße 35', city: 'Ludwigshafen', zip: '67063', phone: '0621 987654', website: 'https://klima-profis-rn.de', description: 'Installation und Wartung von Klimaanlagen für Gewerbe und Privat.', logoUrl: 'https://logo.clearbit.com/klima-profis-rn.de' },
-];
-
-function loadLocalData(key, fallback) {
-    try {
-        const item = localStorage.getItem(key);
-        if (item) return JSON.parse(item);
-    } catch(e) { console.warn("Error reading local storage", e); }
-    return fallback;
-}
-
-// Initial Data Load
-let ALL_ARTICLES = loadLocalData('shk_articles', SKELETON_ARTICLES);
-let ALL_DIRECTORY = loadLocalData('shk_directory', SKELETON_DIRECTORY);
-ALL_ARTICLES = Array.isArray(ALL_ARTICLES) ? ALL_ARTICLES.filter(a => a.type !== 'page') : SKELETON_ARTICLES;
+// Initial Data Load from Cache or Skeleton
+let ALL_ARTICLES = SKELETON_ARTICLES;
+let ALL_DIRECTORY = SKELETON_DIRECTORY;
+try {
+    const cachedArt = localStorage.getItem('shk_articles_cache');
+    if(cachedArt) ALL_ARTICLES = JSON.parse(cachedArt);
+    const cachedDir = localStorage.getItem('shk_directory_cache');
+    if(cachedDir) ALL_DIRECTORY = JSON.parse(cachedDir);
+} catch(e) {}
 
 const INITIAL_CATEGORIES = ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
 
@@ -316,6 +312,7 @@ function renderArticleReader(articleId) {
     document.title=`${e.title} | SHK Rhein-Neckar`;
     document.getElementById("progress-bar-container").innerHTML='<div id="progress-bar" class="h-full bg-brand-copper transition-all duration-100 ease-out shadow-[0_0_10px_#b45309]" style="width: 0%"></div>';
     
+    // Renders the full article content including HTML formatting from Google Doc
     document.getElementById("main-content").innerHTML=`
     <article class="max-w-6xl mx-auto my-0 bg-white min-h-screen">
         <header class="px-4 py-16 md:py-24 text-center max-w-4xl mx-auto">
@@ -335,6 +332,7 @@ function renderArticleReader(articleId) {
 
         <div class="px-4 py-16 grid grid-cols-1 lg:grid-cols-12 gap-12 max-w-7xl mx-auto">
            <div class="col-span-1 lg:col-span-8 lg:col-start-3">
+             <!-- The prose class ensures proper formatting of HTML content from Google Doc -->
              <div class="prose prose-lg md:prose-xl prose-slate max-w-none text-gray-700 leading-loose prose-headings:font-display prose-headings:font-bold prose-headings:text-brand-dark">
                ${e.content || e.summary}
              </div>
@@ -418,19 +416,20 @@ function renderDirectoryGrid() {
 
 // --- 6. API FETCHERS (SMART SYNC) ---
 async function startLiveSync() {
-    // Determine URLs
+    // 1. Check local settings (for admin preview)
     let settings = {};
     try { settings = JSON.parse(localStorage.getItem('shk_settings')) || {}; } catch(e) {}
     
+    // 2. Fallback to DEFAULT_SCRIPT_URL (Public User)
     const articleUrl = (settings.articlesScriptUrl || DEFAULT_SCRIPT_URL).trim();
     const directoryUrl = (settings.directoryScriptUrl || DEFAULT_SCRIPT_URL).trim();
     
-    console.log("Starting Live Sync...");
+    console.log("Starting Live Sync from:", articleUrl);
     appState.articlesLoading = true;
     appState.directoryLoading = true;
     updateLoaders();
 
-    // OPTIMIZATION: If URLs are identical, fetch once to save bandwidth
+    // OPTIMIZATION: If URLs are identical, fetch once
     if (articleUrl === directoryUrl) {
         try {
             const data = await fetchJson(articleUrl);
@@ -465,8 +464,8 @@ async function fetchJson(url) {
 function updateArticles(newArticles) {
     if(!Array.isArray(newArticles)) return;
     ALL_ARTICLES = newArticles;
-    // Save to local storage for next load
-    localStorage.setItem('shk_articles', JSON.stringify(ALL_ARTICLES));
+    // Cache for next visit
+    localStorage.setItem('shk_articles_cache', JSON.stringify(ALL_ARTICLES));
     appState.articlesLoading = false;
     updateLoaders();
     if (appState.view === 'magazine') renderMagazinePage(true);
@@ -475,7 +474,7 @@ function updateArticles(newArticles) {
 function updateDirectory(newDirectory) {
     if(!Array.isArray(newDirectory)) return;
     ALL_DIRECTORY = newDirectory;
-    localStorage.setItem('shk_directory', JSON.stringify(ALL_DIRECTORY));
+    localStorage.setItem('shk_directory_cache', JSON.stringify(ALL_DIRECTORY));
     appState.directoryLoading = false;
     updateLoaders();
     if (appState.view === 'directory') renderDirectoryPage(true);
