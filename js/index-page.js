@@ -195,12 +195,7 @@ function addEventListeners() {
     document.querySelectorAll('.category-card').forEach(card => {
         card.addEventListener('click', () => {
             const category = card.dataset.categoryId;
-            state.activeCategory = category;
-            sessionStorage.setItem('active_category', category);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            render();
-            // We need to re-render header as well to show active state
-            window.dispatchEvent(new CustomEvent('language-change'));
+            handleCategoryChange(category);
         });
     });
 }
@@ -208,12 +203,16 @@ function addEventListeners() {
 function handleCategoryChange(category) {
     state.activeCategory = category;
     state.searchQuery = '';
+    sessionStorage.setItem('active_category', category);
     sessionStorage.setItem('search_query', '');
     state.displayedCount = category === 'All' ? 6 : 9;
     render();
+    // Re-render header to update active state by triggering language-change event
+    window.dispatchEvent(new CustomEvent('language-change'));
 }
 
 window.addEventListener('language-change', render);
+
 window.addEventListener('search-change', (e) => {
     state.searchQuery = e.detail;
     if(state.searchQuery) {
@@ -224,8 +223,14 @@ window.addEventListener('search-change', (e) => {
     render();
 });
 
+// Listen for category changes from the header/footer
+window.addEventListener('category-change', (e) => {
+    handleCategoryChange(e.detail.category);
+});
+
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Check if category was passed from another page
+    // Check if category was passed from another page via session storage
     const navCategory = sessionStorage.getItem('active_category');
     if (navCategory) {
         handleCategoryChange(navCategory);

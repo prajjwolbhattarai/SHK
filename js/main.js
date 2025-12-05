@@ -15,7 +15,6 @@ function renderSharedComponents() {
     const footerPlaceholder = document.getElementById('footer-placeholder');
     
     // Determine active category for header styling
-    const urlParams = new URLSearchParams(window.location.search);
     const pageCategory = sessionStorage.getItem('active_category') || 'All';
     const isDirectoryActive = window.location.pathname.includes('directory.html');
     
@@ -34,6 +33,31 @@ function renderSharedComponents() {
         addFooterEventListeners();
     }
 }
+
+function setupNavLinkListeners(selector) {
+    document.querySelectorAll(selector).forEach(link => {
+        link.addEventListener('click', (e) => {
+            const href = e.currentTarget.getAttribute('href');
+            if (href && href.includes('index.html')) {
+                e.preventDefault();
+                const category = e.currentTarget.dataset.navLink;
+                sessionStorage.setItem('active_category', category);
+                sessionStorage.removeItem('search_query'); // Clear search on category change
+
+                const isIndexPage = window.location.pathname.endsWith('/') || window.location.pathname.endsWith('index.html');
+
+                if (isIndexPage) {
+                    // On homepage, dispatch event to re-render content without reload
+                    window.dispatchEvent(new CustomEvent('category-change', { detail: { category } }));
+                } else {
+                    // On another page, navigate to homepage
+                    window.location.href = 'index.html';
+                }
+            }
+        });
+    });
+}
+
 
 function addHeaderEventListeners() {
     // Mobile menu
@@ -56,26 +80,11 @@ function addHeaderEventListeners() {
     document.getElementById('search-toggle-button')?.addEventListener('click', toggleSearch);
     
     // Nav links
-    document.querySelectorAll('[data-nav-link]').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const category = e.currentTarget.dataset.navLink;
-            sessionStorage.setItem('active_category', category);
-            window.location.href = e.currentTarget.href;
-        });
-    });
+    setupNavLinkListeners('#header-placeholder [data-nav-link]');
 }
 
 function addFooterEventListeners() {
-    document.querySelectorAll('#footer-placeholder [data-nav-link]').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const category = e.currentTarget.dataset.navLink;
-            sessionStorage.setItem('active_category', category);
-            // Scroll to top on the new page
-            window.location.href = e.currentTarget.href;
-        });
-    });
+    setupNavLinkListeners('#footer-placeholder [data-nav-link]');
 }
 
 function toggleMobileMenu() {
@@ -114,9 +123,27 @@ function toggleMobileMenu() {
             languageService.setLanguage(e.currentTarget.dataset.lang);
             toggleMobileMenu();
         }));
-        mobileMenu.querySelectorAll('[data-nav-link]').forEach(link => link.addEventListener('click', e => {
-            sessionStorage.setItem('active_category', e.currentTarget.dataset.navLink);
-        }));
+        // Apply fixed navigation logic to mobile menu links
+        mobileMenu.querySelectorAll('[data-nav-link]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                const href = e.currentTarget.getAttribute('href');
+                if (href && href.includes('index.html')) {
+                    e.preventDefault();
+                    const category = e.currentTarget.dataset.navLink;
+                    sessionStorage.setItem('active_category', category);
+                    sessionStorage.removeItem('search_query');
+                    
+                    toggleMobileMenu(); // Close menu after click
+                    
+                    const isIndexPage = window.location.pathname.endsWith('/') || window.location.pathname.endsWith('index.html');
+                    if (isIndexPage) {
+                        window.dispatchEvent(new CustomEvent('category-change', { detail: { category } }));
+                    } else {
+                        window.location.href = 'index.html';
+                    }
+                }
+            });
+        });
     } else {
         mobileMenu.classList.add('hidden');
     }
@@ -179,6 +206,7 @@ function handleSearchSubmit(e) {
 
 function updateHeaderOnScroll() {
     const nav = document.querySelector('nav');
+    if (!nav) return;
     const logoImg = nav.querySelector('img');
     const handleScroll = () => {
       if (window.scrollY > 20) {
