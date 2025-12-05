@@ -48,6 +48,8 @@ let settings = {
     newsletterApiKey: '',
 };
 
+const INITIAL_CATEGORIES_MOCK = ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
+
 const appState = {
     isAuthenticated: false,
     currentUser: null,
@@ -57,7 +59,6 @@ const appState = {
     editingItem: null,
     syncState: 'idle'
 };
-let savedRange; // For editor cursor position
 
 function loadData() {
     const sArticles = localStorage.getItem('shk_articles');
@@ -67,7 +68,7 @@ function loadData() {
     directory = sDirectory ? JSON.parse(sDirectory) : [];
     
     const sCategories = localStorage.getItem('shk_categories');
-    categories = sCategories ? JSON.parse(sCategories) : [];
+    categories = sCategories ? JSON.parse(sCategories) : INITIAL_CATEGORIES_MOCK;
     
     const sSettings = localStorage.getItem('shk_settings');
     settings = sSettings ? JSON.parse(sSettings) : settings;
@@ -78,9 +79,8 @@ function loadData() {
     const sMedia = localStorage.getItem('shk_media');
     mediaLibrary = sMedia ? JSON.parse(sMedia) : [];
 
-    if (articles.length === 0 || directory.length === 0 || categories.length === 0) {
-      seedMockData();
-    }
+    // Seed if empty
+    if (articles.length === 0) seedMockData();
     if (users.length === 0) seedUsers();
     if (mediaLibrary.length === 0) seedMedia();
 }
@@ -95,65 +95,24 @@ function saveData() {
 }
 
 function seedMockData() {
-    categories = ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
-
-    const generateContent = (title, topic) => `
-      <p class="lead">Ein exklusiver Bericht von SHK Rhein-Neckar zum Thema <strong>${topic}</strong>. Erfahren Sie, welche Auswirkungen die aktuellen Entwicklungen auf das Handwerk in der Metropolregion haben.</p>
-      <h2>Hintergrund und aktuelle Lage</h2>
-      <p>Die SHK-Branche steht vor großen Herausforderungen und Chancen. Die ${topic} ist dabei ein zentraler Punkt, der Betriebe in Mannheim, Heidelberg und Ludwigshafen gleichermaßen beschäftigt. Wir haben mit Experten gesprochen und die wichtigsten Fakten für Sie zusammengefasst.</p>
-      <h3>Was bedeutet das für Ihren Betrieb?</h3>
-      <p>Konkret müssen Handwerksbetriebe jetzt handeln. Die Anpassung an neue Vorschriften und Technologien ist unerlässlich, um wettbewerbsfähig zu bleiben. Dies betrifft sowohl die technische Ausstattung als auch die Weiterbildung der Mitarbeiter.</p>
-      <blockquote>"Wer jetzt die Weichen richtig stellt, sichert sich die Aufträge von morgen." – Zitat eines Innungsmeisters aus der Region.</blockquote>
-      <h4>Checkliste für die Praxis:</h4>
-      <ul><li>Analyse des eigenen Betriebs im Hinblick auf ${topic}.</li><li>Investitionsplan für neue Technologien erstellen.</li><li>Weiterbildungsmaßnahmen für Mitarbeiter planen und umsetzen.</li><li>Kunden proaktiv über neue Möglichkeiten und gesetzliche Anforderungen informieren.</li></ul>
-      <p>Bleiben Sie dran für weitere Analysen und Praxisbeispiele hier im SHK Rhein-Neckar Magazin.</p>`;
-    
-    let tempArticles = [
-        { id: 'art-1', type: 'article', title: 'Die neue BAFA-Förderung für Wärmepumpen 2025: Was sich jetzt ändert', summary: 'Bis zu 70% Zuschuss sind möglich, doch die Antragsbedingungen wurden verschärft. Wir zeigen, worauf Betriebe und Kunden achten müssen.', content: generateContent('BAFA-Förderung 2025', 'Wärmepumpen-Subventionen'), imageUrl: 'https://images.unsplash.com/photo-1632558555363-8e13511b9b53?auto=format&fit=crop&q=80&w=1200', category: 'Energie & Nachhaltigkeit', author: 'Julia Schmidt', publishedAt: new Date(Date.now() - 86400000 * 2).toISOString(), featured: true, status: 'published', views: 4812, shares: 215, readTime: 300, slug: 'bafa-foerderung-waermepumpen-2025', metaTitle: 'BAFA-Förderung Wärmepumpen 2025 | SHK Magazin', metaDescription: 'Alle Änderungen der BAFA-Förderung für Wärmepumpen ab 2025. Ein Leitfaden für Handwerker und Endkunden.', tags: ['Förderung', 'Wärmepumpe', 'BAFA'], revisions: [{date: new Date().toISOString(), user: 'System', note: 'Initial Seed'}] },
-        { id: 'art-2', type: 'article', title: 'Azubi-Recruiting 2.0: Wie SHK-Betriebe auf Instagram und TikTok punkten', summary: 'Der Kampf um Nachwuchskräfte ist in vollem Gange. Ein Heidelberger Betrieb zeigt, wie man mit kreativen Social-Media-Kampagnen die Generation Z erreicht.', content: generateContent('Azubi-Recruiting 2.0', 'Nachwuchsgewinnung'), imageUrl: 'https://images.unsplash.com/photo-1611162616475-46b635cb6868?auto=format&fit=crop&q=80&w=1200', category: 'Personal & Karriere', author: 'Markus Weber', publishedAt: new Date(Date.now() - 86400000 * 5).toISOString(), featured: false, status: 'published', views: 2345, shares: 120, readTime: 240, slug: 'azubi-recruiting-social-media', metaTitle: 'Azubi-Recruiting auf TikTok & Instagram', metaDescription: 'Erfolgsstrategien für SHK-Betriebe zur Gewinnung von Auszubildenden über Social Media.', tags: ['Azubi', 'Recruiting', 'Social Media'], revisions: [{date: new Date().toISOString(), user: 'System', note: 'Initial Seed'}] },
-        { id: 'art-3', type: 'article', title: 'Digitales Aufmaß per App: 5 Werkzeuge im Praxistest', summary: 'Zollstock und Klemmbrett waren gestern. Wir haben fünf führende Apps für das digitale Aufmaß auf der Baustelle getestet und vergleichen Funktionen, Preise und Benutzerfreundlichkeit.', content: generateContent('Digitales Aufmaß per App', 'digitale Werkzeuge'), imageUrl: 'https://images.unsplash.com/photo-1581092446347-a5a1f3a2c6f2?auto=format&fit=crop&q=80&w=1200', category: 'Technologie', author: 'Redaktion', publishedAt: new Date(Date.now() - 86400000 * 8).toISOString(), featured: false, status: 'published', views: 1987, shares: 95, readTime: 360, slug: 'digitales-aufmass-apps-test', metaTitle: 'Test: Apps für digitales Aufmaß', metaDescription: 'Ein Vergleich von 5 Apps für das digitale Aufmaß im SHK-Handwerk.', tags: ['Digitalisierung', 'App', 'Aufmaß'], revisions: [{date: new Date().toISOString(), user: 'System', note: 'Initial Seed'}] },
-        { id: 'art-4', type: 'article', title: 'Betriebs-Feature: Firma Sanitär-Schulze aus Heidelberg meistert die 4-Tage-Woche', summary: 'Weniger Arbeitszeit bei vollem Lohnausgleich – kann das im Handwerk funktionieren? Die Firma Schulze hat es gewagt und zieht nach einem Jahr Bilanz.', content: generateContent('4-Tage-Woche im Handwerk', 'Arbeitszeitmodelle'), imageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=1200', category: 'Betriebs-Features', author: 'Julia Schmidt', publishedAt: new Date(Date.now() - 86400000 * 12).toISOString(), featured: false, status: 'published', views: 3120, shares: 180, readTime: 280, slug: 'feature-sanitaer-schulze-4-tage-woche', metaTitle: 'Sanitär Schulze: Erfolg mit 4-Tage-Woche', metaDescription: 'Ein Betriebs-Feature über die Einführung der 4-Tage-Woche bei einem SHK-Betrieb in Heidelberg.', tags: ['Arbeitszeit', 'New Work', 'Betriebsführung'], revisions: [{date: new Date().toISOString(), user: 'System', note: 'Initial Seed'}] },
-        { id: 'art-5', type: 'article', title: 'Neue Trinkwasserverordnung (TrinkwV): Strengere Grenzwerte und Prüfpflichten', summary: 'Seit diesem Jahr gelten neue Regeln für die Trinkwasserinstallation. Was sich bei Legionellenprüfung, Materialien und Dokumentation geändert hat.', content: generateContent('Neue Trinkwasserverordnung', 'Gesetze und Normen'), imageUrl: 'https://images.unsplash.com/photo-1594903335804-6a09a5c75464?auto=format&fit=crop&q=80&w=1200', category: 'Branchen-News', author: 'Redaktion', publishedAt: new Date(Date.now() - 86400000 * 15).toISOString(), featured: false, status: 'published', views: 2890, shares: 155, readTime: 220, slug: 'neue-trinkwasserverordnung', metaTitle: 'Trinkwasserverordnung: Die Änderungen', metaDescription: 'Ein Überblick über die wichtigsten Änderungen der neuen Trinkwasserverordnung für Installateure.', tags: ['Trinkwasser', 'Gesetz', 'Hygiene'], revisions: [{date: new Date().toISOString(), user: 'System', note: 'Initial Seed'}] },
-        { id: 'art-6', type: 'article', title: 'Smart-Home im Bad: Intelligente WCs und digitale Armaturen im Kommen', summary: 'Das Badezimmer wird smart. Wir zeigen die neuesten Trends von der Dusch-App bis zum sprachgesteuerten Wasserhahn und erörtern die Chancen für das Fachhandwerk.', content: generateContent('Smart-Home im Bad', 'Badezimmer-Technologie'), imageUrl: 'https://images.unsplash.com/photo-1586798271654-0513903a3a5f?auto=format&fit=crop&q=80&w=1200', category: 'Technologie', author: 'Markus Weber', publishedAt: new Date(Date.now() - 86400000 * 20).toISOString(), featured: false, status: 'published', views: 1540, shares: 70, readTime: 180, slug: 'smart-home-bad-trends', metaTitle: 'Trends im Smart-Bad', metaDescription: 'Die neuesten Smart-Home-Technologien für das Badezimmer und ihre Relevanz für SHK-Betriebe.', tags: ['Smart Home', 'Bad', 'IoT'], revisions: [{date: new Date().toISOString(), user: 'System', note: 'Initial Seed'}] },
-        { id: 'art-7', type: 'article', title: 'Großprojekt in Mannheim: Die Rolle der SHK-Branche bei der Sanierung des Quartiers Franklin', summary: 'Ein Blick hinter die Kulissen eines der größten Bauvorhaben der Region. Welche SHK-Technik kommt zum Einsatz und welche Betriebe sind beteiligt?', content: generateContent('Sanierung Franklin Mannheim', 'Regionalprojekte'), imageUrl: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&q=80&w=1200', category: 'Regional', author: 'Redaktion', publishedAt: new Date(Date.now() - 86400000 * 25).toISOString(), featured: false, status: 'published', views: 4200, shares: 250, readTime: 320, slug: 'projekt-franklin-mannheim-shk', metaTitle: 'SHK-Technik im Franklin-Quartier', metaDescription: 'Ein Bericht über die Sanitär-, Heizungs- und Klimatechnik im Mannheimer Franklin-Quartier.', tags: ['Mannheim', 'Großprojekt', 'Sanierung'], revisions: [{date: new Date().toISOString(), user: 'System', note: 'Initial Seed'}] },
-        { id: 'art-8', type: 'article', title: 'Heizen ohne Gas und Öl: Alternativen von Pellet bis Wasserstoff im Überblick', summary: 'Die Energiewende zwingt zum Umdenken. Wir vergleichen die gängigsten Alternativen zu fossilen Brennstoffen im Hinblick auf Kosten, Effizienz und Zukunftsfähigkeit.', content: generateContent('Heizen ohne Gas und Öl', 'alternative Heizsysteme'), imageUrl: 'https://images.unsplash.com/photo-1621233923627-12820330df87?auto=format&fit=crop&q=80&w=1200', category: 'Energie & Nachhaltigkeit', author: 'Julia Schmidt', publishedAt: new Date(Date.now() - 86400000 * 30).toISOString(), featured: false, status: 'published', views: 3850, shares: 205, readTime: 400, slug: 'heizen-alternativen-gas-oel', metaTitle: 'Alternative Heizsysteme im Vergleich', metaDescription: 'Ein umfassender Vergleich von Heizungsalternativen wie Pellet, Solarthermie und Wasserstoff.', tags: ['Heizung', 'Energiewende', 'Technik'], revisions: [{date: new Date().toISOString(), user: 'System', note: 'Initial Seed'}] },
-        { id: 'art-9', type: 'article', title: 'Fachkräftemangel bekämpfen: Quereinsteiger erfolgreich integrieren', summary: 'Neue Wege im Recruiting: Wie SHK-Betriebe erfolgreich Personal aus anderen Branchen gewinnen und qualifizieren können. Ein Leitfaden mit Praxisbeispielen.', content: generateContent('Quereinsteiger im Handwerk', 'Fachkräftemangel'), imageUrl: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&q=80&w=1200', category: 'Personal & Karriere', author: 'Markus Weber', publishedAt: new Date(Date.now() - 86400000 * 35).toISOString(), featured: false, status: 'published', views: 2150, shares: 110, readTime: 260, slug: 'quereinsteiger-shk-integrieren', metaTitle: 'Quereinsteiger im SHK-Handwerk', metaDescription: 'So gelingt die Integration von Quereinsteigern in SHK-Betrieben zur Bekämpfung des Fachkräftemangels.', tags: ['Fachkräfte', 'Quereinsteiger', 'HR'], revisions: [{date: new Date().toISOString(), user: 'System', note: 'Initial Seed'}] },
-        { id: 'art-10', type: 'article', title: 'Kundenkommunikation per WhatsApp & Co: Chancen und rechtliche Fallstricke', summary: 'Schnell, direkt und persönlich: Messenger-Dienste verändern die Kundenkommunikation. Was ist erlaubt, worauf müssen Betriebe achten und welche Tools helfen?', content: generateContent('Kundenkommunikation per WhatsApp', 'digitale Kundenbindung'), imageUrl: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?auto=format&fit=crop&q=80&w=1200', category: 'Branchen-News', author: 'Redaktion', publishedAt: new Date(Date.now() - 86400000 * 40).toISOString(), featured: false, status: 'published', views: 1890, shares: 85, readTime: 190, slug: 'whatsapp-kundenkommunikation-handwerk', metaTitle: 'WhatsApp im Handwerk: Recht & Praxis', metaDescription: 'Praxistipps und rechtliche Hinweise zur Nutzung von WhatsApp in der Kundenkommunikation für SHK-Betriebe.', tags: ['Kommunikation', 'DSGVO', 'Digitalisierung'], revisions: [{date: new Date().toISOString(), user: 'System', note: 'Initial Seed'}] }
+    articles = [
+        { 
+            id: '1', type: 'article', title: 'Wärmepumpen-Boom in Mannheim', 
+            slug: 'waermepumpen-boom-mannheim',
+            metaTitle: 'Wärmepumpen Boom: Analyse für Rhein-Neckar',
+            metaDescription: 'Wie sich der Markt in der Region entwickelt.',
+            summary: 'Die Nachfrage steigt rasant.', 
+            content: '<h2>Markt im Wandel</h2><p>Die Zahlen sprechen eine klare Sprache...</p>', 
+            author: 'Redaktion', category: 'Branchen-News', status: 'published', 
+            publishedAt: new Date().toISOString(), featured: true, views: 1250,
+            tags: ['Heizung', 'Markt', '2025'],
+            revisions: [{date: new Date().toISOString(), user: 'Admin', note: 'Initial Create'}]
+        },
+        { id: '2', type: 'page', title: 'Impressum', summary: 'Rechtliche Informationen', content: '<p>Angaben gemäß § 5 TMG...</p>', author: 'Admin', category: 'Page', status: 'published', publishedAt: new Date().toISOString(), featured: false, views: 100 }
     ];
-
-    tempArticles.push(
-      { id: 'page-imprint', type: 'page', title: 'Impressum', summary: 'Rechtliche Informationen', content: `<h2>Impressum</h2><p><strong>Angaben gemäß § 5 TMG</strong></p><p>SHK Rhein-Neckar Magazin GmbH<br>Wasserturmstraße 12<br>68161 Mannheim<br>Deutschland</p><p><strong>Vertreten durch:</strong><br>Max Mustermann</p><p><strong>Kontakt:</strong><br>Telefon: +49 (0) 621 12345-0<br>E-Mail: kontakt@shk-rhein-neckar.de</p>`, imageUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200', category: 'Page', author: 'Admin', publishedAt: new Date().toISOString(), status: 'published', featured: false, views: 0, shares: 0, readTime: 0 },
-      { id: 'page-privacy', type: 'page', title: 'Datenschutzerklärung', summary: 'Datenschutz', content: '<h2>Datenschutz</h2><p>Wir nehmen den Schutz Ihrer Daten ernst...</p>', imageUrl: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=1200', category: 'Page', author: 'Admin', publishedAt: new Date().toISOString(), status: 'published', featured: false, views: 0, shares: 0, readTime: 0 },
-      { id: 'page-terms', type: 'page', title: 'AGB', summary: 'Allgemeine Geschäftsbedingungen', content: '<h2>AGB</h2><p>Allgemeine Geschäftsbedingungen für die Nutzung...</p>', imageUrl: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&q=80&w=1200', category: 'Page', author: 'Admin', publishedAt: new Date().toISOString(), status: 'published', featured: false, views: 0, shares: 0, readTime: 0 },
-      { id: 'page-submit', type: 'page', title: 'Story einreichen', summary: 'Senden Sie uns Ihre Story', content: `<h2>Ihre Geschichte im Magazin</h2><p>Senden Sie uns Ihre Projektberichte an <a href="mailto:redaktion@shk-rhein-neckar.de">redaktion@shk-rhein-neckar.de</a></p>`, imageUrl: 'https://images.unsplash.com/photo-1512486130939-2c4f79935e4f?auto=format&fit=crop&q=80&w=1200', category: 'Page', author: 'Redaktion', publishedAt: new Date().toISOString(), status: 'published', featured: false, views: 0, shares: 0, readTime: 0 },
-      { id: 'page-advertising', type: 'page', title: 'Werben & Partner', summary: 'Werbemöglichkeiten', content: `<h2>Media-Daten</h2><p>Erreichen Sie 5000+ Fachkräfte. Kontakt: <a href="mailto:ads@shk-rhein-neckar.de">ads@shk-rhein-neckar.de</a></p>`, imageUrl: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=1200', category: 'Page', author: 'Sales', publishedAt: new Date().toISOString(), status: 'published', featured: false, views: 0, shares: 0, readTime: 0 },
-      { id: 'page-jobs', type: 'page', title: 'Stellenmarkt', summary: 'Jobs in der Region', content: `<h2>SHK Jobs Rhein-Neckar</h2><p>Inserieren Sie hier. Kontakt: <a href="mailto:jobs@shk-rhein-neckar.de">jobs@shk-rhein-neckar.de</a></p>`, imageUrl: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&q=80&w=1200', category: 'Page', author: 'HR', publishedAt: new Date().toISOString(), status: 'published', featured: false, views: 0, shares: 0, readTime: 0 }
-    );
-    articles = tempArticles;
-    
     directory = [
-      { id: 'dir-1', name: 'Heizungstechnik Müller GmbH', category: 'Heizung', address: 'Hauptstraße 10', city: 'Mannheim', zip: '68159', phone: '0621 123456', website: 'https://heizung-mueller.de', description: 'Spezialist für moderne Heizsysteme und Wärmepumpen.', logoUrl: 'https://logo.clearbit.com/heizung-mueller.de' },
-      { id: 'dir-2', name: 'Sanitär-Service Weber', category: 'Sanitär', address: 'Bergheimer Straße 58', city: 'Heidelberg', zip: '69115', phone: '06221 654321', website: 'https://sanitaer-weber.de', description: 'Komplettbäder aus einer Hand. Barrierefreie Umbauten.', logoUrl: 'https://logo.clearbit.com/sanitaer-weber.de' },
-      { id: 'dir-3', name: 'Klima-Profis Rhein-Neckar', category: 'Klima', address: 'Industriestraße 35', city: 'Ludwigshafen', zip: '67063', phone: '0621 987654', website: 'https://klima-profis-rn.de', description: 'Installation und Wartung von Klimaanlagen für Gewerbe und Privat.', logoUrl: 'https://logo.clearbit.com/klima-profis-rn.de' },
-      { id: 'dir-4', name: 'Lüftungsbau Schmidt', category: 'Lüftung', address: 'Mittelstraße 5', city: 'Weinheim', zip: '69469', phone: '06201 123789', website: 'https://lueftung-schmidt.de', description: 'Planung und Einbau von zentralen und dezentralen Lüftungsanlagen.', logoUrl: 'https://logo.clearbit.com/lueftung-schmidt.de' },
-      { id: 'dir-5', name: 'Elektro-Technik Fischer', category: 'Elektro', address: 'Schulstraße 21', city: 'Schwetzingen', zip: '68723', phone: '06202 987123', website: 'https://elektro-fischer.com', description: 'Smart Home Installationen und Photovoltaik-Anlagen.', logoUrl: 'https://logo.clearbit.com/elektro-fischer.com' },
-      { id: 'dir-6', name: 'Bade-Träume GmbH', category: 'Sanitär', address: 'Planken 4', city: 'Mannheim', zip: '68161', phone: '0621 555666', website: 'https://badetraeume-ma.de', description: 'Exklusive Badgestaltung und hochwertige Armaturen.', logoUrl: 'https://logo.clearbit.com/badetraeume-ma.de' },
-      { id: 'dir-7', name: 'Wärme-Konzept Rhein-Neckar', category: 'Heizung', address: 'Kurfürsten-Anlage 1', city: 'Heidelberg', zip: '69115', phone: '06221 777888', website: 'https://waerme-konzept-hd.de', description: 'Energieberatung und hydraulischer Abgleich.', logoUrl: 'https://logo.clearbit.com/waerme-konzept-hd.de' },
-      { id: 'dir-8', name: 'Frische Luft Systeme', category: 'Lüftung', address: 'Bürgermeister-Grünzweig-Straße 11', city: 'Ludwigshafen', zip: '67059', phone: '0621 333444', website: 'https://frischeluft-lu.de', description: 'Spezialist für Wohnraumlüftung mit Wärmerückgewinnung.', logoUrl: 'https://logo.clearbit.com/frischeluft-lu.de' },
-      { id: 'dir-9', name: 'Solar & Strom Wagner', category: 'Elektro', address: 'Mannheimer Landstraße 2', city: 'Hockenheim', zip: '68766', phone: '06205 222333', website: 'https://solar-wagner.de', description: 'Installation von PV-Anlagen und Stromspeichern.', logoUrl: 'https://logo.clearbit.com/solar-wagner.de' },
-      { id: 'dir-10', name: 'Haustechnik Klein', category: 'Heizung', address: 'Bahnhofstraße 40', city: 'Sinsheim', zip: '74889', phone: '07261 444555', website: 'https://haustechnik-klein.de', description: '24h Notdienst für Heizung und Sanitär.', logoUrl: 'https://logo.clearbit.com/haustechnik-klein.de' },
-      { id: 'dir-11', name: 'Die Bad-Designer', category: 'Sanitär', address: 'Rohrbacher Str. 12', city: 'Heidelberg', zip: '69115', phone: '06221 666777', website: 'https://die-baddesigner.de', description: 'Individuelle Badplanung in 3D.', logoUrl: 'https://logo.clearbit.com/die-baddesigner.de' },
-      { id: 'dir-12', name: 'Kühltechnik Becker', category: 'Klima', address: 'Friedrich-Ebert-Straße 1', city: 'Viernheim', zip: '68519', phone: '06204 888999', website: 'https://kuehltechnik-becker.de', description: 'Klimatisierung für Serverräume und Gewerbe.', logoUrl: 'https://logo.clearbit.com/kuehltechnik-becker.de' },
-      { id: 'dir-13', name: 'Elektro Bauer & Söhne', category: 'Elektro', address: 'Marktplatz 9', city: 'Worms', zip: '67547', phone: '06241 111222', website: 'https://elektro-bauer.de', description: 'Traditionsbetrieb seit 1950.', logoUrl: 'https://logo.clearbit.com/elektro-bauer.de' },
-      { id: 'dir-14', name: 'Pellet-Heizungen Frank', category: 'Heizung', address: 'Odenwaldstraße 22', city: 'Eberbach', zip: '69412', phone: '06271 333444', website: 'https://pellet-frank.de', description: 'Biomasse-Heizungen und Pelletlager.', logoUrl: 'https://logo.clearbit.com/pellet-frank.de' },
-      { id: 'dir-15', name: 'Wasser-Welt Ludwigshafen', category: 'Sanitär', address: 'Rheinuferstraße 7', city: 'Ludwigshafen', zip: '67061', phone: '0621 555111', website: 'https://wasser-welt-lu.de', description: 'Wasseraufbereitung und Legionellenprüfung.', logoUrl: 'https://logo.clearbit.com/wasser-welt-lu.de' },
-      { id: 'dir-16', name: 'Air-Control GmbH', category: 'Klima', address: 'Augustaanlage 30', city: 'Mannheim', zip: '68165', phone: '0621 222888', website: 'https://air-control-ma.de', description: 'Großanlagen für Bürogebäude und Industrie.', logoUrl: 'https://logo.clearbit.com/air-control-ma.de' },
-      { id: 'dir-17', name: 'Licht & Kraft Elektroservice', category: 'Elektro', address: 'Hauptstraße 100', city: 'Wiesloch', zip: '69168', phone: '06222 777999', website: 'https://licht-kraft-wiesloch.de', description: 'E-Ladesäulen und Netzwerktechnik.', logoUrl: 'https://logo.clearbit.com/licht-kraft-wiesloch.de' },
-      { id: 'dir-18', name: 'Heizungs-Notdienst 24/7', category: 'Heizung', address: 'Mobil in der Region', city: 'Rhein-Neckar', zip: '68159', phone: '0176 12345678', website: 'https://notdienst-shk-rn.de', description: 'Soforthilfe bei Heizungsausfall.', logoUrl: 'https://logo.clearbit.com/notdienst-shk-rn.de' },
-      { id: 'dir-19', name: 'Bad & Fliese Lehmann', category: 'Sanitär', address: 'Industriestraße 8', city: 'Speyer', zip: '67346', phone: '06232 444333', website: 'https://bad-lehmann.de', description: 'Komplettsanierung inklusive Fliesenarbeiten.', logoUrl: 'https://logo.clearbit.com/bad-lehmann.de' },
-      { id: 'dir-20', name: 'Energietechnik Vogel', category: 'Heizung', address: 'Schlossstraße 3', city: 'Bruchsal', zip: '76646', phone: '07251 222111', website: 'https://energietechnik-vogel.de', description: 'Experte für Solarthermie und Blockheizkraftwerke.', logoUrl: 'https://logo.clearbit.com/energietechnik-vogel.de' },
+        { id: 'd1', name: 'Müller Sanitär', category: 'Sanitär', city: 'Mannheim', description: 'Ihr Partner für Bad & WC.', logoUrl: 'https://via.placeholder.com/100' }
     ];
-    saveData();
 }
 
 function seedUsers() {
@@ -196,9 +155,6 @@ function render() {
             ${appState.modalOpen ? renderModal() : ''}
         `;
         lucide.createIcons();
-        if (appState.activeView === 'editor') {
-            attachEditorEventListeners();
-        }
     }
 }
 
@@ -369,7 +325,7 @@ function renderDashboard() {
                         <span class="text-gray-500">${a.views}</span>
                     </div>
                     <div class="w-full bg-gray-100 rounded-full h-1.5">
-                        <div class="bg-brand-copper h-1.5 rounded-full" style="width: ${Math.min((a.views/5000)*100, 100)}%"></div>
+                        <div class="bg-brand-copper h-1.5 rounded-full" style="width: ${Math.min((a.views/1500)*100, 100)}%"></div>
                     </div>
                 </div>`).join('')}
             </div>
@@ -437,7 +393,7 @@ function renderEditor() {
         <!-- Main Content Area -->
         <div class="flex-grow bg-white rounded-sm shadow-sm border border-gray-200 flex flex-col min-h-[600px]">
             <div class="p-6 border-b border-gray-100">
-                <input type="text" id="editor-title" value="${a.title || ''}" placeholder="Enter Title Here..." class="w-full text-3xl font-bold font-display placeholder-gray-300 border-none outline-none">
+                <input type="text" id="editor-title" value="${a.title}" placeholder="Enter Title Here..." class="w-full text-3xl font-bold font-display placeholder-gray-300 border-none outline-none">
             </div>
             
             <div class="flex items-center gap-1 p-2 bg-gray-50 border-b border-gray-200 flex-wrap sticky top-0 z-20">
@@ -451,18 +407,20 @@ function renderEditor() {
                 <div class="w-px h-6 bg-gray-300 mx-1"></div>
                 <button onclick="execCmd('insertUnorderedList')" class="p-2 hover:bg-gray-200 rounded"><i data-lucide="list" class="w-4 h-4"></i></button>
                 <div class="w-px h-6 bg-gray-300 mx-1"></div>
+                <!-- Image Upload -->
                 <label class="p-2 hover:bg-gray-200 rounded cursor-pointer" title="Upload Image from Computer">
                     <i data-lucide="image-plus" class="w-4 h-4"></i>
                     <input type="file" class="hidden" accept="image/*" onchange="insertImage(this)">
                 </label>
             </div>
             
-            <div id="editor-content" contenteditable="true" class="flex-grow p-8 outline-none prose max-w-none overflow-y-auto" placeholder="Start writing your story...">${a.content || ''}</div>
+            <div id="editor-content" contenteditable="true" class="flex-grow p-8 outline-none prose max-w-none overflow-y-auto" placeholder="Start writing your story...">${a.content}</div>
         </div>
 
         <!-- Sidebar -->
         <div class="w-full lg:w-80 space-y-4">
             
+            <!-- Publish Action -->
             <div class="bg-white p-4 rounded-sm shadow-sm border border-gray-200">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xs font-bold uppercase text-gray-400">Status</h3>
@@ -474,22 +432,13 @@ function renderEditor() {
                 </div>
                 <div class="mt-4 pt-4 border-t border-gray-100">
                     <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Schedule Publish</label>
-                    <input type="datetime-local" id="editor-schedule" class="w-full text-xs border border-gray-300 rounded-sm p-2" value="${(a.publishedAt && a.status === 'scheduled') ? a.publishedAt.slice(0,16) : ''}">
+                    <input type="datetime-local" id="editor-schedule" class="w-full text-xs border border-gray-300 rounded-sm p-2" value="${a.status === 'scheduled' ? a.publishedAt.slice(0,16) : ''}">
                 </div>
             </div>
 
+            <!-- Meta Data -->
             <div class="bg-white p-4 rounded-sm shadow-sm border border-gray-200 space-y-4">
                 <h3 class="text-xs font-bold uppercase text-gray-400 border-b pb-2">Settings</h3>
-                <div>
-                    <label class="text-xs font-bold text-gray-600 block mb-2">Featured Image</label>
-                    <div id="featured-image-preview" class="w-full aspect-video bg-gray-100 rounded-sm mb-2 flex items-center justify-center text-gray-400 text-xs">
-                        ${a.imageUrl ? `<img src="${a.imageUrl}" class="w-full h-full object-cover rounded-sm">` : '<span>No Image</span>'}
-                    </div>
-                    <label class="cursor-pointer text-xs text-brand-copper font-bold hover:underline">
-                        Upload Image
-                        <input type="file" class="hidden" accept="image/*" onchange="updateFeaturedImage(this)">
-                    </label>
-                </div>
                 ${!isPage ? `
                 <div>
                     <label class="text-xs font-bold text-gray-600 block mb-1">Category</label>
@@ -519,6 +468,7 @@ function renderEditor() {
                 </div>
             </div>
 
+            <!-- SEO & Slugs -->
             <div class="bg-white p-4 rounded-sm shadow-sm border border-gray-200 space-y-4">
                 <h3 class="text-xs font-bold uppercase text-gray-400 border-b pb-2">SEO</h3>
                 <div>
@@ -535,10 +485,12 @@ function renderEditor() {
                 </div>
             </div>
 
+            <!-- Revisions & Integrations -->
             <div class="bg-white p-4 rounded-sm shadow-sm border border-gray-200 space-y-4">
                  <button onclick="alert('Sent to Newsletter API (Mock)')" class="w-full border border-gray-300 text-gray-600 py-2 rounded-sm font-bold uppercase text-[10px] hover:bg-gray-50 flex items-center justify-center">
                     <i data-lucide="mail" class="w-3 h-3 mr-2"></i> Push to Newsletter
                  </button>
+                 
                  <div class="pt-4 border-t border-gray-100">
                     <h3 class="text-xs font-bold uppercase text-gray-400 mb-2">Revision History</h3>
                     <ul class="space-y-2 text-xs text-gray-500">
@@ -552,6 +504,7 @@ function renderEditor() {
                     </ul>
                  </div>
             </div>
+
         </div>
     </div>`;
 }
@@ -801,20 +754,24 @@ function deleteContent(id) {
     }
 }
 
+function cancelEdit() {
+    appState.activeView = appState.editingItem.type === 'article' ? 'articles' : 'pages';
+    render();
+}
+
 function saveContent(status) {
     const item = appState.editingItem;
     item.title = document.getElementById('editor-title').value;
     item.content = document.getElementById('editor-content').innerHTML;
     
+    // Check Scheduled Date
     const scheduledDate = document.getElementById('editor-schedule') ? document.getElementById('editor-schedule').value : null;
     if (scheduledDate) {
         item.status = 'scheduled';
         item.publishedAt = new Date(scheduledDate).toISOString();
     } else {
         item.status = status;
-        if (status === 'published' && item.status !== 'published') {
-            item.publishedAt = new Date().toISOString();
-        }
+        if (!item.publishedAt) item.publishedAt = new Date().toISOString();
     }
 
     if(item.type === 'article') {
@@ -829,8 +786,13 @@ function saveContent(status) {
         const tagStr = document.getElementById('editor-tags').value;
         item.tags = tagStr ? tagStr.split(',').map(t=>t.trim()) : [];
         
+        // Add Revision
         if (!item.revisions) item.revisions = [];
-        item.revisions.unshift({ date: new Date().toISOString(), user: appState.currentUser.name, note: 'Updated' });
+        item.revisions.unshift({
+            date: new Date().toISOString(),
+            user: appState.currentUser.name,
+            note: 'Updated'
+        });
     }
 
     if (!item.title) return alert('Title is required');
@@ -847,59 +809,11 @@ function saveContent(status) {
 
 // Editor Utilities
 function execCmd(cmd, val) { document.execCommand(cmd, false, val); }
-
-function saveSelection() {
-    if (window.getSelection) {
-        const sel = window.getSelection();
-        if (sel.getRangeAt && sel.rangeCount) {
-            savedRange = sel.getRangeAt(0);
-        }
-    }
-}
-
 function insertImage(input) {
     if (input.files && input.files[0]) {
         const reader = new FileReader();
-        reader.onload = function (e) {
-            const editor = document.getElementById('editor-content');
-            editor.focus();
-            if (savedRange) {
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.style.maxWidth = '100%';
-                img.style.borderRadius = '4px';
-                
-                const sel = window.getSelection();
-                sel.removeAllRanges();
-                sel.addRange(savedRange);
-
-                savedRange.deleteContents();
-                savedRange.insertNode(img);
-            } else { // Fallback
-                 document.execCommand('insertImage', false, e.target.result);
-            }
-        };
+        reader.onload = function (e) { document.execCommand('insertImage', false, e.target.result); };
         reader.readAsDataURL(input.files[0]);
-    }
-}
-
-function updateFeaturedImage(input) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            appState.editingItem.imageUrl = e.target.result;
-            document.getElementById('featured-image-preview').innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover rounded-sm">`;
-        };
-        reader.readAsDataURL(input.files[0]);
-    }
-}
-
-function attachEditorEventListeners() {
-    const editorDiv = document.getElementById('editor-content');
-    if (editorDiv) {
-        editorDiv.addEventListener('keyup', saveSelection);
-        editorDiv.addEventListener('mouseup', saveSelection);
-        editorDiv.addEventListener('focus', saveSelection);
     }
 }
 
@@ -1024,23 +938,20 @@ async function triggerSync() {
     render();
 
     try {
-        const response = await fetch(settings.articlesScriptUrl, {
+        await fetch(settings.articlesScriptUrl, {
             method: 'POST',
-            body: JSON.stringify({ action: 'sync', articles, directory, categories, users, mediaLibrary }),
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            mode: 'no-cors' 
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'sync', articles, directory, categories, users, mediaLibrary })
         });
         
         setTimeout(() => {
-            appState.syncState = 'success';
-            localStorage.removeItem('shk_data_cache_timestamp'); // Invalidate public cache
-            localStorage.setItem('shk_cms_synced', Date.now()); // Signal other tabs to reload
-            render();
-            setTimeout(() => { appState.syncState = 'idle'; render(); }, 3000);
-        }, 1500);
-
+             appState.syncState = 'success';
+             render();
+             setTimeout(() => { appState.syncState = 'idle'; render(); }, 3000);
+        }, 2000);
     } catch (e) {
-        console.error('Sync Error:', e);
+        console.error(e);
         appState.syncState = 'error';
         render();
     }
