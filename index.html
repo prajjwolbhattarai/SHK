@@ -60,7 +60,7 @@
 const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxiD4ryVZpHISk_L275irKaNb8dRzAmZDCrZQvloe5S_GEaXEVjPp22ECavhF-9KHfSGg/exec';
 
 // --- 2. DATA STORE ---
-// Skeleton Data for instant load if CMS is empty
+// Skeleton Data for instant load
 const SKELETON_ARTICLES = [{"id":"art-1","type":"article","title":"Neue Energieverordnungen 2025: Was gilt ab Januar?","summary":"Ein umfassender Bericht über die neuen Vorschriften für Heizungssysteme in der Rhein-Neckar Region.","imageUrl":"https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200","category":"Branchen-News","author":"Redaktion","publishedAt":"2025-10-25T10:00:00.000Z","featured":true},{"id":"art-2","type":"article","title":"Wärmepumpen-Boom in Mannheim","summary":"Wie lokale Betriebe mit der steigenden Nachfrage umgehen und welche Förderungen aktuell verfügbar sind.","imageUrl":"https://images.unsplash.com/photo-1581092334651-ddf26d9a09d0?auto=format&fit=crop&q=80&w=1200","category":"Technologie","author":"Markus Weber","publishedAt":"2025-10-24T10:00:00.000Z","featured":false},{"id":"art-3","type":"article","title":"Fachkräftemangel: Strategien für 2026","summary":"Experteninterviews mit Handwerksmeistern aus Heidelberg über erfolgreiche Recruiting-Methoden.","imageUrl":"https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=1200","category":"Personal & Karriere","author":"Julia Schmidt","publishedAt":"2025-10-23T10:00:00.000Z","featured":false}];
 
 const SKELETON_DIRECTORY = [
@@ -69,19 +69,17 @@ const SKELETON_DIRECTORY = [
   { id: 'dir-3', name: 'Klima-Profis Rhein-Neckar', category: 'Klima', address: 'Industriestraße 35', city: 'Ludwigshafen', zip: '67063', phone: '0621 987654', website: 'https://klima-profis-rn.de', description: 'Installation und Wartung von Klimaanlagen für Gewerbe und Privat.', logoUrl: 'https://logo.clearbit.com/klima-profis-rn.de' },
 ];
 
-// Helper to load from CMS storage or fallback
 function loadLocalData(key, fallback) {
     try {
         const item = localStorage.getItem(key);
         if (item) return JSON.parse(item);
-    } catch(e) { console.error("Error reading local storage", e); }
+    } catch(e) { console.warn("Error reading local storage", e); }
     return fallback;
 }
 
-// Load data immediately from CMS storage (if on same device) or use skeleton
+// Initial Data Load
 let ALL_ARTICLES = loadLocalData('shk_articles', SKELETON_ARTICLES);
 let ALL_DIRECTORY = loadLocalData('shk_directory', SKELETON_DIRECTORY);
-// Filter pages/drafts for public view if loaded from CMS
 ALL_ARTICLES = Array.isArray(ALL_ARTICLES) ? ALL_ARTICLES.filter(a => a.type !== 'page') : SKELETON_ARTICLES;
 
 const INITIAL_CATEGORIES = ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
@@ -89,7 +87,7 @@ const INITIAL_CATEGORIES = ['Branchen-News', 'Betriebs-Features', 'Personal & Ka
 // --- 3. LANGUAGE MANAGER ---
 const translations={en:{'nav.home':'Home','nav.directory':'Directory','hero.title':'The Leading SHK Industry Magazine.','hero.subtitle':"Trusted industry coverage, insights, and success stories for sanitary, heating, and climate professionals in the Rhein-Neckar region.",'hero.read_latest':'Read Latest','hero.submit_story':'Submit a Story','section.top_story':'Top Story','section.latest_news':'Latest Industry News','newsletter.title':'Stay Informed. No Spam.','newsletter.text':'Get the weekly digest of the most important SHK news in Rhein-Neckar.','newsletter.placeholder':'Your work email...','newsletter.button':'Subscribe','footer.about':'The independent voice for the Sanitary, Heating, and Climate industry in the metropolitan region.','article.read_story':'Read Story','article.watch_video':'Watch Video','search.placeholder':'Search articles...','search.no_results':'No articles found matching your search.','btn.show_more':'Show More','btn.load_more':'Load More Articles','nav.get_featured':'Get Featured','cat.Branchen-News':'Industry News','cat.Betriebs-Features':'Company Features','cat.Personal & Karriere':'HR & Careers','cat.Technologie':'Technology','cat.Energie & Nachhaltigkeit':'Energy & Sustainability','cat.Regional':'Regional','article.read_time':'min read','article.share':'Share','directory.title':'Business Directory','directory.subtitle':'Find qualified SHK professionals in the Rhein-Neckar region.','search.placeholder_dir':'Search by name or city...'},de:{'nav.home':'Startseite','nav.directory':'Verzeichnis','hero.title':'Das führende SHK-Branchenmagazin.','hero.subtitle':'Verlässliche Berichterstattung, Einblicke und Erfolgsgeschichten für Sanitär-, Heizungs- und Klimaprofis in der Metropolregion Rhein-Neckar.','hero.read_latest':'Aktuelles lesen','hero.submit_story':'Story einreichen','section.top_story':'Top Story','section.latest_news':'Neueste Branchennachrichten','newsletter.title':'Informiert bleiben. Kein Spam.','newsletter.text':'Erhalten Sie die wöchentliche Zusammenfassung der wichtigsten SHK-Nachrichten.','newsletter.placeholder':'Ihre geschäftliche E-Mail...','newsletter.button':'Abonnieren','footer.about':'Die unabhängige Stimme für die Sanitär-, Heizungs- und Klimabranche in der Metropolregion.','article.read_story':'Artikel lesen','article.watch_video':'Video ansehen','search.placeholder':'Artikel suchen...','search.no_results':'Keine Artikel gefunden.','btn.show_more':'Mehr Anzeigen','btn.load_more':'Weitere Artikel laden','nav.get_featured':'Artikel Einreichen','cat.Branchen-News':'Branchen-News','cat.Betriebs-Features':'Betriebs-Features','cat.Personal & Karriere':'Personal & Karriere','cat.Technologie':'Technologie','cat.Energie & Nachhaltigkeit':'Energie & Nachhaltigkeit','cat.Regional':'Regional','article.read_time':'Min Lesezeit','article.share':'Teilen','directory.title':'Branchenverzeichnis','directory.subtitle':'Finden Sie qualifizierte SHK-Fachbetriebe in der Rhein-Neckar-Region.','search.placeholder_dir':'Suche nach Name oder Stadt...'}};const languageManager={currentLanguage:'de',getLanguage:()=>{const t=localStorage.getItem('shk_lang')||'de';return languageManager.currentLanguage=t,t},setLanguage:t=>{languageManager.currentLanguage=t,localStorage.setItem('shk_lang',t),renderPage()},t:t=>translations[languageManager.currentLanguage]?.[t]||translations.de[t]||t};
 
-// --- 4. COMPONENT TEMPLATES ---
+// --- 4. TEMPLATES ---
 const createHeaderHTML=(t,e,view)=>{const a=languageManager.t;return`
     <nav class="sticky top-0 z-50 transition-all duration-300 bg-white/95 backdrop-blur-md shadow-md border-b border-gray-200 py-0">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -219,15 +217,13 @@ const createDirectoryCardHTML=e=>{const t={Heizung:"bg-red-100 text-red-800 bord
 
 // --- 5. PAGE-SPECIFIC LOGIC ---
 const appState = {
-    view: 'magazine', // magazine, article, directory
+    view: 'magazine', 
     activeCategory: 'All',
     searchQuery: '',
-    displayedCount: 100, // Load all by default
+    displayedCount: 100, 
     articlesLoading: false,
     directoryLoading: false,
 };
-
-// --- RENDERERS ---
 
 function renderMagazinePage(isUpdate = false) {
     if (isUpdate && document.getElementById('article-grid-container')) {
@@ -235,12 +231,11 @@ function renderMagazinePage(isUpdate = false) {
         attachMagazineEventListeners();
         return;
     }
-    
     document.getElementById('progress-bar-container').innerHTML = '';
     const t = languageManager.t;
     const mainContent = document.getElementById('main-content');
     
-    let contentHTML = `
+    mainContent.innerHTML = `
         <div class="relative w-full h-[650px] flex items-center bg-brand-dark overflow-hidden group">
             <div class="absolute inset-0 z-0">
                <img src="https://images.unsplash.com/photo-1581092334651-ddf26d9a09d0?auto=format&fit=crop&q=80&w=2000" class="w-full h-full object-cover opacity-60" alt="Industrial Background" />
@@ -276,13 +271,11 @@ function renderMagazinePage(isUpdate = false) {
             </div>
         </section>
     `;
-    mainContent.innerHTML = contentHTML;
     attachMagazineEventListeners();
 }
 
 function renderArticleGridHTML() {
     const t = languageManager.t;
-    // Ensure we only show articles (not pages) and filter drafts
     let displayArticles = ALL_ARTICLES.filter(a => a.type !== 'page' && a.status !== 'draft');
 
     if (appState.searchQuery) {
@@ -312,8 +305,6 @@ function renderArticleGridHTML() {
         <div id="article-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
             ${gridArticles.slice(0, appState.displayedCount).map((article) => `<div key="${article.id}">${createArticleCardHTML(article)}</div>`).join('')}
         </div>
-        ${gridArticles.length === 0 ? `<div class="text-center py-32 bg-gray-50 rounded-sm border border-dashed border-gray-300"><p class="text-brand-steel font-medium text-lg">${appState.searchQuery ? t('search.no_results') : 'Keine Artikel in dieser Kategorie gefunden.'}</p></div>` : ''}
-        ${gridArticles.length > appState.displayedCount ? `<div class="mt-16 text-center"><button id="load-more-btn" class="inline-flex items-center bg-white border border-gray-200 px-8 py-3 text-xs font-bold uppercase tracking-widest text-brand-dark hover:border-brand-copper hover:text-brand-copper transition-colors shadow-sm">${t('btn.load_more')}</button></div>` : ''}
     </section>
     </div>`;
 
@@ -321,7 +312,8 @@ function renderArticleGridHTML() {
 }
 
 function renderArticleReader(articleId) {
-    const t=languageManager.t,e=ALL_ARTICLES.find(t=>t.id===articleId);if(!e)return void(document.getElementById("main-content").innerHTML='<div class="text-center py-40"><h1 class="text-2xl font-bold">Artikel nicht gefunden</h1><a href="index.html" class="text-brand-copper mt-4 inline-block">Zurück zur Startseite</a></div>');document.title=`${e.title} | SHK Rhein-Neckar`;
+    const e=ALL_ARTICLES.find(t=>t.id===articleId);if(!e)return void(document.getElementById("main-content").innerHTML='<div class="text-center py-40"><h1 class="text-2xl font-bold">Artikel nicht gefunden</h1><a href="index.html" class="text-brand-copper mt-4 inline-block">Zurück zur Startseite</a></div>');
+    document.title=`${e.title} | SHK Rhein-Neckar`;
     document.getElementById("progress-bar-container").innerHTML='<div id="progress-bar" class="h-full bg-brand-copper transition-all duration-100 ease-out shadow-[0_0_10px_#b45309]" style="width: 0%"></div>';
     
     document.getElementById("main-content").innerHTML=`
@@ -386,7 +378,6 @@ function renderDirectoryPage(isUpdate = false) {
     
     renderDirectoryGrid();
     
-    // Directory Event Listeners
     document.getElementById('dir-search-input')?.addEventListener('input', (e) => {
         appState.searchQuery = e.target.value;
         renderDirectoryGrid();
@@ -425,49 +416,76 @@ function renderDirectoryGrid() {
     }
 }
 
-// --- 6. API FETCHERS ---
-async function fetchLiveArticles() {
-    let url = DEFAULT_SCRIPT_URL;
-    try {
-        const s = JSON.parse(localStorage.getItem('shk_settings'));
-        if (s && s.articlesScriptUrl) url = s.articlesScriptUrl;
-    } catch(e) {}
+// --- 6. API FETCHERS (SMART SYNC) ---
+async function startLiveSync() {
+    // Determine URLs
+    let settings = {};
+    try { settings = JSON.parse(localStorage.getItem('shk_settings')) || {}; } catch(e) {}
     
+    const articleUrl = (settings.articlesScriptUrl || DEFAULT_SCRIPT_URL).trim();
+    const directoryUrl = (settings.directoryScriptUrl || DEFAULT_SCRIPT_URL).trim();
+    
+    console.log("Starting Live Sync...");
     appState.articlesLoading = true;
-    if(appState.view === 'magazine') renderMagazinePage(true);
-    
-    try {
-        const response = await fetch(url);
-        const liveData = await response.json();
-        if (liveData && Array.isArray(liveData.articles)) {
-            ALL_ARTICLES = liveData.articles;
+    appState.directoryLoading = true;
+    updateLoaders();
+
+    // OPTIMIZATION: If URLs are identical, fetch once to save bandwidth
+    if (articleUrl === directoryUrl) {
+        try {
+            const data = await fetchJson(articleUrl);
+            if (data.articles) updateArticles(data.articles);
+            if (data.directory) updateDirectory(data.directory);
+        } catch (e) {
+            console.warn("Unified sync failed, retrying separately...", e);
         }
-    } catch (error) { console.error("Article Fetch Error", error); } 
-    finally {
-        appState.articlesLoading = false;
-        if(appState.view === 'magazine') renderMagazinePage(true);
+    } else {
+        // Parallel Fetch
+        Promise.allSettled([
+            fetchJson(articleUrl).then(d => d.articles && updateArticles(d.articles)),
+            fetchJson(directoryUrl).then(d => d.directory && updateDirectory(d.directory))
+        ]);
     }
 }
 
-async function fetchLiveDirectory() {
-    let url = DEFAULT_SCRIPT_URL;
+async function fetchJson(url) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), 15000);
     try {
-        const s = JSON.parse(localStorage.getItem('shk_settings'));
-        if (s && s.directoryScriptUrl) url = s.directoryScriptUrl;
-    } catch(e) {}
+        const res = await fetch(url, { signal: controller.signal, redirect: 'follow' });
+        clearTimeout(id);
+        if(!res.ok) throw new Error(res.status);
+        return await res.json();
+    } catch (e) {
+        clearTimeout(id);
+        throw e;
+    }
+}
 
-    appState.directoryLoading = true;
-    if(appState.view === 'directory') document.getElementById('loading-indicator')?.classList.remove('hidden');
-    try {
-        const response = await fetch(url);
-        const liveData = await response.json();
-        if (liveData && Array.isArray(liveData.directory)) {
-            ALL_DIRECTORY = liveData.directory;
-        }
-    } catch (error) { console.error("Directory Fetch Error", error); } 
-    finally {
-        appState.directoryLoading = false;
-        if(appState.view === 'directory') renderDirectoryPage(true);
+function updateArticles(newArticles) {
+    if(!Array.isArray(newArticles)) return;
+    ALL_ARTICLES = newArticles;
+    // Save to local storage for next load
+    localStorage.setItem('shk_articles', JSON.stringify(ALL_ARTICLES));
+    appState.articlesLoading = false;
+    updateLoaders();
+    if (appState.view === 'magazine') renderMagazinePage(true);
+}
+
+function updateDirectory(newDirectory) {
+    if(!Array.isArray(newDirectory)) return;
+    ALL_DIRECTORY = newDirectory;
+    localStorage.setItem('shk_directory', JSON.stringify(ALL_DIRECTORY));
+    appState.directoryLoading = false;
+    updateLoaders();
+    if (appState.view === 'directory') renderDirectoryPage(true);
+}
+
+function updateLoaders() {
+    const loader = document.getElementById('loading-indicator');
+    if(loader) {
+        if(appState.articlesLoading || appState.directoryLoading) loader.classList.remove('hidden');
+        else loader.classList.add('hidden');
     }
 }
 
@@ -481,39 +499,28 @@ function renderPage() {
     appState.view = view || (id ? 'article' : 'magazine');
     languageManager.getLanguage();
 
-    // Reset search query on view change
     appState.searchQuery = '';
     
     if (category) appState.activeCategory = category;
     else if(appState.view !== 'directory') appState.activeCategory = 'All'; 
     
-    // Render Shell
     document.getElementById('header-container').innerHTML = createHeaderHTML(INITIAL_CATEGORIES, appState.activeCategory, appState.view);
     document.getElementById('footer-container').innerHTML = createFooterHTML(INITIAL_CATEGORIES);
     
-    // Render Content
-    if (appState.view === 'directory') {
-        renderDirectoryPage();
-    } else if (id) {
-        renderArticleReader(id);
-    } else {
-        renderMagazinePage();
-    }
+    if (appState.view === 'directory') renderDirectoryPage();
+    else if (id) renderArticleReader(id);
+    else renderMagazinePage();
     
     attachGlobalEventListeners();
 }
 
-// --- EVENT LISTENERS ---
 function attachMagazineEventListeners() {
     const t=document.getElementById("load-more-btn");t&&t.addEventListener("click",()=>{appState.displayedCount+="All"===appState.activeCategory?6:9,renderMagazinePage(!0)});
 }
 
 function attachGlobalEventListeners() {
-    // Language
     document.querySelectorAll(".lang-option-btn").forEach(t=>{t.addEventListener("click",()=>languageManager.setLanguage(t.getAttribute("data-lang")))});
     const t=document.getElementById("lang-menu-btn");t&&t.addEventListener("click",()=>{document.getElementById("lang-menu").classList.toggle("hidden")});
-    
-    // Mobile Menu
     const e=document.getElementById("mobile-menu-btn");
     e&&e.addEventListener("click",()=>{
         const t=document.getElementById("mobile-menu");
@@ -530,7 +537,6 @@ function attachGlobalEventListeners() {
         }
     });
 
-    // Main Search (Magazine)
     const a=document.getElementById("search-container"),r=document.getElementById("search-toggle-btn");
     r&&r.addEventListener("click",()=>{
         a.classList.remove("w-8"),a.classList.add("w-full","md:w-96"),a.innerHTML=`
@@ -544,16 +550,18 @@ function attachGlobalEventListeners() {
     });
 }
 
-// Init
 document.addEventListener('DOMContentLoaded', () => {
     renderPage();
-    fetchLiveArticles();
-    fetchLiveDirectory();
+    // 1. Immediate Sync on Load
+    startLiveSync();
     
-    // Auto-reload on sync
+    // 2. Scheduled Sync (every 30 mins)
+    setInterval(startLiveSync, 30 * 60 * 1000);
+    
+    // 3. Listen for CMS updates from other tabs
     window.addEventListener('storage', (e) => {
-        if(e.key === 'shk_articles') { ALL_ARTICLES = JSON.parse(e.newValue); renderMagazinePage(true); }
-        if(e.key === 'shk_directory') { ALL_DIRECTORY = JSON.parse(e.newValue); renderDirectoryPage(true); }
+        if(e.key === 'shk_articles') { ALL_ARTICLES = JSON.parse(e.newValue); if(appState.view === 'magazine') renderMagazinePage(true); }
+        if(e.key === 'shk_directory') { ALL_DIRECTORY = JSON.parse(e.newValue); if(appState.view === 'directory') renderDirectoryPage(true); }
     });
 });
 </script>

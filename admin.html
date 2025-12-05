@@ -88,7 +88,6 @@ function loadData() {
         updated = true;
     }
     
-    // Ensure seeds are saved immediately so index.html can see them
     if (updated) saveData();
 }
 
@@ -386,7 +385,6 @@ function renderSettings() {
     </div>`;
 }
 
-// ... (renderEditor, renderModal, etc remain same as in previous logic but included in full) ...
 const renderEditor=()=>{const e=appState.editingItem||{title:"",content:"",status:"draft",type:"article"},t="page"===e.type;return`
     <div class="flex flex-col lg:flex-row gap-6 h-full pb-20">
         <div class="flex-grow bg-white rounded-sm shadow-sm border border-gray-200 flex flex-col min-h-[600px]">
@@ -422,7 +420,6 @@ const renderEditor=()=>{const e=appState.editingItem||{title:"",content:"",statu
                      <button onclick="saveContent('draft')" class="w-full bg-gray-100 text-gray-600 py-2 rounded-sm font-bold uppercase text-xs hover:bg-gray-200 transition">Save Draft</button>
                 </div>
             </div>
-            <!-- Settings panel removed for brevity in snippet but present in logic -->
              <div class="bg-white p-4 rounded-sm shadow-sm border border-gray-200 space-y-4">
                 <h3 class="text-xs font-bold uppercase text-gray-400 border-b pb-2">Settings</h3>
                 ${t?"":`
@@ -564,26 +561,26 @@ async function autoFetchServerData() {
     // Fetch Articles
     if (artUrl) {
         try {
-            const res = await fetch(artUrl);
+            const res = await fetch(artUrl.trim(), { redirect: 'follow' });
             const data = await res.json();
             if (data && Array.isArray(data.articles)) {
                 articles = data.articles;
                 if (data.categories) categories = data.categories;
                 updated = true;
             }
-        } catch(e) { console.error("Auto-Sync Articles Error:", e); }
+        } catch(e) { console.warn("Auto-Sync Articles Error (Retrying later)", e); }
     }
 
     // Fetch Directory
     if (dirUrl && dirUrl !== artUrl) {
         try {
-            const res = await fetch(dirUrl);
+            const res = await fetch(dirUrl.trim(), { redirect: 'follow' });
             const data = await res.json();
             if (data && Array.isArray(data.directory)) {
                 directory = data.directory;
                 updated = true;
             }
-        } catch(e) { console.error("Auto-Sync Directory Error:", e); }
+        } catch(e) { console.warn("Auto-Sync Directory Error (Retrying later)", e); }
     }
 
     if (updated) {
@@ -603,8 +600,8 @@ function startAutoSync() {
 }
 
 function saveSettings() {
-    settings.articlesScriptUrl = document.getElementById('settings-articles-url').value;
-    settings.directoryScriptUrl = document.getElementById('settings-directory-url').value;
+    settings.articlesScriptUrl = document.getElementById('settings-articles-url').value.trim();
+    settings.directoryScriptUrl = document.getElementById('settings-directory-url').value.trim();
     saveData();
     alert('Settings Saved');
 }
@@ -627,7 +624,7 @@ async function triggerSync(type) {
     };
 
     try {
-        await fetch(url, {
+        await fetch(url.trim(), {
             method: 'POST',
             mode: 'no-cors', 
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
