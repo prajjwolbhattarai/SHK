@@ -26,32 +26,48 @@
 <script>
 // V A N I L L A   J S   C M S
 
-// --- 1. DATA STORE (Loaded from localStorage or mock) ---
+// --- 1. DATA STORE ---
 let articles = [];
 let directory = [];
 let categories = [];
-const MOCK_ARTICLES_DATA = [{ id: 'art-1', type: 'article', title: 'Neue Energieverordnungen 2025', summary: 'Ein umfassender Bericht.', content: '<p>Details hier...</p>', imageUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200', category: 'Branchen-News', author: 'Redaktion', publishedAt: new Date().toISOString(), featured: true, views: 1234, shares: 56, readTime: 180 }];
-const MOCK_DIRECTORY_DATA = [{ id: 'dir-1', name: 'Heizungstechnik Müller GmbH', category: 'Heizung', address: 'Hauptstraße 10', city: 'Mannheim', zip: '68159', phone: '0621 123456', website: 'https://heizung-mueller.de', description: 'Spezialist für moderne Heizsysteme.', logoUrl: 'https://logo.clearbit.com/heizung-mueller.de' }];
-const MOCK_CATEGORIES_DATA = ['Branchen-News', 'Betriebs-Features', 'Technologie'];
+
+const generateContent = (title, topic, imageKeyword) => `...`; // Placeholder, not used in CMS
+const INITIAL_CATEGORIES_MOCK = ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
+const ARTICLE_DATA_MOCK = {'Branchen-News': [{t: 'Neue Energieverordnungen 2025', img: '1497366216548-37526070297c'}], 'Betriebs-Features': [{t: 'Wie Müller & Söhne papierlos wurden', img: '1516321318423-f06f85e504b3'}]};
+const DIRECTORY_DATA_MOCK = [{ id: 'dir-1', name: 'Heizungstechnik Müller GmbH', category: 'Heizung', address: 'Hauptstraße 10', city: 'Mannheim', zip: '68159', phone: '0621 123456', website: 'https://heizung-mueller.de', description: 'Spezialist für moderne Heizsysteme und Wärmepumpen.', logoUrl: 'https://logo.clearbit.com/heizung-mueller.de' }];
 
 function loadData() {
-    articles = JSON.parse(localStorage.getItem('shk_articles')) || MOCK_ARTICLES_DATA;
-    directory = JSON.parse(localStorage.getItem('shk_directory')) || MOCK_DIRECTORY_DATA;
-    categories = JSON.parse(localStorage.getItem('shk_categories')) || MOCK_CATEGORIES_DATA;
+    articles = JSON.parse(localStorage.getItem('shk_articles')) || [];
+    directory = JSON.parse(localStorage.getItem('shk_directory')) || DIRECTORY_DATA_MOCK;
+    categories = JSON.parse(localStorage.getItem('shk_categories')) || INITIAL_CATEGORIES_MOCK;
+    
+    if (articles.length === 0) {
+        let idCounter = 1;
+        Object.entries(ARTICLE_DATA_MOCK).forEach(([category, items]) => {
+            items.forEach((item, index) => {
+                articles.push({ id: `art-${idCounter++}`, type: 'article', title: item.t, summary: `Ein Bericht über ${item.t}.`, content: `<h2>${item.t}</h2><p>Dies ist der Beispielinhalt für den Artikel.</p>`, imageUrl: `https://images.unsplash.com/photo-${item.img}?w=1200`, category: category, author: 'Redaktion', publishedAt: new Date().toISOString(), featured: index === 0, views: Math.floor(Math.random() * 5000), shares: Math.floor(Math.random() * 300), readTime: 180 });
+            });
+        });
+        articles.push({ id: 'page-imprint', type: 'page', title: 'Impressum', summary: 'Rechtliche Infos', content: '<h2>Impressum</h2>...', imageUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200', category: 'Page', author: 'Admin', publishedAt: new Date().toISOString(), featured: false, views:0, shares:0, readTime:0 });
+    }
 }
+
 function saveData() {
     localStorage.setItem('shk_articles', JSON.stringify(articles));
     localStorage.setItem('shk_directory', JSON.stringify(directory));
     localStorage.setItem('shk_categories', JSON.stringify(categories));
-    alert('Local data saved!');
+    alert('Daten lokal im Browser gespeichert!');
 }
 
 // --- 2. STATE MANAGEMENT ---
 const appState = {
     isAuthenticated: false,
     activeView: 'dashboard',
-    isEditing: false,
-    currentItem: null,
+    isEditingArticle: false,
+    currentArticle: null,
+    isEditingBusiness: false,
+    currentBusiness: null,
+    syncState: 'idle', // 'idle' | 'loading' | 'success' | 'error'
 };
 
 // --- 3. RENDER FUNCTIONS ---
@@ -62,10 +78,14 @@ function render() {
     if (!appState.isAuthenticated) {
         root.innerHTML = renderLogin();
         attachLoginListeners();
-    } else if (appState.isEditing) {
-        root.innerHTML = renderEditor();
-        attachEditorListeners();
-    } else {
+    } else if (appState.isEditingArticle) {
+        root.innerHTML = renderArticleEditor();
+        attachArticleEditorListeners();
+    } else if (appState.isEditingBusiness) {
+        root.innerHTML = renderDirectoryEditor();
+        attachDirectoryEditorListeners();
+    }
+    else {
         root.innerHTML = renderCMS();
         attachCMSListeners();
     }
@@ -81,10 +101,7 @@ function renderLogin() {
              <p class="text-brand-steel text-xs uppercase tracking-widest mt-1">Internal CMS</p>
           </div>
           <form id="login-form" class="space-y-5">
-            <div>
-              <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Password</label>
-              <input type="password" id="password" required class="w-full border border-gray-300 rounded-sm p-3 text-sm focus:border-brand-copper outline-none transition" placeholder="••••••••"/>
-            </div>
+            <div><label class="block text-xs font-bold text-gray-500 uppercase mb-2">Password</label><input type="password" id="password" required class="w-full border border-gray-300 rounded-sm p-3 text-sm focus:border-brand-copper outline-none transition" placeholder="••••••••"/></div>
             <button type="submit" class="w-full bg-brand-dark text-white py-3 rounded-sm font-bold uppercase text-xs tracking-wider hover:bg-brand-copper transition">Sign In</button>
           </form>
         </div>
@@ -95,96 +112,107 @@ function renderLogin() {
 
 function renderCMS() {
     const newsArticles = articles.filter(a => a.type === 'article' || !a.type);
+    const staticPages = articles.filter(a => a.type === 'page');
+    
+    const navButton = (view, label) => `<button data-view="${view}" class="nav-btn w-full text-left space-x-3 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-wider transition ${appState.activeView === view ? 'bg-brand-copper text-white' : 'hover:bg-white/5 hover:text-white'}">${label}</button>`;
+
+    let viewContent = '';
+    switch(appState.activeView) {
+        case 'dashboard':
+            const totalViews = articles.reduce((acc, curr) => acc + (curr.views || 0), 0);
+            const topArticles = [...newsArticles].sort((a,b) => (b.views || 0) - (a.views || 0)).slice(0, 5);
+            viewContent = `<div class="grid grid-cols-4 gap-6"><div class="bg-white p-6 rounded-sm shadow-sm border col-span-4"><h3 class="font-bold text-gray-800 mb-4">Top Articles</h3>${topArticles.map(a => `<div class="flex justify-between text-sm"><span>${a.title}</span><span class="font-bold text-brand-copper">${a.views.toLocaleString()} views</span></div>`).join('')}</div></div>`;
+            break;
+        case 'articles':
+            viewContent = `<div class="flex justify-end mb-6"><button id="create-article-btn" class="bg-brand-copper text-white px-5 py-2.5 rounded-sm font-bold uppercase text-xs">New Article</button></div>
+            <div class="bg-white rounded-sm shadow-sm border"><table class="w-full text-left"><thead><tr><th class="p-4">Title</th><th class="p-4">Category</th><th class="p-4">Actions</th></tr></thead>
+            <tbody>${newsArticles.map(a => `<tr><td class="p-4">${a.title}</td><td class="p-4">${a.category}</td><td><button data-id="${a.id}" class="edit-article-btn p-2">Edit</button><button data-id="${a.id}" class="delete-article-btn p-2">Delete</button></td></tr>`).join('')}</tbody></table></div>`;
+            break;
+        case 'pages':
+             viewContent = `<div class="flex justify-end mb-6"><button id="create-page-btn" class="bg-brand-copper text-white px-5 py-2.5 rounded-sm font-bold uppercase text-xs">New Page</button></div>
+            <div class="bg-white rounded-sm shadow-sm border"><table class="w-full text-left"><thead><tr><th class="p-4">Title</th><th class="p-4">Actions</th></tr></thead>
+            <tbody>${staticPages.map(p => `<tr><td class="p-4">${p.title}</td><td><button data-id="${p.id}" class="edit-article-btn p-2">Edit</button><button data-id="${p.id}" class="delete-article-btn p-2">Delete</button></td></tr>`).join('')}</tbody></table></div>`;
+            break;
+        case 'directory':
+            viewContent = `<div class="flex justify-end mb-6"><button id="create-business-btn" class="bg-brand-copper text-white px-5 py-2.5 rounded-sm font-bold uppercase text-xs">New Entry</button></div>
+            <div class="bg-white rounded-sm shadow-sm border"><table class="w-full text-left"><thead><tr><th class="p-4">Name</th><th class="p-4">City</th><th class="p-4">Actions</th></tr></thead>
+            <tbody>${directory.map(b => `<tr><td class="p-4">${b.name}</td><td>${b.city}</td><td><button data-id="${b.id}" class="edit-business-btn p-2">Edit</button><button data-id="${b.id}" class="delete-business-btn p-2">Delete</button></td></tr>`).join('')}</tbody></table></div>`;
+            break;
+        case 'categories':
+            viewContent = `<div class="max-w-md"><div class="bg-white p-6 rounded-sm shadow-sm border mb-6"><h3 class="font-bold mb-4">New Category</h3><div class="flex gap-2"><input id="new-category-input" type="text" class="flex-grow border rounded-sm px-4 py-2" /><button id="add-category-btn" class="bg-brand-dark text-white px-6 py-2 rounded-sm font-bold uppercase text-xs">Create</button></div></div>
+            <div class="bg-white rounded-sm shadow-sm border"><table class="w-full text-left"><tbody>${categories.map(c => `<tr><td class="p-4">${c}</td><td class="text-right"><button data-cat="${c}" class="delete-category-btn p-2">Delete</button></td></tr>`).join('')}</tbody></table></div></div>`;
+            break;
+        case 'sync':
+            const syncIcon = appState.syncState === 'loading' ? `<div class="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>` : 'Sync Now';
+            let syncMessage = '';
+            if (appState.syncState === 'success') syncMessage = `<p class="mt-4 text-green-600 font-bold">Sync Successful!</p>`;
+            if (appState.syncState === 'error') syncMessage = `<p class="mt-4 text-red-600 font-bold">Sync Failed!</p>`;
+            viewContent = `<div class="max-w-xl mx-auto text-center"><div class="bg-white p-12 rounded-sm shadow-sm border"><h2 class="text-2xl font-bold mb-2">Sync Center</h2><p class="text-brand-steel mb-8">Push local changes to your database and pull the latest version.</p><button id="sync-btn" ${appState.syncState === 'loading' ? 'disabled' : ''} class="bg-brand-dark text-white font-bold uppercase text-sm px-8 py-4 rounded-sm hover:bg-brand-copper transition disabled:opacity-50 w-64 h-16 flex items-center justify-center mx-auto">${syncIcon}</button>${syncMessage}</div></div>`;
+            break;
+    }
+
     return `
     <div class="min-h-screen bg-gray-100 font-sans flex">
       <aside class="w-64 bg-brand-dark text-gray-400 flex flex-col fixed h-full z-10">
-        <div class="p-6">
-           <div class="flex items-center space-x-2 text-white mb-8"><img src="shklogo.jpg" alt="SHK CMS" class="h-10 w-auto rounded-sm bg-white p-1"/><span class="text-xs uppercase tracking-wider font-medium opacity-50">CMS</span></div>
-           <nav class="space-y-2">
-             <button data-view="dashboard" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-wider transition ${appState.activeView === 'dashboard' ? 'bg-brand-copper text-white' : 'hover:bg-white/5 hover:text-white'}"><span>Dashboard</span></button>
-             <button data-view="articles" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-wider transition ${appState.activeView === 'articles' ? 'bg-brand-copper text-white' : 'hover:bg-white/5 hover:text-white'}"><span>Articles</span></button>
-             <button data-view="directory" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-wider transition ${appState.activeView === 'directory' ? 'bg-brand-copper text-white' : 'hover:bg-white/5 hover:text-white'}"><span>Directory</span></button>
-           </nav>
-        </div>
-        <div class="mt-auto p-6 border-t border-gray-800"><button id="logout-btn" class="flex items-center space-x-2 text-sm font-medium hover:text-white transition"><span>Logout</span></button></div>
+        <div class="p-6"><div class="flex items-center space-x-2 text-white mb-8"><img src="shklogo.jpg" alt="CMS" class="h-10 w-auto rounded-sm bg-white p-1"/></div><nav class="space-y-2">${navButton('dashboard', 'Dashboard')}${navButton('articles', 'Articles')}${navButton('pages', 'Pages')}${navButton('directory', 'Directory')}${navButton('categories', 'Categories')}${navButton('sync', 'Sync Center')}</nav></div>
+        <div class="mt-auto p-6 border-t border-gray-800"><button id="logout-btn" class="hover:text-white transition">Logout</button><button id="save-data-btn" class="ml-4 hover:text-white transition">Save Local</button></div>
       </aside>
-      <main class="ml-64 flex-grow p-8">
-        <h1 class="text-3xl font-display font-bold text-gray-900 capitalize mb-10">${appState.activeView}</h1>
-        <div id="view-content">
-            ${appState.activeView === 'dashboard' ? `<div>Dashboard content here. Local changes are saved to browser storage. Use a real database for production. <button id="save-data-btn" class="bg-blue-500 text-white p-2">Save to Local Storage</button></div>` : ''}
-            ${appState.activeView === 'articles' ? `
-                <div class="flex justify-end mb-6"><button id="create-article-btn" class="create-btn flex items-center bg-brand-copper text-white px-5 py-2.5 rounded-sm font-bold uppercase text-xs">New Article</button></div>
-                <div class="bg-white rounded-sm shadow-sm border"><table class="w-full text-left"><thead><tr><th class="p-4">Title</th><th class="p-4">Category</th><th class="p-4">Actions</th></tr></thead>
-                <tbody>${newsArticles.map(a => `<tr><td class="p-4">${a.title}</td><td>${a.category}</td><td><button data-id="${a.id}" class="edit-article-btn p-2">Edit</button><button data-id="${a.id}" class="delete-article-btn p-2">Delete</button></td></tr>`).join('')}</tbody></table></div>
-            ` : ''}
-            ${appState.activeView === 'directory' ? `
-                <div class="flex justify-end mb-6"><button id="create-business-btn" class="create-btn flex items-center bg-brand-copper text-white px-5 py-2.5 rounded-sm font-bold uppercase text-xs">New Entry</button></div>
-                <div class="bg-white rounded-sm shadow-sm border"><table class="w-full text-left"><thead><tr><th class="p-4">Name</th><th class="p-4">City</th><th class="p-4">Actions</th></tr></thead>
-                <tbody>${directory.map(b => `<tr><td class="p-4">${b.name}</td><td>${b.city}</td><td><button data-id="${b.id}" class="edit-business-btn p-2">Edit</button><button data-id="${b.id}" class="delete-business-btn p-2">Delete</button></td></tr>`).join('')}</tbody></table></div>
-            ` : ''}
-        </div>
-      </main>
+      <main class="ml-64 flex-grow p-8"><h1 class="text-3xl font-display font-bold text-gray-900 capitalize mb-10">${appState.activeView}</h1><div id="view-content">${viewContent}</div></main>
     </div>`;
 }
 
-function renderEditor() {
-    const item = appState.currentItem;
-    const isArticle = !!item.content; // Differentiate article from business
-    return `
-    <div class="min-h-screen bg-gray-50 pb-20 font-sans">
+function renderArticleEditor() {
+    const a = appState.currentArticle;
+    return `<div class="min-h-screen bg-gray-50 pb-20 font-sans">
       <div class="sticky top-0 z-40 bg-white border-b px-6 py-4 flex justify-between items-center shadow-sm">
-        <h2 class="text-lg font-bold text-gray-800">${item.id ? 'Edit' : 'Create'} ${isArticle ? 'Article' : 'Business'}</h2>
-        <div class="flex space-x-3">
-          <button id="cancel-edit-btn" class="text-gray-500 p-2">Cancel</button>
-          <button id="save-item-btn" class="bg-green-600 text-white px-6 py-2 rounded-sm font-bold uppercase text-xs">Save</button>
+        <h2 class="text-lg font-bold">Editor</h2>
+        <div class="flex space-x-3"><button id="cancel-edit-btn" class="p-2">Cancel</button><button id="save-article-btn" class="bg-green-600 text-white px-6 py-2 rounded-sm font-bold uppercase text-xs">Save</button></div>
+      </div>
+      <div class="max-w-4xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 space-y-6">
+          <div class="bg-white p-6 rounded-sm shadow-sm border">
+            <div><label class="block text-xs font-bold uppercase mb-2">Headline</label><input type="text" id="edit-title" value="${a.title || ''}" class="w-full text-2xl font-bold border-b-2 py-2" /></div>
+            <div><label class="block text-xs font-bold uppercase mb-2 mt-4">Summary</label><textarea id="edit-summary" class="w-full border rounded-sm p-3 text-sm" rows="3">${a.summary || ''}</textarea></div>
+            <div><label class="block text-xs font-bold uppercase mb-2 mt-4">Content</label><div id="editor-toolbar" class="flex flex-wrap items-center gap-1 p-2 border-b bg-gray-50"></div><div id="editor" contenteditable class="w-full border p-4 bg-white min-h-[400px] prose max-w-none">${a.content || ''}</div></div>
+          </div>
+        </div>
+        <div class="space-y-6">
+          <div class="bg-white p-6 rounded-sm shadow-sm border space-y-4">
+             ${a.type !== 'page' ? `<div><label class="block text-xs font-bold uppercase mb-1">Category</label><select id="edit-category" class="w-full border p-2 bg-white">${categories.map(c => `<option value="${c}" ${a.category === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>` : ''}
+             <div><label class="block text-xs font-bold uppercase mb-1">Cover Image URL</label><input type="text" id="edit-imageUrl" value="${a.imageUrl || ''}" class="w-full border p-2" /></div>
+             <div class="aspect-video bg-gray-100"><img id="image-preview" src="${a.imageUrl || ''}" class="w-full h-full object-cover" /></div>
+             <div><label class="block text-xs font-bold uppercase mb-2">Upload Image</label><input type="file" id="image-upload" accept="image/*" /></div>
+          </div>
         </div>
       </div>
-      <div class="max-w-4xl mx-auto p-6 space-y-4">
-        ${isArticle ? `
-          <div><label class="text-xs font-bold">Title</label><input id="edit-title" value="${item.title || ''}" class="w-full border p-2 mt-1" /></div>
-          <div><label class="text-xs font-bold">Summary</label><textarea id="edit-summary" class="w-full border p-2 mt-1">${item.summary || ''}</textarea></div>
-          <div><label class="text-xs font-bold">Content</label><div id="editor" class="w-full border p-2 mt-1 bg-white" contenteditable>${item.content || ''}</div></div>
-        ` : `
-          <div><label class="text-xs font-bold">Name</label><input id="edit-name" value="${item.name || ''}" class="w-full border p-2 mt-1" /></div>
-          <div><label class="text-xs font-bold">City</label><input id="edit-city" value="${item.city || ''}" class="w-full border p-2 mt-1" /></div>
-          <div><label class="text-xs font-bold">Description</label><textarea id="edit-description" class="w-full border p-2 mt-1">${item.description || ''}</textarea></div>
-        `}
+    </div>`;
+}
+
+function renderDirectoryEditor() {
+    const b = appState.currentBusiness;
+    return `<div class="min-h-screen bg-gray-50"><div class="sticky top-0 z-40 bg-white border-b px-6 py-4 flex justify-between items-center shadow-sm">
+        <h2 class="text-lg font-bold">Directory Editor</h2>
+        <div><button id="cancel-edit-btn">Cancel</button><button id="save-business-btn">Save</button></div>
+      </div>
+      <div class="max-w-2xl mx-auto p-6 space-y-4">
+        <div><label>Name</label><input id="edit-name" value="${b.name || ''}" class="w-full border p-2" /></div>
+        <div><label>City</label><input id="edit-city" value="${b.city || ''}" class="w-full border p-2" /></div>
+        <div><label>Description</label><textarea id="edit-description" class="w-full border p-2">${b.description || ''}</textarea></div>
       </div>
     </div>`;
 }
 
 
 // --- 4. EVENT LISTENERS ---
-function attachLoginListeners() {
-    document.getElementById('login-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        // Simple password check for demo
-        if (document.getElementById('password').value) {
-            sessionStorage.setItem('shk_auth', 'true');
-            appState.isAuthenticated = true;
-            render();
-        } else {
-            alert('Password required.');
-        }
-    });
-}
-
+function attachLoginListeners() { document.getElementById('login-form').addEventListener('submit', (e) => { e.preventDefault(); if (document.getElementById('password').value) { sessionStorage.setItem('shk_auth', 'true'); render(); } }); }
 function attachCMSListeners() {
-    document.getElementById('logout-btn').addEventListener('click', () => {
-        sessionStorage.removeItem('shk_auth');
-        appState.isAuthenticated = false;
-        render();
-    });
-
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            appState.activeView = e.currentTarget.getAttribute('data-view');
-            render();
-        });
-    });
-
+    document.getElementById('logout-btn').addEventListener('click', () => { sessionStorage.removeItem('shk_auth'); render(); });
+    document.getElementById('save-data-btn').addEventListener('click', saveData);
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.addEventListener('click', (e) => { appState.activeView = e.currentTarget.dataset.view; render(); }));
+    
     // CRUD buttons
     document.getElementById('create-article-btn')?.addEventListener('click', () => handleCreate('article'));
+    document.getElementById('create-page-btn')?.addEventListener('click', () => handleCreate('page'));
     document.getElementById('create-business-btn')?.addEventListener('click', () => handleCreate('business'));
     
     document.querySelectorAll('.edit-article-btn').forEach(b => b.addEventListener('click', (e) => handleEdit('article', e.currentTarget.dataset.id)));
@@ -193,78 +221,121 @@ function attachCMSListeners() {
     document.querySelectorAll('.edit-business-btn').forEach(b => b.addEventListener('click', (e) => handleEdit('business', e.currentTarget.dataset.id)));
     document.querySelectorAll('.delete-business-btn').forEach(b => b.addEventListener('click', (e) => handleDelete('business', e.currentTarget.dataset.id)));
 
-    document.getElementById('save-data-btn')?.addEventListener('click', saveData);
+    document.getElementById('add-category-btn')?.addEventListener('click', () => {
+        const input = document.getElementById('new-category-input');
+        if (input.value && !categories.includes(input.value)) { categories.push(input.value); render(); }
+    });
+    document.querySelectorAll('.delete-category-btn').forEach(b => b.addEventListener('click', e => { categories = categories.filter(c => c !== e.currentTarget.dataset.cat); render(); }));
+    
+    document.getElementById('sync-btn')?.addEventListener('click', async () => {
+        appState.syncState = 'loading'; render();
+        await new Promise(res => setTimeout(res, 1500)); // Mock API call
+        appState.syncState = 'success'; render();
+        setTimeout(() => { appState.syncState = 'idle'; render(); }, 3000);
+    });
 }
 
-function attachEditorListeners() {
-    document.getElementById('cancel-edit-btn').addEventListener('click', () => {
-        appState.isEditing = false;
-        appState.currentItem = null;
-        render();
+function attachArticleEditorListeners() {
+    document.getElementById('cancel-edit-btn').addEventListener('click', () => { appState.isEditingArticle = false; appState.currentArticle = null; render(); });
+    document.getElementById('save-article-btn').addEventListener('click', handleSaveArticle);
+    
+    const toolbar = document.getElementById('editor-toolbar');
+    const commands = { bold: 'B', italic: 'I', underline: 'U', insertUnorderedList: 'UL', insertOrderedList: 'OL', formatBlockH2: 'H2', formatBlockP: 'P' };
+    Object.entries(commands).forEach(([cmd, label]) => {
+        const btn = document.createElement('button');
+        btn.textContent = label;
+        btn.className = 'p-2 font-bold';
+        btn.onmousedown = (e) => {
+            e.preventDefault();
+            const value = cmd.startsWith('formatBlock') ? cmd.split('formatBlock')[1] : undefined;
+            document.execCommand(cmd.startsWith('formatBlock') ? 'formatBlock' : cmd, false, value);
+            document.getElementById('editor').focus();
+        };
+        toolbar.appendChild(btn);
     });
-    document.getElementById('save-item-btn').addEventListener('click', handleSave);
+
+    document.getElementById('image-upload').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64String = reader.result;
+                document.getElementById('edit-imageUrl').value = base64String;
+                document.getElementById('image-preview').src = base64String;
+                document.execCommand('insertImage', false, base64String);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    document.getElementById('edit-imageUrl').addEventListener('input', e => {
+      document.getElementById('image-preview').src = e.target.value;
+    });
+}
+
+function attachDirectoryEditorListeners() {
+    document.getElementById('cancel-edit-btn').addEventListener('click', () => { appState.isEditingBusiness = false; appState.currentBusiness = null; render(); });
+    document.getElementById('save-business-btn').addEventListener('click', handleSaveBusiness);
 }
 
 // --- 5. CRUD LOGIC ---
 function handleCreate(type) {
-    appState.isEditing = true;
-    if (type === 'article') {
-        appState.currentItem = { type: 'article', title: '', summary: '', content: '' };
+    if (type === 'article' || type === 'page') {
+        appState.isEditingArticle = true;
+        appState.currentArticle = { type: type, title: '', summary: '', content: '' };
     } else {
-        appState.currentItem = { name: '', city: '', description: '' };
+        appState.isEditingBusiness = true;
+        appState.currentBusiness = { name: '', city: '', description: '' };
     }
     render();
 }
 function handleEdit(type, id) {
-    appState.isEditing = true;
     if (type === 'article') {
-        appState.currentItem = { ...articles.find(a => a.id === id) };
+        appState.isEditingArticle = true;
+        appState.currentArticle = { ...articles.find(a => a.id === id) };
     } else {
-        appState.currentItem = { ...directory.find(b => b.id === id) };
+        appState.isEditingBusiness = true;
+        appState.currentBusiness = { ...directory.find(b => b.id === id) };
     }
     render();
 }
 function handleDelete(type, id) {
     if (!confirm('Are you sure?')) return;
-    if (type === 'article') {
-        articles = articles.filter(a => a.id !== id);
-    } else {
-        directory = directory.filter(b => b.id !== id);
-    }
-    saveData();
+    if (type === 'article') articles = articles.filter(a => a.id !== id);
+    else directory = directory.filter(b => b.id !== id);
     render();
 }
-function handleSave() {
-    const item = appState.currentItem;
-    const isArticle = !!item.content || item.type === 'article';
-
-    if (isArticle) {
-        const updatedArticle = {
-            ...item,
-            id: item.id || `art-${Date.now()}`,
-            title: document.getElementById('edit-title').value,
-            summary: document.getElementById('edit-summary').value,
-            content: document.getElementById('editor').innerHTML,
-        };
-        const index = articles.findIndex(a => a.id === updatedArticle.id);
-        if (index > -1) articles[index] = updatedArticle;
-        else articles.unshift(updatedArticle);
-    } else {
-         const updatedBusiness = {
-            ...item,
-            id: item.id || `dir-${Date.now()}`,
-            name: document.getElementById('edit-name').value,
-            city: document.getElementById('edit-city').value,
-            description: document.getElementById('edit-description').value,
-        };
-        const index = directory.findIndex(b => b.id === updatedBusiness.id);
-        if (index > -1) directory[index] = updatedBusiness;
-        else directory.unshift(updatedBusiness);
-    }
+function handleSaveArticle() {
+    const item = appState.currentArticle;
+    const updated = {
+        ...item,
+        id: item.id || `${item.type}-${Date.now()}`,
+        title: document.getElementById('edit-title').value,
+        summary: document.getElementById('edit-summary').value,
+        content: document.getElementById('editor').innerHTML,
+        imageUrl: document.getElementById('edit-imageUrl').value,
+        category: item.type === 'page' ? 'Page' : document.getElementById('edit-category').value,
+    };
+    const index = articles.findIndex(a => a.id === updated.id);
+    if (index > -1) articles[index] = updated; else articles.unshift(updated);
     
-    appState.isEditing = false;
-    appState.currentItem = null;
-    saveData();
+    appState.isEditingArticle = false;
+    appState.currentArticle = null;
+    render();
+}
+function handleSaveBusiness() {
+    const item = appState.currentBusiness;
+    const updated = {
+        ...item,
+        id: item.id || `dir-${Date.now()}`,
+        name: document.getElementById('edit-name').value,
+        city: document.getElementById('edit-city').value,
+        description: document.getElementById('edit-description').value,
+    };
+    const index = directory.findIndex(b => b.id === updated.id);
+    if (index > -1) directory[index] = updated; else directory.unshift(updated);
+
+    appState.isEditingBusiness = false;
+    appState.currentBusiness = null;
     render();
 }
 

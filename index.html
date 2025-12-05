@@ -55,13 +55,11 @@
 </script>
 </head>
 <body class="bg-brand-surface text-slate-900 antialiased selection:bg-brand-copper selection:text-white">
-
+    <div id="progress-bar-container" class="fixed top-0 left-0 w-full h-1 z-[60] bg-transparent"></div>
     <div id="header-container"></div>
-
     <main id="main-content">
         <!-- Content is rendered by JavaScript -->
     </main>
-    
     <div id="footer-container"></div>
 
 <script>
@@ -109,8 +107,8 @@ ALL_ARTICLES.push(
 
 // --- 2. LANGUAGE MANAGER ---
 const translations = {
-  en: { 'nav.home': 'Home', 'nav.directory': 'Directory', 'hero.title': 'The Leading SHK Industry Magazine.', 'hero.subtitle': 'Trusted industry coverage, insights, and success stories for sanitary, heating, and climate professionals in the Rhein-Neckar region.', 'hero.read_latest': 'Read Latest', 'hero.submit_story': 'Submit a Story', 'section.top_story': 'Top Story', 'section.latest_news': 'Latest Industry News', 'section.trust_title': 'Deeply Rooted in Rhein-Neckar', 'section.trust_text': 'We don\'t just report on the industry; we are part of the local ecosystem. Connecting businesses in Mannheim, Heidelberg, Ludwigshafen, and beyond.', 'section.explore_categories': 'Explore Topics', 'newsletter.title': 'Stay Informed. No Spam.', 'newsletter.text': 'Get the weekly digest of the most important SHK news in Rhein-Neckar. Used by over 2,000 local professionals.', 'newsletter.placeholder': 'Your work email...', 'newsletter.button': 'Subscribe', 'footer.about': 'The independent voice for the Sanitary, Heating, and Climate industry in the metropolitan region.', 'article.read_story': 'Read Story', 'article.watch_video': 'Watch Video', 'search.placeholder': 'Search articles...', 'search.no_results': 'No articles found matching your search.', 'btn.show_more': 'Show More', 'btn.load_more': 'Load More Articles', 'btn.view_category': 'View Category', 'nav.get_featured': 'Get Featured', 'cat.Branchen-News': 'Industry News', 'cat.Betriebs-Features': 'Company Features', 'cat.Personal & Karriere': 'HR & Careers', 'cat.Technologie': 'Technology', 'cat.Energie & Nachhaltigkeit': 'Energy & Sustainability', 'cat.Regional': 'Regional' },
-  de: { 'nav.home': 'Startseite', 'nav.directory': 'Verzeichnis', 'hero.title': 'Das führende SHK-Branchenmagazin.', 'hero.subtitle': 'Verlässliche Berichterstattung, Einblicke und Erfolgsgeschichten für Sanitär-, Heizungs- und Klimaprofis in der Metropolregion Rhein-Neckar.', 'hero.read_latest': 'Aktuelles lesen', 'hero.submit_story': 'Story einreichen', 'section.top_story': 'Top Story', 'section.latest_news': 'Neueste Branchennachrichten', 'section.trust_title': 'Tief verwurzelt in Rhein-Neckar', 'section.trust_text': 'Wir berichten nicht nur über die Branche; wir sind Teil des lokalen Ökosystems. Wir verbinden Unternehmen in Mannheim, Heidelberg, Ludwigshafen und darüber hinaus.', 'section.explore_categories': 'Themen Entdecken', 'newsletter.title': 'Informiert bleiben. Kein Spam.', 'newsletter.text': 'Erhalten Sie die wöchentliche Zusammenfassung der wichtigsten SHK-Nachrichten. Gelesen von über 2.000 lokalen Profis.', 'newsletter.placeholder': 'Ihre geschäftliche E-Mail...', 'newsletter.button': 'Abonnieren', 'footer.about': 'Die unabhängige Stimme für die Sanitär-, Heizungs- und Klimabranche in der Metropolregion.', 'article.read_story': 'Artikel lesen', 'article.watch_video': 'Video ansehen', 'search.placeholder': 'Artikel suchen...', 'search.no_results': 'Keine Artikel gefunden.', 'btn.show_more': 'Mehr Anzeigen', 'btn.load_more': 'Weitere Artikel laden', 'btn.view_category': 'Kategorie ansehen', 'nav.get_featured': 'Artikel Einreichen', 'cat.Branchen-News': 'Branchen-News', 'cat.Betriebs-Features': 'Betriebs-Features', 'cat.Personal & Karriere': 'Personal & Karriere', 'cat.Technologie': 'Technologie', 'cat.Energie & Nachhaltigkeit': 'Energie & Nachhaltigkeit', 'cat.Regional': 'Regional' }
+  en: { 'nav.home': 'Home', 'nav.directory': 'Directory', 'hero.title': 'The Leading SHK Industry Magazine.', 'hero.subtitle': 'Trusted industry coverage, insights, and success stories for sanitary, heating, and climate professionals in the Rhein-Neckar region.', 'hero.read_latest': 'Read Latest', 'hero.submit_story': 'Submit a Story', 'section.top_story': 'Top Story', 'section.latest_news': 'Latest Industry News', 'section.trust_title': 'Deeply Rooted in Rhein-Neckar', 'section.trust_text': 'We don\'t just report on the industry; we are part of the local ecosystem. Connecting businesses in Mannheim, Heidelberg, Ludwigshafen, and beyond.', 'section.explore_categories': 'Explore Topics', 'newsletter.title': 'Stay Informed. No Spam.', 'newsletter.text': 'Get the weekly digest of the most important SHK news in Rhein-Neckar. Used by over 2,000 local professionals.', 'newsletter.placeholder': 'Your work email...', 'newsletter.button': 'Subscribe', 'footer.about': 'The independent voice for the Sanitary, Heating, and Climate industry in the metropolitan region.', 'article.read_story': 'Read Story', 'article.watch_video': 'Watch Video', 'search.placeholder': 'Search articles...', 'search.no_results': 'No articles found matching your search.', 'btn.show_more': 'Show More', 'btn.load_more': 'Load More Articles', 'btn.view_category': 'View Category', 'nav.get_featured': 'Get Featured', 'cat.Branchen-News': 'Industry News', 'cat.Betriebs-Features': 'Company Features', 'cat.Personal & Karriere': 'HR & Careers', 'cat.Technologie': 'Technology', 'cat.Energie & Nachhaltigkeit': 'Energy & Sustainability', 'cat.Regional': 'Regional', 'article.read_time': 'min read', 'article.share': 'Share' },
+  de: { 'nav.home': 'Startseite', 'nav.directory': 'Verzeichnis', 'hero.title': 'Das führende SHK-Branchenmagazin.', 'hero.subtitle': 'Verlässliche Berichterstattung, Einblicke und Erfolgsgeschichten für Sanitär-, Heizungs- und Klimaprofis in der Metropolregion Rhein-Neckar.', 'hero.read_latest': 'Aktuelles lesen', 'hero.submit_story': 'Story einreichen', 'section.top_story': 'Top Story', 'section.latest_news': 'Neueste Branchennachrichten', 'section.trust_title': 'Tief verwurzelt in Rhein-Neckar', 'section.trust_text': 'Wir berichten nicht nur über die Branche; wir sind Teil des lokalen Ökosystems. Wir verbinden Unternehmen in Mannheim, Heidelberg, Ludwigshafen und darüber hinaus.', 'section.explore_categories': 'Themen Entdecken', 'newsletter.title': 'Informiert bleiben. Kein Spam.', 'newsletter.text': 'Erhalten Sie die wöchentliche Zusammenfassung der wichtigsten SHK-Nachrichten. Gelesen von über 2.000 lokalen Profis.', 'newsletter.placeholder': 'Ihre geschäftliche E-Mail...', 'newsletter.button': 'Abonnieren', 'footer.about': 'Die unabhängige Stimme für die Sanitär-, Heizungs- und Klimabranche in der Metropolregion.', 'article.read_story': 'Artikel lesen', 'article.watch_video': 'Video ansehen', 'search.placeholder': 'Artikel suchen...', 'search.no_results': 'Keine Artikel gefunden.', 'btn.show_more': 'Mehr Anzeigen', 'btn.load_more': 'Weitere Artikel laden', 'btn.view_category': 'Kategorie ansehen', 'nav.get_featured': 'Artikel Einreichen', 'cat.Branchen-News': 'Branchen-News', 'cat.Betriebs-Features': 'Betriebs-Features', 'cat.Personal & Karriere': 'Personal & Karriere', 'cat.Technologie': 'Technologie', 'cat.Energie & Nachhaltigkeit': 'Energie & Nachhaltigkeit', 'cat.Regional': 'Regional', 'article.read_time': 'Min Lesezeit', 'article.share': 'Teilen' }
 };
 const languageManager = {
     currentLanguage: 'de',
@@ -171,7 +169,7 @@ const createHeaderHTML = (categories, activeCategory) => {
                 ${['de', 'en'].map(lang => `<button data-lang="${lang}" class="lang-option-btn w-full text-left px-4 py-3 text-xs font-bold flex items-center hover:bg-gray-50 transition-colors ${languageManager.currentLanguage === lang ? 'text-brand-copper bg-orange-50/50' : 'text-gray-700'}">${lang === 'de' ? '🇩🇪' : '🇬🇧'} ${lang === 'de' ? 'Deutsch' : 'English'}</button>`).join('')}
               </div>
             </div>
-            <a href="article.html?id=page-submit" class="hidden lg:block group relative bg-brand-dark text-white px-6 py-3 text-xs font-bold uppercase tracking-wider overflow-hidden rounded-sm transition-all hover:shadow-lg">
+            <a href="index.html?id=page-submit" class="hidden lg:block group relative bg-brand-dark text-white px-6 py-3 text-xs font-bold uppercase tracking-wider overflow-hidden rounded-sm transition-all hover:shadow-lg">
               <span class="relative z-10 group-hover:text-brand-copper transition-colors">${t('nav.get_featured')}</span>
               <div class="absolute inset-0 bg-white transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out z-0"></div>
             </a>
@@ -202,9 +200,9 @@ const createFooterHTML = (categories) => {
         <div>
           <h3 class="text-xs font-bold uppercase tracking-widest text-brand-dark mb-6">Unternehmen</h3>
           <ul class="space-y-3 text-sm text-brand-steel">
-            <li><a href="article.html?id=page-submit" class="hover:text-brand-copper transition">${t('hero.submit_story')}</a></li>
-            <li><a href="article.html?id=page-advertising" class="hover:text-brand-copper transition">Advertising</a></li>
-            <li><a href="article.html?id=page-jobs" class="hover:text-brand-copper transition">Job Board</a></li>
+            <li><a href="index.html?id=page-submit" class="hover:text-brand-copper transition">${t('hero.submit_story')}</a></li>
+            <li><a href="index.html?id=page-advertising" class="hover:text-brand-copper transition">Advertising</a></li>
+            <li><a href="index.html?id=page-jobs" class="hover:text-brand-copper transition">Job Board</a></li>
           </ul>
         </div>
         <div>
@@ -217,9 +215,9 @@ const createFooterHTML = (categories) => {
       </div>
       <div class="max-w-7xl mx-auto px-4 mt-16 pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
         <div class="flex space-x-6">
-          <a href="article.html?id=page-imprint" class="hover:text-brand-copper">Impressum</a>
-          <a href="article.html?id=page-privacy" class="hover:text-brand-copper">Datenschutz</a>
-          <a href="article.html?id=page-terms" class="hover:text-brand-copper">AGB</a>
+          <a href="index.html?id=page-imprint" class="hover:text-brand-copper">Impressum</a>
+          <a href="index.html?id=page-privacy" class="hover:text-brand-copper">Datenschutz</a>
+          <a href="index.html?id=page-terms" class="hover:text-brand-copper">AGB</a>
         </div>
         <div class="mt-4 md:mt-0 text-center md:text-right">
           <span>© 2025 SHK Rhein-Neckar. Alle Rechte vorbehalten.</span>
@@ -236,7 +234,7 @@ const createArticleCardHTML = (article, variant = 'standard') => {
 
     if (variant === 'featured') {
         return `
-        <a href="article.html?id=${article.id}" class="group relative block w-full h-[600px] overflow-hidden rounded-sm shadow-2xl cursor-pointer">
+        <a href="index.html?id=${article.id}" class="group relative block w-full h-[600px] overflow-hidden rounded-sm shadow-2xl cursor-pointer">
             <img src="${article.imageUrl}" alt="${title}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"/>
             <div class="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/70 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-100"></div>
             ${article.videoUrl ? '<div class="absolute top-6 right-6 bg-white/10 backdrop-blur-md border border-white/20 text-white p-4 rounded-full animate-pulse shadow-lg z-10 group-hover:scale-110 transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg></div>' : ''}
@@ -253,7 +251,7 @@ const createArticleCardHTML = (article, variant = 'standard') => {
         </a>`;
     }
     return `
-    <a href="article.html?id=${article.id}" class="flex flex-col group cursor-pointer h-full bg-white rounded-sm overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border border-transparent hover:border-gray-100">
+    <a href="index.html?id=${article.id}" class="flex flex-col group cursor-pointer h-full bg-white rounded-sm overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border border-transparent hover:border-gray-100">
       <div class="overflow-hidden aspect-[16/10] relative">
         <img src="${article.imageUrl}" alt="${title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"/>
         <div class="absolute top-4 left-4"><span class="bg-white/90 backdrop-blur-sm text-brand-dark text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 shadow-sm rounded-sm">${article.category}</span></div>
@@ -284,7 +282,8 @@ const appState = {
     displayedCount: 6
 };
 
-function renderMainContent() {
+function renderMagazinePage() {
+    document.getElementById('progress-bar-container').innerHTML = '';
     const t = languageManager.t;
     const mainContent = document.getElementById('main-content');
     
@@ -315,7 +314,6 @@ function renderMainContent() {
 
     let contentHTML = '';
 
-    // Hero Section
     if (appState.activeCategory === 'All' && !appState.searchQuery) {
         contentHTML += `
         <div class="relative w-full h-[650px] flex items-center bg-brand-dark overflow-hidden group">
@@ -329,27 +327,23 @@ function renderMainContent() {
                  <p class="text-xl md:text-2xl text-gray-300 font-light leading-relaxed max-w-xl border-l-4 border-white/10 pl-6">${t('hero.subtitle')}</p>
                  <div class="flex flex-wrap gap-4 pt-8">
                     <button onclick="window.scrollTo({ top: 800, behavior: 'smooth'})" class="bg-brand-copper text-white px-10 py-4 text-xs font-bold uppercase tracking-widest hover:bg-white hover:text-brand-dark transition-all duration-300 rounded-sm shadow-xl hover:shadow-2xl hover:-translate-y-1">${t('hero.read_latest')}</button>
-                    <a href="article.html?id=page-submit" class="group px-10 py-4 text-xs font-bold uppercase tracking-widest text-white border border-white/30 hover:bg-white/10 transition-all duration-300 rounded-sm backdrop-blur-sm flex items-center">${t('hero.submit_story')}</a>
+                    <a href="index.html?id=page-submit" class="group px-10 py-4 text-xs font-bold uppercase tracking-widest text-white border border-white/30 hover:bg-white/10 transition-all duration-300 rounded-sm backdrop-blur-sm flex items-center">${t('hero.submit_story')}</a>
                  </div>
               </div>
             </div>
-        </div>
-        `;
+        </div>`;
     }
 
     contentHTML += `<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">`;
     
-    // Search Results
     if (appState.searchQuery) {
       contentHTML += `<div class="mb-12"><h2 class="text-3xl font-display font-bold text-brand-dark mb-4">Search Results: "${appState.searchQuery}"</h2><p class="text-brand-steel">${displayArticles.length} articles found.</p></div>`;
     }
 
-    // Featured Article
     if (featuredArticle) {
       contentHTML += `<section class="mb-24 animate-fade-in-up"><div class="flex items-center space-x-6 mb-10"><div class="h-px bg-gray-200 flex-grow"></div><span class="text-brand-steel uppercase tracking-[0.2em] text-xs font-bold">${t('section.top_story')}</span><div class="h-px bg-gray-200 flex-grow"></div></div>${createArticleCardHTML(featuredArticle, 'featured')}</section>`;
     }
 
-    // Article Grid
     contentHTML += `
     <section class="animate-fade-in-up">
         <div class="flex items-end justify-between mb-12 border-b border-gray-200 pb-6">
@@ -363,7 +357,6 @@ function renderMainContent() {
         ${gridArticles.length > appState.displayedCount ? `<div class="mt-16 text-center"><button id="load-more-btn" class="inline-flex items-center bg-white border border-gray-200 px-8 py-3 text-xs font-bold uppercase tracking-widest text-brand-dark hover:border-brand-copper hover:text-brand-copper transition-colors shadow-sm">${appState.activeCategory === 'All' ? t('btn.show_more') : t('btn.load_more')}</button></div>` : ''}
     </section>`;
 
-    // Category Cards
     if (appState.activeCategory === 'All' && !appState.searchQuery) {
         contentHTML += `
         <section class="mt-32 pt-16 border-t border-gray-100 animate-fade-in">
@@ -381,10 +374,7 @@ function renderMainContent() {
             </div>
         </section>`;
     }
-
-    contentHTML += `</div>`; // Close main container
-
-    // Regional Trust Block
+    contentHTML += `</div>`;
     if (appState.activeCategory === 'All' && !appState.searchQuery) {
         contentHTML += `
         <section class="bg-white py-24 border-y border-gray-100">
@@ -394,8 +384,6 @@ function renderMainContent() {
             </div>
         </section>`;
     }
-    
-    // Newsletter
     contentHTML += `
     <section class="py-24 px-4 bg-brand-surface">
         <div class="max-w-6xl mx-auto bg-brand-dark rounded-sm overflow-hidden shadow-2xl relative">
@@ -415,20 +403,80 @@ function renderMainContent() {
     </section>`;
     
     mainContent.innerHTML = contentHTML;
-    attachPageEventListeners();
+    attachMagazineEventListeners();
 }
 
-function attachPageEventListeners() {
-    // Load more button
+function renderArticleReader(articleId) {
+    const mainContent = document.getElementById('main-content');
+    const article = ALL_ARTICLES.find(a => a.id === articleId);
+
+    if (!article) {
+        mainContent.innerHTML = `<div class="text-center py-40"><h1 class="text-2xl font-bold">Artikel nicht gefunden</h1><a href="index.html" class="text-brand-copper mt-4 inline-block">Zurück zur Startseite</a></div>`;
+        return;
+    }
+
+    document.title = `${article.title} | SHK Rhein-Neckar`;
+    document.body.className = 'bg-white text-slate-900 antialiased selection:bg-brand-copper selection:text-white';
+    document.getElementById('progress-bar-container').innerHTML = `<div id="progress-bar" class="h-full bg-brand-copper transition-all duration-100 ease-out shadow-[0_0_10px_#b45309]" style="width: 0%"></div>`;
+
+    const t = languageManager.t;
+    const isPage = article.type === 'page';
+    const getYouTubeId = (url) => {
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+        const match = url?.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : null;
+    };
+    const videoId = getYouTubeId(article.videoUrl);
+
+    mainContent.innerHTML = `
+    <article class="max-w-6xl mx-auto my-0 bg-white">
+        <header class="px-4 py-16 md:py-24 text-center max-w-4xl mx-auto">
+           ${!isPage ? `<div class="mb-8"><a href="index.html?category=${encodeURIComponent(article.category)}" class="inline-block px-4 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-white bg-brand-dark rounded-sm hover:bg-brand-copper transition">${article.category}</a></div>` : ''}
+           <h1 class="text-4xl md:text-6xl font-display font-black text-brand-dark leading-[1.1] mb-10 tracking-tight">${article.title}</h1>
+           ${!isPage ? `
+             <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-8 text-sm text-brand-steel border-t border-b border-gray-100 py-6">
+               <div class="flex items-center"><span class="font-bold text-brand-dark uppercase tracking-wide text-xs">${article.author}</span></div>
+               <div class="hidden md:block w-px h-4 bg-gray-300"></div>
+               <div class="flex items-center"><span class="uppercase tracking-wide text-xs">${new Date(article.publishedAt).toLocaleDateString()}</span></div>
+                <div class="hidden md:block w-px h-4 bg-gray-300"></div>
+               <div class="flex items-center text-gray-400 uppercase tracking-wide text-xs">${article.readTime ? Math.ceil(article.readTime / 60) : 5} ${t('article.read_time')}</div>
+             </div>` : ''}
+        </header>
+
+        ${(article.imageUrl || videoId) ? `
+        <div class="w-full aspect-video md:aspect-[21/9] overflow-hidden bg-gray-100 shadow-sm">
+            ${videoId ? `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?autoplay=0" title="${article.title}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
+            : `<img src="${article.imageUrl}" alt="${article.title}" class="w-full h-full object-cover" />`}
+        </div>` : ''}
+
+        <div class="px-4 py-16 grid grid-cols-1 lg:grid-cols-12 gap-12 max-w-7xl mx-auto">
+           ${!isPage ? `
+           <div class="hidden lg:flex lg:col-span-2 flex-col items-center">
+                <div class="sticky top-32 space-y-6 flex flex-col items-center">
+                  <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest rotate-180 writing-mode-vertical mb-2">${t('article.share')}</span>
+                </div>
+           </div>` : ''}
+
+           <div class="col-span-1 ${isPage ? 'lg:col-span-8 lg:col-start-3' : 'lg:col-span-8'}">
+             <div class="prose prose-lg md:prose-xl prose-slate max-w-none text-gray-700 leading-loose prose-headings:font-display prose-headings:font-bold prose-headings:text-brand-dark">
+               ${article.content}
+             </div>
+           </div>
+        </div>
+    </article>`;
+
+    attachArticleEventListeners();
+}
+
+function attachMagazineEventListeners() {
     const loadMoreBtn = document.getElementById('load-more-btn');
     if (loadMoreBtn) {
         loadMoreBtn.addEventListener('click', () => {
             appState.displayedCount += appState.activeCategory === 'All' ? 6 : 9;
-            renderMainContent();
+            renderMagazinePage();
         });
     }
 
-    // Category links in content
     document.querySelectorAll('.nav-category-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -443,76 +491,102 @@ function attachPageEventListeners() {
     });
 }
 
-
-function renderPage() {
-    languageManager.getLanguage();
-    document.getElementById('header-container').innerHTML = createHeaderHTML(INITIAL_CATEGORIES, appState.activeCategory);
-    document.getElementById('footer-container').innerHTML = createFooterHTML(INITIAL_CATEGORIES);
-    renderMainContent();
-    attachGlobalEventListeners();
+function attachArticleEventListeners() {
+    const handleScroll = () => {
+      const totalScroll = document.documentElement.scrollTop;
+      const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scroll = totalScroll / windowHeight;
+      const progressBar = document.getElementById('progress-bar');
+      if(progressBar) {
+          progressBar.style.width = `${scroll * 100}%`;
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
 }
 
 function attachGlobalEventListeners() {
-    // Language buttons
     document.querySelectorAll('.lang-option-btn').forEach(btn => {
         btn.addEventListener('click', () => languageManager.setLanguage(btn.getAttribute('data-lang')));
     });
-    document.getElementById('lang-menu-btn')?.addEventListener('click', () => {
-        document.getElementById('lang-menu').classList.toggle('hidden');
-    });
+    const langMenuBtn = document.getElementById('lang-menu-btn');
+    if (langMenuBtn) {
+        langMenuBtn.addEventListener('click', () => {
+            document.getElementById('lang-menu').classList.toggle('hidden');
+        });
+    }
 
-    // Mobile Menu
-    document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
-        const menu = document.getElementById('mobile-menu');
-        if (menu.innerHTML === '') {
-            menu.innerHTML = `
-            <div class="px-6 py-6 space-y-4">
-                <a href="index.html" class="block w-full text-left py-3 text-sm font-bold uppercase tracking-wide text-brand-dark hover:text-brand-copper">Home</a>
-                <a href="directory.html" class="block w-full text-left py-3 text-sm font-bold uppercase tracking-wide text-brand-dark hover:text-brand-copper">Directory</a>
-                ${INITIAL_CATEGORIES.map(cat => `<a href="index.html?category=${encodeURIComponent(cat)}" class="block w-full text-left py-3 text-sm font-bold uppercase tracking-wide text-brand-dark hover:text-brand-copper">${languageManager.t(`cat.${cat}`)}</a>`).join('')}
-            </div>
-            `;
-        }
-        menu.classList.toggle('hidden');
-    });
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    if(mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', () => {
+            const menu = document.getElementById('mobile-menu');
+            if (menu.innerHTML === '') {
+                menu.innerHTML = `
+                <div class="px-6 py-6 space-y-4">
+                    <a href="index.html" class="block w-full text-left py-3 text-sm font-bold uppercase tracking-wide text-brand-dark hover:text-brand-copper">Home</a>
+                    <a href="directory.html" class="block w-full text-left py-3 text-sm font-bold uppercase tracking-wide text-brand-dark hover:text-brand-copper">Directory</a>
+                    ${INITIAL_CATEGORIES.map(cat => `<a href="index.html?category=${encodeURIComponent(cat)}" class="block w-full text-left py-3 text-sm font-bold uppercase tracking-wide text-brand-dark hover:text-brand-copper">${languageManager.t(`cat.${cat}`)}</a>`).join('')}
+                </div>
+                `;
+            }
+            menu.classList.toggle('hidden');
+        });
+    }
 
-    // Search
     const searchContainer = document.getElementById('search-container');
     const searchToggleBtn = document.getElementById('search-toggle-btn');
-    searchToggleBtn.addEventListener('click', () => {
-        searchContainer.classList.remove('w-8');
-        searchContainer.classList.add('w-full', 'md:w-96');
-        searchContainer.innerHTML = `
-        <form id="search-form" class="relative w-full flex items-center">
-            <input type="text" id="search-input" placeholder="${languageManager.t('search.placeholder')}" class="w-full bg-gray-100 border-none rounded-sm px-4 py-2 pr-10 text-sm focus:ring-2 focus:ring-brand-copper outline-none" />
-            <button type="button" id="search-close-btn" class="absolute right-2 p-1 text-gray-400 hover:text-brand-dark"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg></button>
-        </form>`;
-        document.getElementById('search-input').focus();
+    if(searchToggleBtn) {
+        searchToggleBtn.addEventListener('click', () => {
+            searchContainer.classList.remove('w-8');
+            searchContainer.classList.add('w-full', 'md:w-96');
+            searchContainer.innerHTML = `
+            <form id="search-form" class="relative w-full flex items-center">
+                <input type="text" id="search-input" placeholder="${languageManager.t('search.placeholder')}" class="w-full bg-gray-100 border-none rounded-sm px-4 py-2 pr-10 text-sm focus:ring-2 focus:ring-brand-copper outline-none" />
+                <button type="button" id="search-close-btn" class="absolute right-2 p-1 text-gray-400 hover:text-brand-dark"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg></button>
+            </form>`;
+            document.getElementById('search-input').focus();
 
-        document.getElementById('search-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            appState.searchQuery = document.getElementById('search-input').value;
-            appState.displayedCount = 100;
-            renderPage();
-        });
+            document.getElementById('search-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                appState.searchQuery = document.getElementById('search-input').value;
+                appState.displayedCount = 100;
+                renderPage();
+            });
 
-        document.getElementById('search-close-btn').addEventListener('click', () => {
-            appState.searchQuery = '';
-            renderPage(); // This will also reset the search bar
+            document.getElementById('search-close-btn').addEventListener('click', () => {
+                appState.searchQuery = '';
+                renderPage(); 
+            });
         });
-    });
+    }
 }
 
-// Initial Load
-document.addEventListener('DOMContentLoaded', () => {
+function renderPage() {
     const urlParams = new URLSearchParams(window.location.search);
+    const articleId = urlParams.get('id');
     const category = urlParams.get('category');
+    
+    languageManager.getLanguage();
+    
     if (category) {
         appState.activeCategory = category;
         appState.displayedCount = 9;
+    } else if (!articleId) {
+        appState.activeCategory = 'All';
     }
-    renderPage();
-});
+
+    document.getElementById('header-container').innerHTML = createHeaderHTML(INITIAL_CATEGORIES, appState.activeCategory);
+    document.getElementById('footer-container').innerHTML = createFooterHTML(INITIAL_CATEGORIES);
+    
+    if (articleId) {
+        renderArticleReader(articleId);
+    } else {
+        renderMagazinePage();
+    }
+    
+    attachGlobalEventListeners();
+}
+
+document.addEventListener('DOMContentLoaded', renderPage);
 
 </script>
 </body>
