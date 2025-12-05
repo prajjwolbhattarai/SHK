@@ -7,6 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+      .loader { border-top-color: #b45309; animation: spin 1s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
     <script>
       tailwind.config = {
         theme: {
@@ -37,62 +41,43 @@
 // V A N I L L A   J S   A P P L I C A T I O N (Directory Page)
 
 // --- 1. DATA STORE ---
-const INITIAL_CATEGORIES = ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
-const MOCK_DIRECTORY = [
+// This acts as skeleton/fallback data. It will be replaced by live data from the server.
+let MOCK_DIRECTORY = [
   { id: 'dir-1', name: 'Heizungstechnik Müller GmbH', category: 'Heizung', address: 'Hauptstraße 10', city: 'Mannheim', zip: '68159', phone: '0621 123456', website: 'https://heizung-mueller.de', description: 'Spezialist für moderne Heizsysteme und Wärmepumpen.', logoUrl: 'https://logo.clearbit.com/heizung-mueller.de' },
   { id: 'dir-2', name: 'Sanitär-Service Weber', category: 'Sanitär', address: 'Bergheimer Straße 58', city: 'Heidelberg', zip: '69115', phone: '06221 654321', website: 'https://sanitaer-weber.de', description: 'Komplettbäder aus einer Hand. Barrierefreie Umbauten.', logoUrl: 'https://logo.clearbit.com/sanitaer-weber.de' },
   { id: 'dir-3', name: 'Klima-Profis Rhein-Neckar', category: 'Klima', address: 'Industriestraße 35', city: 'Ludwigshafen', zip: '67063', phone: '0621 987654', website: 'https://klima-profis-rn.de', description: 'Installation und Wartung von Klimaanlagen für Gewerbe und Privat.', logoUrl: 'https://logo.clearbit.com/klima-profis-rn.de' },
-  { id: 'dir-4', name: 'Lüftungsbau Schmidt', category: 'Lüftung', address: 'Mittelstraße 5', city: 'Weinheim', zip: '69469', phone: '06201 123789', website: 'https://lueftung-schmidt.de', description: 'Planung und Einbau von zentralen und dezentralen Lüftungsanlagen.', logoUrl: 'https://logo.clearbit.com/lueftung-schmidt.de' },
-  { id: 'dir-5', name: 'Elektro-Technik Fischer', category: 'Elektro', address: 'Schulstraße 21', city: 'Schwetzingen', zip: '68723', phone: '06202 987123', website: 'https://elektro-fischer.com', description: 'Smart Home Installationen und Photovoltaik-Anlagen.', logoUrl: 'https://logo.clearbit.com/elektro-fischer.com' },
-  { id: 'dir-6', name: 'Bade-Träume GmbH', category: 'Sanitär', address: 'Planken 4', city: 'Mannheim', zip: '68161', phone: '0621 555666', website: 'https://badetraeume-ma.de', description: 'Exklusive Badgestaltung und hochwertige Armaturen.', logoUrl: 'https://logo.clearbit.com/badetraeume-ma.de' },
-  { id: 'dir-7', name: 'Wärme-Konzept Rhein-Neckar', category: 'Heizung', address: 'Kurfürsten-Anlage 1', city: 'Heidelberg', zip: '69115', phone: '06221 777888', website: 'https://waerme-konzept-hd.de', description: 'Energieberatung und hydraulischer Abgleich.', logoUrl: 'https://logo.clearbit.com/waerme-konzept-hd.de' },
-  { id: 'dir-8', name: 'Frische Luft Systeme', category: 'Lüftung', address: 'Bürgermeister-Grünzweig-Straße 11', city: 'Ludwigshafen', zip: '67059', phone: '0621 333444', website: 'https://frischeluft-lu.de', description: 'Spezialist für Wohnraumlüftung mit Wärmerückgewinnung.', logoUrl: 'https://logo.clearbit.com/frischeluft-lu.de' },
-  { id: 'dir-9', name: 'Solar & Strom Wagner', category: 'Elektro', address: 'Mannheimer Landstraße 2', city: 'Hockenheim', zip: '68766', phone: '06205 222333', website: 'https://solar-wagner.de', description: 'Installation von PV-Anlagen und Stromspeichern.', logoUrl: 'https://logo.clearbit.com/solar-wagner.de' },
-  { id: 'dir-10', name: 'Haustechnik Klein', category: 'Heizung', address: 'Bahnhofstraße 40', city: 'Sinsheim', zip: '74889', phone: '07261 444555', website: 'https://haustechnik-klein.de', description: '24h Notdienst für Heizung und Sanitär.', logoUrl: 'https://logo.clearbit.com/haustechnik-klein.de' },
-  { id: 'dir-11', name: 'Die Bad-Designer', category: 'Sanitär', address: 'Rohrbacher Str. 12', city: 'Heidelberg', zip: '69115', phone: '06221 666777', website: 'https://die-baddesigner.de', description: 'Individuelle Badplanung in 3D.', logoUrl: 'https://logo.clearbit.com/die-baddesigner.de' },
-  { id: 'dir-12', name: 'Kühltechnik Becker', category: 'Klima', address: 'Friedrich-Ebert-Straße 1', city: 'Viernheim', zip: '68519', phone: '06204 888999', website: 'https://kuehltechnik-becker.de', description: 'Klimatisierung für Serverräume und Gewerbe.', logoUrl: 'https://logo.clearbit.com/kuehltechnik-becker.de' },
-  { id: 'dir-13', name: 'Elektro Bauer & Söhne', category: 'Elektro', address: 'Marktplatz 9', city: 'Worms', zip: '67547', phone: '06241 111222', website: 'https://elektro-bauer.de', description: 'Traditionsbetrieb seit 1950.', logoUrl: 'https://logo.clearbit.com/elektro-bauer.de' },
-  { id: 'dir-14', name: 'Pellet-Heizungen Frank', category: 'Heizung', address: 'Odenwaldstraße 22', city: 'Eberbach', zip: '69412', phone: '06271 333444', website: 'https://pellet-frank.de', description: 'Biomasse-Heizungen und Pelletlager.', logoUrl: 'https://logo.clearbit.com/pellet-frank.de' },
-  { id: 'dir-15', name: 'Wasser-Welt Ludwigshafen', category: 'Sanitär', address: 'Rheinuferstraße 7', city: 'Ludwigshafen', zip: '67061', phone: '0621 555111', website: 'https://wasser-welt-lu.de', description: 'Wasseraufbereitung und Legionellenprüfung.', logoUrl: 'https://logo.clearbit.com/wasser-welt-lu.de' },
-  { id: 'dir-16', name: 'Air-Control GmbH', category: 'Klima', address: 'Augustaanlage 30', city: 'Mannheim', zip: '68165', phone: '0621 222888', website: 'https://air-control-ma.de', description: 'Großanlagen für Bürogebäude und Industrie.', logoUrl: 'https://logo.clearbit.com/air-control-ma.de' },
-  { id: 'dir-17', name: 'Licht & Kraft Elektroservice', category: 'Elektro', address: 'Hauptstraße 100', city: 'Wiesloch', zip: '69168', phone: '06222 777999', website: 'https://licht-kraft-wiesloch.de', description: 'E-Ladesäulen und Netzwerktechnik.', logoUrl: 'https://logo.clearbit.com/licht-kraft-wiesloch.de' },
-  { id: 'dir-18', name: 'Heizungs-Notdienst 24/7', category: 'Heizung', address: 'Mobil in der Region', city: 'Rhein-Neckar', zip: '68159', phone: '0176 12345678', website: 'https://notdienst-shk-rn.de', description: 'Soforthilfe bei Heizungsausfall.', logoUrl: 'https://logo.clearbit.com/notdienst-shk-rn.de' },
-  { id: 'dir-19', name: 'Bad & Fliese Lehmann', category: 'Sanitär', address: 'Industriestraße 8', city: 'Speyer', zip: '67346', phone: '06232 444333', website: 'https://bad-lehmann.de', description: 'Komplettsanierung inklusive Fliesenarbeiten.', logoUrl: 'https://logo.clearbit.com/bad-lehmann.de' },
-  { id: 'dir-20', name: 'Energietechnik Vogel', category: 'Heizung', address: 'Schlossstraße 3', city: 'Bruchsal', zip: '76646', phone: '07251 222111', website: 'https://energietechnik-vogel.de', description: 'Experte für Solarthermie und Blockheizkraftwerke.', logoUrl: 'https://logo.clearbit.com/energietechnik-vogel.de' },
 ];
+const INITIAL_CATEGORIES = ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
 
 // --- 2. LANGUAGE MANAGER ---
-const translations = { de: { 'directory.title': 'Branchenverzeichnis', 'directory.subtitle': 'Finden Sie qualifizierte SHK-Fachbetriebe in der Rhein-Neckar-Region.', 'search.placeholder_dir': 'Suche nach Name oder Stadt...' }, en: { 'directory.title': 'Business Directory', 'directory.subtitle': 'Find qualified SHK professionals in the Rhein-Neckar region.', 'search.placeholder_dir': 'Search by name or city...' }};
-const languageManager = { currentLanguage: 'de', getLanguage: () => { const lang = localStorage.getItem('shk_lang') || 'de'; languageManager.currentLanguage = lang; return lang; }, t: (key) => translations[languageManager.currentLanguage]?.[key] || key };
+// ... (Language manager code remains the same) ...
+const translations={de:{'directory.title':'Branchenverzeichnis','directory.subtitle':'Finden Sie qualifizierte SHK-Fachbetriebe in der Rhein-Neckar-Region.','search.placeholder_dir':'Suche nach Name oder Stadt...'},en:{'directory.title':'Business Directory','directory.subtitle':'Find qualified SHK professionals in the Rhein-Neckar region.','search.placeholder_dir':'Search by name or city...'}};const languageManager={currentLanguage:'de',getLanguage:()=>{const e=localStorage.getItem('shk_lang')||'de';return languageManager.currentLanguage=e,e},t:e=>translations[languageManager.currentLanguage]?.[e]||e};
 
 // --- 3. COMPONENT TEMPLATES ---
-const createHeaderHTML = (categories) => `<nav class="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-md border-b border-gray-200 py-0"><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="flex justify-between h-20 items-center"><a href="index.html" class="flex-shrink-0 flex items-center cursor-pointer"><img src="shklogo.jpg" alt="SHK Rhein-Neckar" class="w-auto object-contain h-12"/></a><div class="hidden lg:flex space-x-8 items-center h-full"><a href="index.html" class="text-xs font-bold uppercase tracking-widest text-brand-steel hover:text-brand-dark">Home</a><a href="directory.html" class="text-xs font-bold uppercase tracking-widest text-brand-copper">Verzeichnis</a></div><a href="article.html?id=page-submit" class="hidden lg:block bg-brand-dark text-white px-6 py-3 text-xs font-bold uppercase tracking-wider rounded-sm">Artikel Einreichen</a></div></div></nav>`;
-const createFooterHTML = (categories) => `<footer class="bg-white border-t border-gray-200 pt-16 pb-8"><div class="max-w-7xl mx-auto px-4 text-center"><p>© 2025 SHK Rhein-Neckar. Alle Rechte vorbehalten.</p><a href="admin.html" class="text-xs text-gray-400 hover:text-brand-copper">Mitarbeiter Login</a></div></footer>`;
-const createDirectoryCardHTML = (business) => {
-    const categoryColors = { Heizung: 'bg-red-100 text-red-800 border-red-200', Sanitär: 'bg-blue-100 text-blue-800 border-blue-200', Klima: 'bg-sky-100 text-sky-800 border-sky-200', Lüftung: 'bg-green-100 text-green-800 border-green-200', Elektro: 'bg-yellow-100 text-yellow-800 border-yellow-200' };
-    return `
+// ... (Component template functions remain the same) ...
+const createHeaderHTML=e=>`<nav class="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-md border-b border-gray-200 py-0"><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="flex justify-between h-20 items-center"><a href="index.html" class="flex-shrink-0 flex items-center cursor-pointer"><img src="shklogo.jpg" alt="SHK Rhein-Neckar" class="w-auto object-contain h-12"/></a><div class="hidden lg:flex space-x-8 items-center h-full"><a href="index.html" class="text-xs font-bold uppercase tracking-widest text-brand-steel hover:text-brand-dark">Home</a><a href="directory.html" class="text-xs font-bold uppercase tracking-widest text-brand-copper">Verzeichnis</a></div><a href="index.html?id=page-submit" class="hidden lg:block bg-brand-dark text-white px-6 py-3 text-xs font-bold uppercase tracking-wider rounded-sm">Artikel Einreichen</a></div></div></nav>`,createFooterHTML=e=>`<footer class="bg-white border-t border-gray-200 pt-16 pb-8"><div class="max-w-7xl mx-auto px-4 text-center"><p>© 2025 SHK Rhein-Neckar. Alle Rechte vorbehalten.</p><a href="admin.html" class="text-xs text-gray-400 hover:text-brand-copper">Mitarbeiter Login</a></div></footer>`,createDirectoryCardHTML=e=>{const t={Heizung:"bg-red-100 text-red-800 border-red-200",Sanitär:"bg-blue-100 text-blue-800 border-blue-200",Klima:"bg-sky-100 text-sky-800 border-sky-200",Lüftung:"bg-green-100 text-green-800 border-green-200",Elektro:"bg-yellow-100 text-yellow-800 border-yellow-200"};return`
     <div class="bg-white rounded-sm border border-gray-100 p-6 flex flex-col h-full hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
         <div class="flex items-start mb-4">
-            <img src="${business.logoUrl}" alt="${business.name} logo" class="w-16 h-16 rounded-sm object-contain border border-gray-100 p-1 mr-4 bg-white" onerror="this.onerror=null;this.src='https://via.placeholder.com/150';">
+            <img src="${e.logoUrl}" alt="${e.name} logo" class="w-16 h-16 rounded-sm object-contain border border-gray-100 p-1 mr-4 bg-white" onerror="this.onerror=null;this.src='https://via.placeholder.com/150';">
             <div class="flex-grow">
-                <h3 class="font-display font-bold text-lg text-brand-dark leading-tight">${business.name}</h3>
-                <span class="mt-1 inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm border ${categoryColors[business.category] || 'bg-gray-100 text-gray-800'}">${business.category}</span>
+                <h3 class="font-display font-bold text-lg text-brand-dark leading-tight">${e.name}</h3>
+                <span class="mt-1 inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm border ${t[e.category]||"bg-gray-100 text-gray-800"}">${e.category}</span>
             </div>
         </div>
-        <p class="text-sm text-brand-steel mb-5 leading-relaxed flex-grow">${business.description}</p>
+        <p class="text-sm text-brand-steel mb-5 leading-relaxed flex-grow">${e.description}</p>
         <div class="mt-auto space-y-3 text-sm text-brand-steel border-t border-gray-100 pt-5">
-            <div class="flex items-start"><span>${business.address}, ${business.zip} ${business.city}</span></div>
-            <div class="flex items-center"><span>${business.phone}</span></div>
-            ${business.website ? `<div class="flex items-center"><a href="${business.website}" target="_blank" rel="noopener noreferrer" class="text-brand-copper hover:underline truncate">${business.website.replace(/^(https?:\/\/)?(www\.)?/, '')}</a></div>` : ''}
+            <div class="flex items-start"><span>${e.address}, ${e.zip} ${e.city}</span></div>
+            <div class="flex items-center"><span>${e.phone}</span></div>
+            ${e.website?`<div class="flex items-center"><a href="${e.website}" target="_blank" rel="noopener noreferrer" class="text-brand-copper hover:underline truncate">${e.website.replace(/^(https?:\/\/)?(www\.)?/,"")}</a></div>`:""}
         </div>
-    </div>`;
-};
+    </div>`};
 
 
 // --- 4. PAGE-SPECIFIC LOGIC ---
 const appState = {
     searchQuery: '',
-    activeCategory: 'All'
+    activeCategory: 'All',
+    directoryLoading: false,
 };
 
 function renderDirectoryGrid() {
@@ -110,13 +95,19 @@ function renderDirectoryGrid() {
     if (filteredBusinesses.length > 0) {
         grid.innerHTML = filteredBusinesses.map(createDirectoryCardHTML).join('');
     } else {
-        grid.innerHTML = `<div class="md:col-span-2 lg:col-span-3 xl:col-span-4 text-center py-32 bg-white rounded-sm border border-dashed border-gray-300"><p class="text-brand-steel font-medium text-lg">No businesses found.</p></div>`;
+        grid.innerHTML = `<div class="md:col-span-2 lg:col-span-3 xl:col-span-4 text-center py-32 bg-white rounded-sm border border-dashed border-gray-300"><p class="text-brand-steel font-medium text-lg">Keine Betriebe gefunden.</p></div>`;
     }
 }
 
-function renderPage() {
+function renderPage(isUpdate = false) {
     languageManager.getLanguage();
     const t = languageManager.t;
+    
+    if (isUpdate) {
+        renderDirectoryGrid();
+        return;
+    }
+
     document.getElementById('header-container').innerHTML = createHeaderHTML(INITIAL_CATEGORIES);
     document.getElementById('footer-container').innerHTML = createFooterHTML(INITIAL_CATEGORIES);
     
@@ -133,9 +124,10 @@ function renderPage() {
                     <input type="text" id="search-input" placeholder="${t('search.placeholder_dir')}" class="w-full pl-4 pr-4 py-3 border border-gray-300 rounded-sm focus:ring-2 focus:ring-brand-copper outline-none transition" />
                 </div>
                 <div id="category-filters" class="flex flex-wrap gap-2 justify-center">
-                    <button data-category="All" class="filter-btn px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-full transition bg-brand-dark text-white">All</button>
+                    <button data-category="All" class="filter-btn px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-full transition bg-brand-dark text-white">Alle</button>
                     ${['Heizung', 'Sanitär', 'Klima', 'Lüftung', 'Elektro'].map(cat => `<button data-category="${cat}" class="filter-btn px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-full transition bg-white text-brand-dark hover:bg-gray-100 border border-gray-200">${cat}</button>`).join('')}
                 </div>
+                <div id="loading-indicator" class="ml-4 ${appState.directoryLoading ? '' : 'hidden'}"><div class="w-5 h-5 border-2 border-gray-300 rounded-full loader"></div></div>
             </div>
             <div id="directory-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
         </div>`;
@@ -164,8 +156,41 @@ function attachEventListeners() {
     });
 }
 
+async function fetchLiveDirectory() {
+    const s = JSON.parse(localStorage.getItem('shk_settings'));
+    if (!s || !s.directoryScriptUrl) {
+        console.log("Directory Sync URL not configured in CMS settings.");
+        return;
+    }
+
+    appState.directoryLoading = true;
+    document.getElementById('loading-indicator')?.classList.remove('hidden');
+
+    try {
+        const response = await fetch(s.directoryScriptUrl);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const liveData = await response.json();
+        
+        if (liveData && Array.isArray(liveData.directory)) {
+            MOCK_DIRECTORY = liveData.directory;
+            console.log(`Successfully fetched ${MOCK_DIRECTORY.length} live directory entries.`);
+        } else {
+            console.warn("Fetched directory data is not in the expected format.");
+        }
+    } catch (error) {
+        console.error("Failed to fetch live directory:", error);
+    } finally {
+        appState.directoryLoading = false;
+        document.getElementById('loading-indicator')?.classList.add('hidden');
+        renderPage(true); // Re-render grid with new data
+    }
+}
+
 // Initial Load
-document.addEventListener('DOMContentLoaded', renderPage);
+document.addEventListener('DOMContentLoaded', () => {
+    renderPage();
+    fetchLiveDirectory();
+});
 </script>
 </body>
 </html>
