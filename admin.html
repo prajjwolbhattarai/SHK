@@ -79,10 +79,17 @@ function loadData() {
     const sMedia = localStorage.getItem('shk_media');
     mediaLibrary = sMedia ? JSON.parse(sMedia) : [];
 
-    if (articles.length === 0) seedMockData();
-    if (users.length === 0) seedUsers();
-    if (mediaLibrary.length === 0) seedMedia();
-    if (categories.length === 0) categories = ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
+    let updated = false;
+    if (articles.length === 0) { seedMockData(); updated = true; }
+    if (users.length === 0) { seedUsers(); updated = true; }
+    if (mediaLibrary.length === 0) { seedMedia(); updated = true; }
+    if (categories.length === 0) { 
+        categories = ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional']; 
+        updated = true;
+    }
+    
+    // Ensure seeds are saved immediately so index.html can see them
+    if (updated) saveData();
 }
 
 function saveData() {

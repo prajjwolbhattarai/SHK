@@ -57,14 +57,29 @@
 // V A N I L L A   J S   A P P L I C A T I O N
 
 // --- 1. DATA STORE ---
-// Skeleton Data for instant load
-let ALL_ARTICLES = [{"id":"art-1","type":"article","title":"Neue Energieverordnungen 2025: Was gilt ab Januar?","summary":"Ein umfassender Bericht über die neuen Vorschriften für Heizungssysteme in der Rhein-Neckar Region.","imageUrl":"https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200","category":"Branchen-News","author":"Redaktion","publishedAt":"2025-10-25T10:00:00.000Z","featured":true},{"id":"art-2","type":"article","title":"Wärmepumpen-Boom in Mannheim","summary":"Wie lokale Betriebe mit der steigenden Nachfrage umgehen und welche Förderungen aktuell verfügbar sind.","imageUrl":"https://images.unsplash.com/photo-1581092334651-ddf26d9a09d0?auto=format&fit=crop&q=80&w=1200","category":"Technologie","author":"Markus Weber","publishedAt":"2025-10-24T10:00:00.000Z","featured":false},{"id":"art-3","type":"article","title":"Fachkräftemangel: Strategien für 2026","summary":"Experteninterviews mit Handwerksmeistern aus Heidelberg über erfolgreiche Recruiting-Methoden.","imageUrl":"https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=1200","category":"Personal & Karriere","author":"Julia Schmidt","publishedAt":"2025-10-23T10:00:00.000Z","featured":false}];
+// Skeleton Data for instant load if CMS is empty
+const SKELETON_ARTICLES = [{"id":"art-1","type":"article","title":"Neue Energieverordnungen 2025: Was gilt ab Januar?","summary":"Ein umfassender Bericht über die neuen Vorschriften für Heizungssysteme in der Rhein-Neckar Region.","imageUrl":"https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200","category":"Branchen-News","author":"Redaktion","publishedAt":"2025-10-25T10:00:00.000Z","featured":true},{"id":"art-2","type":"article","title":"Wärmepumpen-Boom in Mannheim","summary":"Wie lokale Betriebe mit der steigenden Nachfrage umgehen und welche Förderungen aktuell verfügbar sind.","imageUrl":"https://images.unsplash.com/photo-1581092334651-ddf26d9a09d0?auto=format&fit=crop&q=80&w=1200","category":"Technologie","author":"Markus Weber","publishedAt":"2025-10-24T10:00:00.000Z","featured":false},{"id":"art-3","type":"article","title":"Fachkräftemangel: Strategien für 2026","summary":"Experteninterviews mit Handwerksmeistern aus Heidelberg über erfolgreiche Recruiting-Methoden.","imageUrl":"https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=1200","category":"Personal & Karriere","author":"Julia Schmidt","publishedAt":"2025-10-23T10:00:00.000Z","featured":false}];
 
-let ALL_DIRECTORY = [
+const SKELETON_DIRECTORY = [
   { id: 'dir-1', name: 'Heizungstechnik Müller GmbH', category: 'Heizung', address: 'Hauptstraße 10', city: 'Mannheim', zip: '68159', phone: '0621 123456', website: 'https://heizung-mueller.de', description: 'Spezialist für moderne Heizsysteme und Wärmepumpen.', logoUrl: 'https://logo.clearbit.com/heizung-mueller.de' },
   { id: 'dir-2', name: 'Sanitär-Service Weber', category: 'Sanitär', address: 'Bergheimer Straße 58', city: 'Heidelberg', zip: '69115', phone: '06221 654321', website: 'https://sanitaer-weber.de', description: 'Komplettbäder aus einer Hand. Barrierefreie Umbauten.', logoUrl: 'https://logo.clearbit.com/sanitaer-weber.de' },
   { id: 'dir-3', name: 'Klima-Profis Rhein-Neckar', category: 'Klima', address: 'Industriestraße 35', city: 'Ludwigshafen', zip: '67063', phone: '0621 987654', website: 'https://klima-profis-rn.de', description: 'Installation und Wartung von Klimaanlagen für Gewerbe und Privat.', logoUrl: 'https://logo.clearbit.com/klima-profis-rn.de' },
 ];
+
+// Helper to load from CMS storage or fallback
+function loadLocalData(key, fallback) {
+    try {
+        const item = localStorage.getItem(key);
+        if (item) return JSON.parse(item);
+    } catch(e) { console.error("Error reading local storage", e); }
+    return fallback;
+}
+
+// Load data immediately from CMS storage (if on same device) or use skeleton
+let ALL_ARTICLES = loadLocalData('shk_articles', SKELETON_ARTICLES);
+let ALL_DIRECTORY = loadLocalData('shk_directory', SKELETON_DIRECTORY);
+// Filter pages/drafts for public view if loaded from CMS
+ALL_ARTICLES = Array.isArray(ALL_ARTICLES) ? ALL_ARTICLES.filter(a => a.type !== 'page') : SKELETON_ARTICLES;
 
 const INITIAL_CATEGORIES = ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
 
@@ -264,6 +279,7 @@ function renderMagazinePage(isUpdate = false) {
 
 function renderArticleGridHTML() {
     const t = languageManager.t;
+    // Ensure we only show articles (not pages) and filter drafts
     let displayArticles = ALL_ARTICLES.filter(a => a.type !== 'page' && a.status !== 'draft');
 
     if (appState.searchQuery) {
@@ -457,7 +473,7 @@ function renderPage() {
     appState.searchQuery = '';
     
     if (category) appState.activeCategory = category;
-    else if(appState.view !== 'directory') appState.activeCategory = 'All'; // Keep directory category state if we implement persisting later
+    else if(appState.view !== 'directory') appState.activeCategory = 'All'; 
     
     // Render Shell
     document.getElementById('header-container').innerHTML = createHeaderHTML(INITIAL_CATEGORIES, appState.activeCategory, appState.view);
@@ -524,8 +540,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Auto-reload on sync
     window.addEventListener('storage', (e) => {
-        if(e.key === 'shk_articles') fetchLiveArticles();
-        if(e.key === 'shk_directory') fetchLiveDirectory();
+        if(e.key === 'shk_articles') { ALL_ARTICLES = JSON.parse(e.newValue); renderMagazinePage(true); }
+        if(e.key === 'shk_directory') { ALL_DIRECTORY = JSON.parse(e.newValue); renderDirectoryPage(true); }
     });
 });
 </script>
