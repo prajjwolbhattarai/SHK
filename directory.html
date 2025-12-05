@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
+<html lang="de">
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SHK Rhein-Neckar | Business Directory</title>
+    <title>Branchenverzeichnis | SHK Rhein-Neckar</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -25,205 +25,147 @@
         }
       }
     </script>
-  </head>
-  <body class="bg-brand-surface text-slate-900 antialiased selection:bg-brand-copper selection:text-white">
-    
-    <header id="header-placeholder" class="sticky top-0 z-50 transition-all duration-300 bg-white border-b border-gray-100 py-2"></header>
-
+</head>
+<body class="bg-brand-surface text-slate-900 antialiased selection:bg-brand-copper selection:text-white">
+    <div id="header-container"></div>
     <main id="main-content">
-      <!-- Directory content will be injected by the embedded script -->
+        <!-- Directory content is rendered by JavaScript -->
     </main>
+    <div id="footer-container"></div>
 
-    <footer id="footer-placeholder" class="bg-white border-t border-gray-200 pt-16 pb-8"></footer>
+<script>
+// V A N I L L A   J S   A P P L I C A T I O N (Directory Page)
+
+// --- 1. DATA STORE ---
+const INITIAL_CATEGORIES = ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
+const MOCK_DIRECTORY = [
+  { id: 'dir-1', name: 'Heizungstechnik Müller GmbH', category: 'Heizung', address: 'Hauptstraße 10', city: 'Mannheim', zip: '68159', phone: '0621 123456', website: 'https://heizung-mueller.de', description: 'Spezialist für moderne Heizsysteme und Wärmepumpen.', logoUrl: 'https://logo.clearbit.com/heizung-mueller.de' },
+  { id: 'dir-2', name: 'Sanitär-Service Weber', category: 'Sanitär', address: 'Bergheimer Straße 58', city: 'Heidelberg', zip: '69115', phone: '06221 654321', website: 'https://sanitaer-weber.de', description: 'Komplettbäder aus einer Hand. Barrierefreie Umbauten.', logoUrl: 'https://logo.clearbit.com/sanitaer-weber.de' },
+  { id: 'dir-3', name: 'Klima-Profis Rhein-Neckar', category: 'Klima', address: 'Industriestraße 35', city: 'Ludwigshafen', zip: '67063', phone: '0621 987654', website: 'https://klima-profis-rn.de', description: 'Installation und Wartung von Klimaanlagen für Gewerbe und Privat.', logoUrl: 'https://logo.clearbit.com/klima-profis-rn.de' },
+  { id: 'dir-4', name: 'Lüftungsbau Schmidt', category: 'Lüftung', address: 'Mittelstraße 5', city: 'Weinheim', zip: '69469', phone: '06201 123789', website: 'https://lueftung-schmidt.de', description: 'Planung und Einbau von zentralen und dezentralen Lüftungsanlagen.', logoUrl: 'https://logo.clearbit.com/lueftung-schmidt.de' },
+  { id: 'dir-5', name: 'Elektro-Technik Fischer', category: 'Elektro', address: 'Schulstraße 21', city: 'Schwetzingen', zip: '68723', phone: '06202 987123', website: 'https://elektro-fischer.com', description: 'Smart Home Installationen und Photovoltaik-Anlagen.', logoUrl: 'https://logo.clearbit.com/elektro-fischer.com' },
+  { id: 'dir-6', name: 'Bade-Träume GmbH', category: 'Sanitär', address: 'Planken 4', city: 'Mannheim', zip: '68161', phone: '0621 555666', website: 'https://badetraeume-ma.de', description: 'Exklusive Badgestaltung und hochwertige Armaturen.', logoUrl: 'https://logo.clearbit.com/badetraeume-ma.de' },
+  { id: 'dir-7', name: 'Wärme-Konzept Rhein-Neckar', category: 'Heizung', address: 'Kurfürsten-Anlage 1', city: 'Heidelberg', zip: '69115', phone: '06221 777888', website: 'https://waerme-konzept-hd.de', description: 'Energieberatung und hydraulischer Abgleich.', logoUrl: 'https://logo.clearbit.com/waerme-konzept-hd.de' },
+  { id: 'dir-8', name: 'Frische Luft Systeme', category: 'Lüftung', address: 'Bürgermeister-Grünzweig-Straße 11', city: 'Ludwigshafen', zip: '67059', phone: '0621 333444', website: 'https://frischeluft-lu.de', description: 'Spezialist für Wohnraumlüftung mit Wärmerückgewinnung.', logoUrl: 'https://logo.clearbit.com/frischeluft-lu.de' },
+  { id: 'dir-9', name: 'Solar & Strom Wagner', category: 'Elektro', address: 'Mannheimer Landstraße 2', city: 'Hockenheim', zip: '68766', phone: '06205 222333', website: 'https://solar-wagner.de', description: 'Installation von PV-Anlagen und Stromspeichern.', logoUrl: 'https://logo.clearbit.com/solar-wagner.de' },
+  { id: 'dir-10', name: 'Haustechnik Klein', category: 'Heizung', address: 'Bahnhofstraße 40', city: 'Sinsheim', zip: '74889', phone: '07261 444555', website: 'https://haustechnik-klein.de', description: '24h Notdienst für Heizung und Sanitär.', logoUrl: 'https://logo.clearbit.com/haustechnik-klein.de' },
+  { id: 'dir-11', name: 'Die Bad-Designer', category: 'Sanitär', address: 'Rohrbacher Str. 12', city: 'Heidelberg', zip: '69115', phone: '06221 666777', website: 'https://die-baddesigner.de', description: 'Individuelle Badplanung in 3D.', logoUrl: 'https://logo.clearbit.com/die-baddesigner.de' },
+  { id: 'dir-12', name: 'Kühltechnik Becker', category: 'Klima', address: 'Friedrich-Ebert-Straße 1', city: 'Viernheim', zip: '68519', phone: '06204 888999', website: 'https://kuehltechnik-becker.de', description: 'Klimatisierung für Serverräume und Gewerbe.', logoUrl: 'https://logo.clearbit.com/kuehltechnik-becker.de' },
+  { id: 'dir-13', name: 'Elektro Bauer & Söhne', category: 'Elektro', address: 'Marktplatz 9', city: 'Worms', zip: '67547', phone: '06241 111222', website: 'https://elektro-bauer.de', description: 'Traditionsbetrieb seit 1950.', logoUrl: 'https://logo.clearbit.com/elektro-bauer.de' },
+  { id: 'dir-14', name: 'Pellet-Heizungen Frank', category: 'Heizung', address: 'Odenwaldstraße 22', city: 'Eberbach', zip: '69412', phone: '06271 333444', website: 'https://pellet-frank.de', description: 'Biomasse-Heizungen und Pelletlager.', logoUrl: 'https://logo.clearbit.com/pellet-frank.de' },
+  { id: 'dir-15', name: 'Wasser-Welt Ludwigshafen', category: 'Sanitär', address: 'Rheinuferstraße 7', city: 'Ludwigshafen', zip: '67061', phone: '0621 555111', website: 'https://wasser-welt-lu.de', description: 'Wasseraufbereitung und Legionellenprüfung.', logoUrl: 'https://logo.clearbit.com/wasser-welt-lu.de' },
+  { id: 'dir-16', name: 'Air-Control GmbH', category: 'Klima', address: 'Augustaanlage 30', city: 'Mannheim', zip: '68165', phone: '0621 222888', website: 'https://air-control-ma.de', description: 'Großanlagen für Bürogebäude und Industrie.', logoUrl: 'https://logo.clearbit.com/air-control-ma.de' },
+  { id: 'dir-17', name: 'Licht & Kraft Elektroservice', category: 'Elektro', address: 'Hauptstraße 100', city: 'Wiesloch', zip: '69168', phone: '06222 777999', website: 'https://licht-kraft-wiesloch.de', description: 'E-Ladesäulen und Netzwerktechnik.', logoUrl: 'https://logo.clearbit.com/licht-kraft-wiesloch.de' },
+  { id: 'dir-18', name: 'Heizungs-Notdienst 24/7', category: 'Heizung', address: 'Mobil in der Region', city: 'Rhein-Neckar', zip: '68159', phone: '0176 12345678', website: 'https://notdienst-shk-rn.de', description: 'Soforthilfe bei Heizungsausfall.', logoUrl: 'https://logo.clearbit.com/notdienst-shk-rn.de' },
+  { id: 'dir-19', name: 'Bad & Fliese Lehmann', category: 'Sanitär', address: 'Industriestraße 8', city: 'Speyer', zip: '67346', phone: '06232 444333', website: 'https://bad-lehmann.de', description: 'Komplettsanierung inklusive Fliesenarbeiten.', logoUrl: 'https://logo.clearbit.com/bad-lehmann.de' },
+  { id: 'dir-20', name: 'Energietechnik Vogel', category: 'Heizung', address: 'Schlossstraße 3', city: 'Bruchsal', zip: '76646', phone: '07251 222111', website: 'https://energietechnik-vogel.de', description: 'Experte für Solarthermie und Blockheizkraftwerke.', logoUrl: 'https://logo.clearbit.com/energietechnik-vogel.de' },
+];
+
+// --- 2. LANGUAGE MANAGER ---
+const translations = { de: { 'directory.title': 'Branchenverzeichnis', 'directory.subtitle': 'Finden Sie qualifizierte SHK-Fachbetriebe in der Rhein-Neckar-Region.', 'search.placeholder_dir': 'Suche nach Name oder Stadt...' }, en: { 'directory.title': 'Business Directory', 'directory.subtitle': 'Find qualified SHK professionals in the Rhein-Neckar region.', 'search.placeholder_dir': 'Search by name or city...' }};
+const languageManager = { currentLanguage: 'de', getLanguage: () => { const lang = localStorage.getItem('shk_lang') || 'de'; languageManager.currentLanguage = lang; return lang; }, t: (key) => translations[languageManager.currentLanguage]?.[key] || key };
+
+// --- 3. COMPONENT TEMPLATES ---
+const createHeaderHTML = (categories) => `<nav class="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-md border-b border-gray-200 py-0"><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="flex justify-between h-20 items-center"><a href="index.html" class="flex-shrink-0 flex items-center cursor-pointer"><img src="shklogo.jpg" alt="SHK Rhein-Neckar" class="w-auto object-contain h-12"/></a><div class="hidden lg:flex space-x-8 items-center h-full"><a href="index.html" class="text-xs font-bold uppercase tracking-widest text-brand-steel hover:text-brand-dark">Home</a><a href="directory.html" class="text-xs font-bold uppercase tracking-widest text-brand-copper">Verzeichnis</a></div><a href="article.html?id=page-submit" class="hidden lg:block bg-brand-dark text-white px-6 py-3 text-xs font-bold uppercase tracking-wider rounded-sm">Artikel Einreichen</a></div></div></nav>`;
+const createFooterHTML = (categories) => `<footer class="bg-white border-t border-gray-200 pt-16 pb-8"><div class="max-w-7xl mx-auto px-4 text-center"><p>© 2025 SHK Rhein-Neckar. Alle Rechte vorbehalten.</p><a href="admin.html" class="text-xs text-gray-400 hover:text-brand-copper">Mitarbeiter Login</a></div></footer>`;
+const createDirectoryCardHTML = (business) => {
+    const categoryColors = { Heizung: 'bg-red-100 text-red-800 border-red-200', Sanitär: 'bg-blue-100 text-blue-800 border-blue-200', Klima: 'bg-sky-100 text-sky-800 border-sky-200', Lüftung: 'bg-green-100 text-green-800 border-green-200', Elektro: 'bg-yellow-100 text-yellow-800 border-yellow-200' };
+    return `
+    <div class="bg-white rounded-sm border border-gray-100 p-6 flex flex-col h-full hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+        <div class="flex items-start mb-4">
+            <img src="${business.logoUrl}" alt="${business.name} logo" class="w-16 h-16 rounded-sm object-contain border border-gray-100 p-1 mr-4 bg-white" onerror="this.onerror=null;this.src='https://via.placeholder.com/150';">
+            <div class="flex-grow">
+                <h3 class="font-display font-bold text-lg text-brand-dark leading-tight">${business.name}</h3>
+                <span class="mt-1 inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm border ${categoryColors[business.category] || 'bg-gray-100 text-gray-800'}">${business.category}</span>
+            </div>
+        </div>
+        <p class="text-sm text-brand-steel mb-5 leading-relaxed flex-grow">${business.description}</p>
+        <div class="mt-auto space-y-3 text-sm text-brand-steel border-t border-gray-100 pt-5">
+            <div class="flex items-start"><span>${business.address}, ${business.zip} ${business.city}</span></div>
+            <div class="flex items-center"><span>${business.phone}</span></div>
+            ${business.website ? `<div class="flex items-center"><a href="${business.website}" target="_blank" rel="noopener noreferrer" class="text-brand-copper hover:underline truncate">${business.website.replace(/^(https?:\/\/)?(www\.)?/, '')}</a></div>` : ''}
+        </div>
+    </div>`;
+};
+
+
+// --- 4. PAGE-SPECIFIC LOGIC ---
+const appState = {
+    searchQuery: '',
+    activeCategory: 'All'
+};
+
+function renderDirectoryGrid() {
+    const grid = document.getElementById('directory-grid');
+    if (!grid) return;
     
-    <script>
-      // --- START: Embedded JS from /js directory ---
+    const filteredBusinesses = MOCK_DIRECTORY.filter(business => {
+      const matchesCategory = appState.activeCategory === 'All' || business.category === appState.activeCategory;
+      const matchesSearch = appState.searchQuery.length === 0 ||
+        business.name.toLowerCase().includes(appState.searchQuery.toLowerCase()) ||
+        business.city.toLowerCase().includes(appState.searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
 
-      // --- data.js ---
-      const INITIAL_CATEGORIES = [
-        'Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie',
-        'Energie & Nachhaltigkeit', 'Regional'
-      ];
-      const MOCK_DIRECTORY=[{id:"dir-1",name:"Heizungstechnik Müller GmbH",category:"Heizung",address:"Hauptstraße 10",city:"Mannheim",zip:"68159",phone:"0621 123456",website:"https://heizung-mueller.de",description:"Spezialist für moderne Heizsysteme und Wärmepumpen.",logoUrl:"https://logo.clearbit.com/heizung-mueller.de"},{id:"dir-2",name:"Sanitär-Service Weber",category:"Sanitär",address:"Bergheimer Straße 58",city:"Heidelberg",zip:"69115",phone:"06221 654321",website:"https://sanitaer-weber.de",description:"Komplettbäder aus einer Hand. Barrierefreie Umbauten.",logoUrl:"https://logo.clearbit.com/sanitaer-weber.de"},{id:"dir-3",name:"Klima-Profis Rhein-Neckar",category:"Klima",address:"Industriestraße 35",city:"Ludwigshafen",zip:"67063",phone:"0621 987654",website:"https://klima-profis-rn.de",description:"Installation und Wartung von Klimaanlagen für Gewerbe und Privat.",logoUrl:"https://logo.clearbit.com/klima-profis-rn.de"},{id:"dir-4",name:"Lüftungsbau Schmidt",category:"Lüftung",address:"Mittelstraße 5",city:"Weinheim",zip:"69469",phone:"06201 123789",website:"https://lueftung-schmidt.de",description:"Planung und Einbau von zentralen und dezentralen Lüftungsanlagen.",logoUrl:"https://logo.clearbit.com/lueftung-schmidt.de"},{id:"dir-5",name:"Elektro-Technik Fischer",category:"Elektro",address:"Schulstraße 21",city:"Schwetzingen",zip:"68723",phone:"06202 987123",website:"https://elektro-fischer.com",description:"Smart Home Installationen und Photovoltaik-Anlagen.",logoUrl:"https://logo.clearbit.com/elektro-fischer.com"},{id:"dir-6",name:"Bade-Träume GmbH",category:"Sanitär",address:"Planken 4",city:"Mannheim",zip:"68161",phone:"0621 555666",website:"https://badetraeume-ma.de",description:"Exklusive Badgestaltung und hochwertige Armaturen.",logoUrl:"https://logo.clearbit.com/badetraeume-ma.de"},{id:"dir-7",name:"Wärme-Konzept Rhein-Neckar",category:"Heizung",address:"Kurfürsten-Anlage 1",city:"Heidelberg",zip:"69115",phone:"06221 777888",website:"https://waerme-konzept-hd.de",description:"Energieberatung und hydraulischer Abgleich.",logoUrl:"https://logo.clearbit.com/waerme-konzept-hd.de"},{id:"dir-8",name:"Frische Luft Systeme",category:"Lüftung",address:"Bürgermeister-Grünzweig-Straße 11",city:"Ludwigshafen",zip:"67059",phone:"0621 333444",website:"https://frischeluft-lu.de",description:"Spezialist für Wohnraumlüftung mit Wärmerückgewinnung.",logoUrl:"https://logo.clearbit.com/frischeluft-lu.de"},{id:"dir-9",name:"Solar & Strom Wagner",category:"Elektro",address:"Mannheimer Landstraße 2",city:"Hockenheim",zip:"68766",phone:"06205 222333",website:"https://solar-wagner.de",description:"Installation von PV-Anlagen und Stromspeichern.",logoUrl:"https://logo.clearbit.com/solar-wagner.de"},{id:"dir-10",name:"Haustechnik Klein",category:"Heizung",address:"Bahnhofstraße 40",city:"Sinsheim",zip:"74889",phone:"07261 444555",website:"https://haustechnik-klein.de",description:"24h Notdienst für Heizung und Sanitär.",logoUrl:"https://logo.clearbit.com/haustechnik-klein.de"},{id:"dir-11",name:"Die Bad-Designer",category:"Sanitär",address:"Rohrbacher Str. 12",city:"Heidelberg",zip:"69115",phone:"06221 666777",website:"https://die-baddesigner.de",description:"Individuelle Badplanung in 3D.",logoUrl:"https://logo.clearbit.com/die-baddesigner.de"},{id:"dir-12",name:"Kühltechnik Becker",category:"Klima",address:"Friedrich-Ebert-Straße 1",city:"Viernheim",zip:"68519",phone:"06204 888999",website:"https://kuehltechnik-becker.de",description:"Klimatisierung für Serverräume und Gewerbe.",logoUrl:"https://logo.clearbit.com/kuehltechnik-becker.de"},{id:"dir-13",name:"Elektro Bauer & Söhne",category:"Elektro",address:"Marktplatz 9",city:"Worms",zip:"67547",phone:"06241 111222",website:"https://elektro-bauer.de",description:"Traditionsbetrieb seit 1950.",logoUrl:"https://logo.clearbit.com/elektro-bauer.de"},{id:"dir-14",name:"Pellet-Heizungen Frank",category:"Heizung",address:"Odenwaldstraße 22",city:"Eberbach",zip:"69412",phone:"06271 333444",website:"https://pellet-frank.de",description:"Biomasse-Heizungen und Pelletlager.",logoUrl:"https://logo.clearbit.com/pellet-frank.de"},{id:"dir-15",name:"Wasser-Welt Ludwigshafen",category:"Sanitär",address:"Rheinuferstraße 7",city:"Ludwigshafen",zip:"67061",phone:"0621 555111",website:"https://wasser-welt-lu.de",description:"Wasseraufbereitung und Legionellenprüfung.",logoUrl:"https://logo.clearbit.com/wasser-welt-lu.de"},{id:"dir-16",name:"Air-Control GmbH",category:"Klima",address:"Augustaanlage 30",city:"Mannheim",zip:"68165",phone:"0621 222888",website:"https://air-control-ma.de",description:"Großanlagen für Bürogebäude und Industrie.",logoUrl:"https://logo.clearbit.com/air-control-ma.de"},{id:"dir-17",name:"Licht & Kraft Elektroservice",category:"Elektro",address:"Hauptstraße 100",city:"Wiesloch",zip:"69168",phone:"06222 777999",website:"https://licht-kraft-wiesloch.de",description:"E-Ladesäulen und Netzwerktechnik.",logoUrl:"https://logo.clearbit.com/licht-kraft-wiesloch.de"},{id:"dir-18",name:"Heizungs-Notdienst 24/7",category:"Heizung",address:"Mobil in der Region",city:"Rhein-Neckar",zip:"68159",phone:"0176 12345678",website:"https://notdienst-shk-rn.de",description:"Soforthilfe bei Heizungsausfall.",logoUrl:"https://logo.clearbit.com/notdienst-shk-rn.de"},{id:"dir-19",name:"Bad & Fliese Lehmann",category:"Sanitär",address:"Industriestraße 8",city:"Speyer",zip:"67346",phone:"06232 444333",website:"https://bad-lehmann.de",description:"Komplettsanierung inklusive Fliesenarbeiten.",logoUrl:"https://logo.clearbit.com/bad-lehmann.de"},{id:"dir-20",name:"Energietechnik Vogel",category:"Heizung",address:"Schlossstraße 3",city:"Bruchsal",zip:"76646",phone:"07251 222111",website:"https://energietechnik-vogel.de",description:"Experte für Solarthermie und Blockheizkraftwerke.",logoUrl:"https://logo.clearbit.com/energietechnik-vogel.de"}];
-      const ALL_BUSINESSES = MOCK_DIRECTORY;
+    if (filteredBusinesses.length > 0) {
+        grid.innerHTML = filteredBusinesses.map(createDirectoryCardHTML).join('');
+    } else {
+        grid.innerHTML = `<div class="md:col-span-2 lg:col-span-3 xl:col-span-4 text-center py-32 bg-white rounded-sm border border-dashed border-gray-300"><p class="text-brand-steel font-medium text-lg">No businesses found.</p></div>`;
+    }
+}
 
-      // --- language.js ---
-      const translations={'en':{'nav.home':'Home','nav.magazine':'Magazine','nav.companies':'For Companies','nav.contact':'Contact','nav.get_featured':'Get Featured','nav.directory':'Directory','hero.label':'Live from Rhein-Neckar','hero.title':'The Leading SHK Industry Magazine.','hero.subtitle':'Trusted industry coverage, insights, and success stories for sanitary, heating, and climate professionals in the Rhein-Neckar region.','hero.read_latest':'Read Latest','hero.submit_story':'Submit a Story','section.top_story':'Top Story','section.latest_news':'Latest Industry News','section.trust_title':'Deeply Rooted in Rhein-Neckar','section.trust_text':"We don't just report on the industry; we are part of the local ecosystem. Connecting businesses in Mannheim, Heidelberg, Ludwigshafen, and beyond.",'section.explore_categories':'Explore Topics','newsletter.title':'Stay Informed. No Spam.','newsletter.text':'Get the weekly digest of the most important SHK news in Rhein-Neckar. Used by over 2,000 local professionals.','newsletter.placeholder':'Your work email...','newsletter.button':'Subscribe','newsletter.disclaimer':'Unsubscribe at any time.','footer.about':'The independent voice for the Sanitary, Heating, and Climate industry in the metropolitan region.','footer.rights':'All rights reserved.','footer.staff_login':'Staff Login','article.read_story':'Read Story','article.watch_video':'Watch Video','article.back':'Back to Magazine','article.read_time':'min read','article.share':'Share','article.enjoyed':'Enjoyed this story?','article.subscribe_promo':'Join 2,000+ local professionals receiving our weekly SHK industry briefing.','search.placeholder':'Search articles...','search.placeholder_dir':'Search by name or city...','search.no_results':'No articles found matching your search.','btn.show_more':'Show More','btn.load_more':'Load More Articles','btn.view_category':'View Category','directory.title':'Business Directory','directory.subtitle':'Find qualified SHK professionals in the Rhein-Neckar region.','cat.Branchen-News':'Industry News','cat.Betriebs-Features':'Company Features','cat.Personal & Karriere':'HR & Careers','cat.Technologie':'Technology','cat.Energie & Nachhaltigkeit':'Energy & Sustainability','cat.Regional':'Regional'},de:{'nav.home':'Startseite','nav.magazine':'Magazin','nav.companies':'Für Unternehmen','nav.contact':'Kontakt','nav.get_featured':'Artikel Einreichen','nav.directory':'Verzeichnis','hero.label':'Live aus Rhein-Neckar','hero.title':'Das führende SHK-Branchenmagazin.','hero.subtitle':'Verlässliche Berichterstattung, Einblicke und Erfolgsgeschichten für Sanitär-, Heizungs- und Klimaprofis in der Metropolregion Rhein-Neckar.','hero.read_latest':'Aktuelles lesen','hero.submit_story':'Story einreichen','section.top_story':'Top Story','section.latest_news':'Neueste Branchennachrichten','section.trust_title':'Tief verwurzelt in Rhein-Neckar','section.trust_text':'Wir berichten nicht nur über die Branche; wir sind Teil des lokalen Ökosystems. Wir verbinden Unternehmen in Mannheim, Heidelberg, Ludwigshafen und darüber hinaus.','section.explore_categories':'Themen Entdecken','newsletter.title':'Informiert bleiben. Kein Spam.','newsletter.text':'Erhalten Sie die wöchentliche Zusammenfassung der wichtigsten SHK-Nachrichten. Gelesen von über 2.000 lokalen Profis.','newsletter.placeholder':'Ihre geschäftliche E-Mail...','newsletter.button':'Abonnieren','newsletter.disclaimer':'Jederzeit abbestellbar.','footer.about':'Die unabhängige Stimme für die Sanitär-, Heizungs- und Klimabranche in der Metropolregion.','footer.rights':'Alle Rechte vorbehalten.','footer.staff_login':'Mitarbeiter Login','article.read_story':'Artikel lesen','article.watch_video':'Video ansehen','article.back':'Zurück zum Magazin','article.read_time':'Min Lesezeit','article.share':'Teilen','article.enjoyed':'Hat Ihnen der Artikel gefallen?','article.subscribe_promo':'Schließen Sie sich 2.000+ lokalen Profis an und erhalten Sie unser wöchentliches Briefing.','search.placeholder':'Artikel suchen...','search.placeholder_dir':'Suche nach Name oder Stadt...','search.no_results':'Keine Artikel gefunden.','btn.show_more':'Mehr Anzeigen','btn.load_more':'Weitere Artikel laden','btn.view_category':'Kategorie ansehen','directory.title':'Branchenverzeichnis','directory.subtitle':'Finden Sie qualifizierte SHK-Fachbetriebe in der Rhein-Neckar-Region.','cat.Branchen-News':'Branchen-News','cat.Betriebs-Features':'Betriebs-Features','cat.Personal & Karriere':'Personal & Karriere','cat.Technologie':'Technologie','cat.Energie & Nachhaltigkeit':'Energie & Nachhaltigkeit','cat.Regional':'Regional'},fr:{'nav.home':'Accueil','nav.magazine':'Magazine','nav.companies':'Pour les entreprises','nav.contact':'Contact','nav.get_featured':'Être en vedette','nav.directory':'Annuaire','hero.label':"En direct de Rhein-Neckar",'hero.title':"Le premier magazine de l'industrie SHK.",'hero.subtitle':"Couverture fiable de l'industrie pour les professionnels du sanitaire, du chauffage et du climat dans la région de Rhein-Neckar.",'hero.read_latest':'Lire les dernières nouvelles','hero.submit_story':'Soumettre une histoire','section.top_story':'À la une','section.latest_news':"Dernières nouvelles de l'industrie",'section.trust_title':'Profondément enraciné','section.trust_text':'Nous connectons les entreprises à Mannheim, Heidelberg, Ludwigshafen et au-delà.','section.explore_categories':'Explorer les sujets','newsletter.title':'Restez informé.','newsletter.text':"Recevez le résumé hebdomadaire des nouvelles SHK les plus importantes.",'newsletter.placeholder':'Votre email professionnel...','newsletter.button':"S'abonner",'newsletter.disclaimer':'Se désabonner à tout moment.','footer.about':"La voix indépendante de l'industrie SHK dans la région métropolitaine.",'footer.rights':'Tous droits réservés.','footer.staff_login':'Connexion personnel','article.read_story':"Lire l'histoire",'article.watch_video':'Regarder la vidéo','article.back':'Retour au magazine','article.read_time':'min de lecture','article.share':'Partager','article.enjoyed':'Vous avez aimé cette histoire ?','article.subscribe_promo':'Rejoignez 2 000+ professionnels locaux.','search.placeholder':"Rechercher des articles...",'search.placeholder_dir':'Rechercher par nom ou ville...','search.no_results':'Aucun article trouvé.','btn.show_more':'Montrer plus',"btn.load_more":"Charger plus d'articles",'btn.view_category':'Voir la catégorie','directory.title':'Annuaire des entreprises','directory.subtitle':'Trouvez des professionnels SHK qualifiés dans la région de Rhein-Neckar.','cat.Branchen-News':"Actualités de l'industrie",'cat.Betriebs-Features':"Fonctionnalités de l'entreprise",'cat.Personal & Karriere':'RH et carrières','cat.Technologie':'Technologie','cat.Energie & Nachhaltigkeit':'Énergie et durabilité','cat.Regional':'Régional'},it:{'nav.home':'Home','nav.magazine':'Rivista','nav.companies':'Per le aziende','nav.contact':'Contatto','nav.get_featured':'Mettiti in luce','nav.directory':'Elenco','hero.label':'In diretta da Rhein-Neckar','hero.title':"La rivista leader del settore SHK.",'hero.subtitle':'Copertura affidabile del settore per i professionisti di sanitari, riscaldamento e clima nella regione Rhein-Neckar.','hero.read_latest':'Leggi le ultime','hero.submit_story':'Invia una storia','section.top_story':'Storia principale','section.latest_news':"Ultime notizie del settore",'section.trust_title':'Profondamente radicato','section.trust_text':'Colleghiamo le aziende a Mannheim, Heidelberg, Ludwigshafen e oltre.','section.explore_categories':'Esplora argomenti','newsletter.title':'Rimani informato.','newsletter.text':"Ricevi il riepilogo settimanale delle notizie SHK più importanti.",'newsletter.placeholder':"La tua email aziendale...",'newsletter.button':'Iscriviti','newsletter.disclaimer':'Annulla iscrizione in qualsiasi momento.','footer.about':"La voce indipendente per il settore SHK nella regione metropolitana.",'footer.rights':'Tutti i diritti riservati.','footer.staff_login':'Login personale','article.read_story':'Leggi storia','article.watch_video':'Guarda video','article.back':'Torna alla rivista','article.read_time':'min di lettura','article.share':'Condividi','article.enjoyed':'Ti è piaciuta questa storia?','article.subscribe_promo':'Unisciti a 2.000+ professionisti locali.','search.placeholder':'Cerca articoli...','search.placeholder_dir':'Cerca per nome o città...','search.no_results':'Nessun articolo trovato.','btn.show_more':'Mostra di più','btn.load_more':"Carica altri articoli",'btn.view_category':'Vedi categoria','directory.title':"Elenco delle aziende",'directory.subtitle':'Trova professionisti SHK qualificati nella regione del Rhein-Neckar.','cat.Branchen-News':'Notizie del settore','cat.Betriebs-Features':'Caratteristiche aziendali','cat.Personal & Karriere':'Risorse umane e carriera','cat.Technologie':'Tecnologia','cat.Energie & Nachhaltigkeit':'Energia e sostenibilità','cat.Regional':'Regionale'},es:{'nav.home':'Inicio','nav.magazine':'Revista','nav.companies':'Para empresas','nav.contact':'Contacto','nav.get_featured':'Destacarse','nav.directory':'Directorio','hero.label':'En vivo desde Rhein-Neckar','hero.title':'La revista líder de la industria SHK.','hero.subtitle':'Cobertura confiabile de la industria para profesionales de sanitarios, calefacción y clima en la región de Rhein-Neckar.','hero.read_latest':'Leer lo último','hero.submit_story':'Enviar historia','section.top_story':'Historia principal','section.latest_news':'Últimas noticias de la industria','section.trust_title':'Profundamente arraigado','section.trust_text':'Conectamos empresas en Mannheim, Heidelberg, Ludwigshafen y más allá.','section.explore_categories':'Explorar temas','newsletter.title':'Manténgase informado.','newsletter.text':'Reciba el resumen semanal de las noticias SHK más importantes.','newsletter.placeholder':'Su correo corporativo...','newsletter.button':'Suscribirse','newsletter.disclaimer':'Darse de baja en cualquier momento.','footer.about':'La voz independiente de la industria SHK en la región metropolitana.','footer.rights':'Todos los derechos reservados.','footer.staff_login':'Acceso personal','article.read_story':'Leer historia','article.watch_video':'Ver video','article.back':'Volver a la revista','article.read_time':'min de lectura','article.share':'Compartir','article.enjoyed':'¿Le gustó esta historia?','article.subscribe_promo':'Únase a 2,000+ profesionales locales.','search.placeholder':'Buscar artículos...','search.placeholder_dir':'Buscar por nombre o ciudad...','search.no_results':'No se encontraron artículos.','btn.show_more':'Mostrar más','btn.load_more':'Cargar más artículos','btn.view_category':'Ver categoría','directory.title':'Directorio de empresas','directory.subtitle':'Encuentre profesionales SHK calificados en la región de Rhein-Neckar.','cat.Branchen-News':'Noticias de la industria','cat.Betriebs-Features':'Características de la empresa','cat.Personal & Karriere':'Recursos humanos y carreras','cat.Technologie':'Tecnología','cat.Energie & Nachhaltigkeit':'Energía y sostenibilidad','cat.Regional':'Regional'}};
-      let currentLanguage = localStorage.getItem('shk_lang') || 'de';
-      const languageService={getLanguage:()=>currentLanguage,setLanguage:(lang)=>{if(translations[lang]){currentLanguage=lang;localStorage.setItem('shk_lang',lang);window.dispatchEvent(new CustomEvent('language-change'))}},t:(key)=>translations[currentLanguage]?.[key]||translations.en?.[key]||key};
-      const { t, getLanguage } = languageService;
-
-      // --- components.js ---
-      function createHeader({ categories, activeCategory, isDirectoryActive }) {
-        const lang = getLanguage();
-        const logoUrl = "shklogo.jpg";
-        const languages = [
-          { code: 'en', label: 'English', flag: '🇬🇧' }, { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
-          { code: 'fr', label: 'Français', flag: '🇫🇷' }, { code: 'it', label: 'Italiano', flag: '🇮🇹' },
-          { code: 'es', label: 'Español', flag: '🇪🇸' },
-        ];
-        return `
-          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-20 items-center">
-              <div class="flex items-center lg:hidden">
-                <button id="mobile-menu-button" class="p-2 text-brand-dark">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-                </button>
-              </div>
-              <div class="flex-shrink-0 flex items-center justify-center lg:justify-start w-full lg:w-auto">
-                <a href="index.html" data-nav-link="All" class="cursor-pointer group">
-                  <img src="${logoUrl}" alt="SHK Rhein-Neckar" class="h-16 w-auto object-contain transition-all duration-300">
-                </a>
-              </div>
-              <div id="desktop-nav-links" class="hidden lg:flex space-x-8 items-center h-full">
-                  <a href="index.html" data-nav-link="All" class="relative h-full text-xs font-bold uppercase tracking-widest transition-colors flex items-center ${activeCategory === 'All' && !isDirectoryActive ? 'text-brand-copper' : 'text-brand-steel hover:text-brand-dark'}">
-                    ${t('nav.home')}
-                    ${activeCategory === 'All' && !isDirectoryActive ? '<span class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-copper animate-fade-in"></span>' : ''}
-                  </a>
-                  <a href="directory.html" class="relative h-full text-xs font-bold uppercase tracking-widest transition-colors flex items-center ${isDirectoryActive ? 'text-brand-copper' : 'text-brand-steel hover:text-brand-dark'}">
-                    ${t('nav.directory')}
-                    ${isDirectoryActive ? '<span class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-copper animate-fade-in"></span>' : ''}
-                  </a>
-                  ${categories.slice(0, 4).map(cat => `
-                    <a href="index.html" data-nav-link="${cat}" class="relative h-full text-xs font-bold uppercase tracking-widest transition-colors flex items-center ${activeCategory === cat && !isDirectoryActive ? 'text-brand-copper' : 'text-brand-steel hover:text-brand-dark'}">
-                      ${t(`cat.${cat}`) || cat}
-                      ${activeCategory === cat && !isDirectoryActive ? '<span class="absolute bottom-0 left-0 w-full h-0.5 bg-brand-copper animate-fade-in"></span>' : ''}
-                    </a>
-                  `).join('')}
-              </div>
-              <div id="header-actions" class="flex items-center space-x-4">
-                <div id="search-container" class="flex items-center transition-all duration-300 w-8">
-                  <button id="search-toggle-button" class="p-2 text-brand-steel hover:text-brand-copper transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                  </button>
+function renderPage() {
+    languageManager.getLanguage();
+    const t = languageManager.t;
+    document.getElementById('header-container').innerHTML = createHeaderHTML(INITIAL_CATEGORIES);
+    document.getElementById('footer-container').innerHTML = createFooterHTML(INITIAL_CATEGORIES);
+    
+    document.getElementById('main-content').innerHTML = `
+        <div class="bg-white py-16 md:py-24 border-b border-gray-100">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-4xl md:text-6xl font-display font-black text-brand-dark mb-4">${t('directory.title')}</h1>
+                <p class="text-lg md:text-xl text-brand-steel max-w-2xl mx-auto">${t('directory.subtitle')}</p>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div class="sticky top-20 z-40 bg-brand-surface/80 backdrop-blur-md p-4 mb-12 rounded-sm border border-gray-200 flex flex-col md:flex-row gap-4 items-center">
+                <div class="relative w-full md:w-1/2 lg:w-1/3">
+                    <input type="text" id="search-input" placeholder="${t('search.placeholder_dir')}" class="w-full pl-4 pr-4 py-3 border border-gray-300 rounded-sm focus:ring-2 focus:ring-brand-copper outline-none transition" />
                 </div>
-                <div id="lang-switcher-container" class="hidden lg:block relative group">
-                  <button id="lang-menu-button" class="flex items-center space-x-2 text-xs font-bold uppercase text-brand-steel hover:text-brand-dark transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-                    <span>${lang.toUpperCase()}</span>
-                  </button>
-                  <div id="lang-menu" class="hidden absolute right-0 mt-4 w-40 bg-white border border-gray-100 shadow-xl rounded-sm py-2 z-50 animate-fade-in">
-                    <div class="absolute -top-2 right-4 w-4 h-4 bg-white border-t border-l border-gray-100 transform rotate-45"></div>
-                    ${languages.map(l => `
-                      <button data-lang="${l.code}" class="lang-option w-full text-left px-4 py-3 text-xs font-bold flex items-center hover:bg-gray-50 transition-colors ${lang === l.code ? 'text-brand-copper bg-orange-50/50' : 'text-gray-700'}">
-                        <span class="mr-3 text-lg">${l.flag}</span> ${l.label}
-                      </button>
-                    `).join('')}
-                  </div>
+                <div id="category-filters" class="flex flex-wrap gap-2 justify-center">
+                    <button data-category="All" class="filter-btn px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-full transition bg-brand-dark text-white">All</button>
+                    ${['Heizung', 'Sanitär', 'Klima', 'Lüftung', 'Elektro'].map(cat => `<button data-category="${cat}" class="filter-btn px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-full transition bg-white text-brand-dark hover:bg-gray-100 border border-gray-200">${cat}</button>`).join('')}
                 </div>
-                <div class="hidden lg:block h-6 w-px bg-gray-200"></div>
-                <a href="article.html?id=page-submit" class="hidden lg:block group relative bg-brand-dark text-white px-6 py-3 text-xs font-bold uppercase tracking-wider overflow-hidden rounded-sm transition-all hover:shadow-lg">
-                  <span class="relative z-10 group-hover:text-brand-copper transition-colors">${t('nav.get_featured')}</span>
-                  <div class="absolute inset-0 bg-white transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out z-0"></div>
-                </a>
-              </div>
             </div>
-          </div>
-          <div id="mobile-menu" class="hidden lg:hidden border-t border-gray-100 bg-white absolute w-full z-40 shadow-2xl animate-fade-in"></div>
-        `;
-      }
-      function createFooter({ categories }) {
-        const logoUrl = "shklogo.jpg";
-        return `
-          <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-12">
-            <div class="col-span-1 md:col-span-4 lg:col-span-2">
-              <img src="${logoUrl}" alt="SHK Rhein-Neckar" class="h-16 w-auto mb-4"/>
-              <p class="text-sm text-brand-steel leading-relaxed max-w-sm">${t('footer.about')}</p>
-            </div>
-            <div class="lg:col-start-3">
-              <h3 class="text-xs font-bold uppercase tracking-widest text-brand-dark mb-6">${t('nav.magazine')}</h3>
-              <ul class="space-y-3 text-sm text-brand-steel">
-                <li><a href="index.html" data-nav-link="All" class="hover:text-brand-copper transition">${t('nav.home')}</a></li>
-                <li><a href="directory.html" class="hover:text-brand-copper transition">${t('nav.directory')}</a></li>
-                ${categories.slice(0, 4).map(c => `<li><a href="index.html" data-nav-link="${c}" class="hover:text-brand-copper transition">${t(`cat.${c}`)}</a></li>`).join('')}
-              </ul>
-            </div>
-            <div>
-              <h3 class="text-xs font-bold uppercase tracking-widest text-brand-dark mb-6">${t('nav.companies')}</h3>
-              <ul class="space-y-3 text-sm text-brand-steel">
-                <li><a href="article.html?id=page-submit" class="hover:text-brand-copper transition">${t('hero.submit_story')}</a></li>
-                <li><a href="article.html?id=page-advertising" class="hover:text-brand-copper transition">Advertising</a></li>
-                <li><a href="article.html?id=page-jobs" class="hover:text-brand-copper transition">Job Board</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 class="text-xs font-bold uppercase tracking-widest text-brand-dark mb-6">${t('nav.contact')}</h3>
-              <ul class="space-y-3 text-sm text-brand-steel">
-                <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2 mt-1 flex-shrink-0"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> redaktion@shk-rhein-neckar.de</li>
-                <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2 mt-1 flex-shrink-0"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> Mannheim, Germany</li>
-              </ul>
-            </div>
-          </div>
-          <div class="max-w-7xl mx-auto px-4 mt-16 pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
-            <div class="flex space-x-6">
-              <a href="article.html?id=page-imprint" class="hover:text-brand-copper">Imprint</a>
-              <a href="article.html?id=page-privacy" class="hover:text-brand-copper">Privacy Policy</a>
-              <a href="article.html?id=page-terms" class="hover:text-brand-copper">Terms</a>
-            </div>
-            <div class="mt-4 md:mt-0 text-center md:text-right">
-              <span>© 2025 SHK Rhein-Neckar. ${t('footer.rights')}</span>
-              <a href="admin.html" class="ml-4 text-gray-300 hover:text-brand-copper transition">${t('footer.staff_login')}</a>
-            </div>
-          </div>
-        `;
-      }
-      function createDirectoryCard(business) {
-        const categoryColors = { Heizung: 'bg-red-100 text-red-800 border-red-200', Sanitär: 'bg-blue-100 text-blue-800 border-blue-200', Klima: 'bg-sky-100 text-sky-800 border-sky-200', Lüftung: 'bg-green-100 text-green-800 border-green-200', Elektro: 'bg-yellow-100 text-yellow-800 border-yellow-200' };
-        return `<div class="bg-white rounded-sm border border-gray-100 p-6 flex flex-col h-full hover:shadow-xl hover:-translate-y-1 transition-all duration-300"><div class="flex items-start mb-4"><img src="${business.logoUrl}" alt="${business.name} logo" class="w-16 h-16 rounded-sm object-contain border border-gray-100 p-1 mr-4 bg-white" onError="this.onerror=null;this.src='https://via.placeholder.com/150';"><div class="flex-grow"><h3 class="font-display font-bold text-lg text-brand-dark leading-tight">${business.name}</h3><span class="mt-1 inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm border ${categoryColors[business.category] || 'bg-gray-100 text-gray-800'}">${business.category}</span></div></div><p class="text-sm text-brand-steel mb-5 leading-relaxed flex-grow">${business.description}</p><div class="mt-auto space-y-3 text-sm text-brand-steel border-t border-gray-100 pt-5"><div class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-3 mt-0.5 text-gray-400 flex-shrink-0"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg><span>${business.address}, ${business.zip} ${business.city}</span></div><div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-3 text-gray-400 flex-shrink-0"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><span>${business.phone}</span></div>${business.website ? `<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-3 text-gray-400 flex-shrink-0"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg><a href="${business.website}" target="_blank" rel="noopener noreferrer" class="text-brand-copper hover:underline truncate">${business.website.replace(/^(https?:\/\/)?(www\.)?/, '')}</a></div>` : ''}</div></div>`;
-      }
+            <div id="directory-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
+        </div>`;
+    
+    renderDirectoryGrid();
+    attachEventListeners();
+}
 
-      // --- main.js ---
-      let mobileMenuOpen=!1,langMenuOpen=!1,searchOpen=!1,scrolled=!1;function renderSharedComponents(){const headerPlaceholder=document.getElementById("header-placeholder"),footerPlaceholder=document.getElementById("footer-placeholder"),pageCategory=sessionStorage.getItem("active_category")||"All",isDirectoryActive=window.location.pathname.includes("directory.html");headerPlaceholder&&(headerPlaceholder.innerHTML=createHeader({categories:INITIAL_CATEGORIES,activeCategory:pageCategory,isDirectoryActive:isDirectoryActive}),addHeaderEventListeners(),updateHeaderOnScroll()),footerPlaceholder&&(footerPlaceholder.innerHTML=createFooter({categories:INITIAL_CATEGORIES}),addFooterEventListeners())}function setupNavLinkListeners(selector){document.querySelectorAll(selector).forEach(link=>{link.addEventListener("click",e=>{const href=e.currentTarget.getAttribute("href");if(href&&href.includes("index.html")){e.preventDefault();const category=e.currentTarget.dataset.navLink;sessionStorage.setItem("active_category",category),sessionStorage.removeItem("search_query");const isIndexPage=window.location.pathname.endsWith("/")||window.location.pathname.endsWith("index.html");isIndexPage?window.dispatchEvent(new CustomEvent("category-change",{detail:{category:category}})):window.location.href="index.html"}})})};function addHeaderEventListeners(){document.getElementById("mobile-menu-button")?.addEventListener("click",toggleMobileMenu),document.getElementById("lang-menu-button")?.addEventListener("click",()=>{langMenuOpen=!langMenuOpen,document.getElementById("lang-menu")?.classList.toggle("hidden",!langMenuOpen)}),document.querySelectorAll(".lang-option").forEach(button=>{button.addEventListener("click",e=>{const lang=e.currentTarget.dataset.lang;languageService.setLanguage(lang),langMenuOpen=!1})}),document.getElementById("search-toggle-button")?.addEventListener("click",toggleSearch),setupNavLinkListeners("#header-placeholder [data-nav-link]")}function addFooterEventListeners(){setupNavLinkListeners("#footer-placeholder [data-nav-link]")}function toggleMobileMenu(){mobileMenuOpen=!mobileMenuOpen;const mobileMenu=document.getElementById("mobile-menu");if(!mobileMenu)return;if(mobileMenuOpen){mobileMenu.classList.remove("hidden");const languages=[{code:"en",label:"English",flag:"🇬🇧"},{code:"de",label:"Deutsch",flag:"🇩🇪"},{code:"fr",label:"Français",flag:"🇫🇷"},{code:"it",label:"Italiano",flag:"🇮🇹"},{code:"es",label:"Español",flag:"🇪🇸"}],currentLang=languageService.getLanguage();mobileMenu.innerHTML=`
-            <div class="px-6 py-6 space-y-4">
-                <div class="flex space-x-3 mb-6 pb-6 border-b border-gray-100 overflow-x-auto">
-                    ${languages.map(lang=>`<button data-lang="${lang.code}" class="mobile-lang-option flex-shrink-0 px-4 py-2 rounded-sm text-xs font-bold border transition-colors ${currentLang===lang.code?"bg-brand-copper text-white border-brand-copper":"bg-transparent text-gray-600 border-gray-200"}">${lang.flag} ${lang.code.toUpperCase()}</button>`).join("")}
-                </div>
-                <a href="index.html" data-nav-link="All" class="block w-full text-left py-3 text-sm font-bold uppercase tracking-wide text-brand-dark hover:text-brand-copper hover:pl-2 transition-all border-b border-gray-50">${t("nav.home")}</a>
-                <a href="directory.html" class="block w-full text-left py-3 text-sm font-bold uppercase tracking-wide text-brand-dark hover:text-brand-copper hover:pl-2 transition-all border-b border-gray-50">${t("nav.directory")}</a>
-                ${INITIAL_CATEGORIES.map(cat=>`<a href="index.html" data-nav-link="${cat}" class="block w-full text-left py-3 text-sm font-bold uppercase tracking-wide text-brand-dark hover:text-brand-copper hover:pl-2 transition-all border-b border-gray-50">${t(`cat.${cat}`)}</a>`).join("")}
-                <a href="article.html?id=page-submit" class="block w-full mt-6 bg-brand-dark text-white px-4 py-4 text-sm font-bold uppercase tracking-wider text-center rounded-sm">${t("nav.get_featured")}</a>
-            </div>
-        `,mobileMenu.querySelectorAll(".mobile-lang-option").forEach(btn=>{btn.addEventListener("click",e=>{languageService.setLanguage(e.currentTarget.dataset.lang),toggleMobileMenu()})}),mobileMenu.querySelectorAll("[data-nav-link]").forEach(link=>{link.addEventListener("click",e=>{const href=e.currentTarget.getAttribute("href");if(href&&href.includes("index.html")){e.preventDefault();const category=e.currentTarget.dataset.navLink;sessionStorage.setItem("active_category",category),sessionStorage.removeItem("search_query"),toggleMobileMenu();const isIndexPage=window.location.pathname.endsWith("/")||window.location.pathname.endsWith("index.html");isIndexPage?window.dispatchEvent(new CustomEvent("category-change",{detail:{category:category}})):window.location.href="index.html"}})})})}else mobileMenu.classList.add("hidden")}function toggleSearch(){searchOpen=!searchOpen;const container=document.getElementById("search-container"),navLinks=document.getElementById("desktop-nav-links"),langSwitcher=document.getElementById("lang-switcher-container"),headerActions=document.getElementById("header-actions");searchOpen?(navLinks?.classList.add("hidden"),langSwitcher?.classList.add("hidden"),headerActions?.classList.add("flex-grow","justify-end"),container.classList.remove("w-8"),container.classList.add("w-full","md:w-96"),container.innerHTML=`
-            <form id="search-form" class="relative w-full flex items-center">
-                 <input id="search-input" type="text" placeholder="${t("search.placeholder")}" class="w-full bg-gray-100 border-none rounded-sm px-4 py-2 pr-10 text-sm focus:ring-2 focus:ring-brand-copper outline-none" />
-                 <button type="button" id="close-search-button" class="absolute right-2 p-1 text-gray-400 hover:text-brand-dark">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                 </button>
-             </form>
-        `,document.getElementById("search-input").focus(),document.getElementById("close-search-button").addEventListener("click",toggleSearch),document.getElementById("search-form").addEventListener("submit",handleSearchSubmit)):(sessionStorage.setItem("search_query",""),window.location.pathname.includes("index.html")&&window.dispatchEvent(new CustomEvent("search-change",{detail:""})),container.classList.add("w-8"),container.classList.remove("w-full","md:w-96"),navLinks?.classList.remove("hidden"),langSwitcher?.classList.remove("hidden"),headerActions?.classList.remove("flex-grow","justify-end"),container.innerHTML=`
-            <button id="search-toggle-button" class="p-2 text-brand-steel hover:text-brand-copper transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-            </button>
-        `,document.getElementById("search-toggle-button").addEventListener("click",toggleSearch))}function handleSearchSubmit(e){e.preventDefault();const query=document.getElementById("search-input").value;sessionStorage.setItem("search_query",query),window.location.pathname.includes("index.html")?window.dispatchEvent(new CustomEvent("search-change",{detail:query})):window.location.href="index.html"}function updateHeaderOnScroll(){const nav=document.querySelector("header"),logoImg=nav.querySelector("img"),handleScroll=()=>{window.scrollY>20?scrolled||(nav.classList.add("bg-white/95","backdrop-blur-md","shadow-md","border-b","border-gray-200","py-0"),nav.classList.remove("bg-white","border-gray-100","py-2"),logoImg.classList.add("h-12"),logoImg.classList.remove("h-16"),scrolled=!0):scrolled&&(nav.classList.remove("bg-white/95","backdrop-blur-md","shadow-md","border-b","border-gray-200","py-0"),nav.classList.add("bg-white","border-gray-100","py-2"),logoImg.classList.remove("h-12"),logoImg.classList.add("h-16"),scrolled=!1)};window.addEventListener("scroll",handleScroll,{passive:!0}),handleScroll()}window.addEventListener("language-change",renderSharedComponents),document.addEventListener("DOMContentLoaded",renderSharedComponents);
-      
-      // --- directory-page.js ---
-      const dirMainContent = document.getElementById('main-content');
-      const DIRECTORY_CATEGORIES = ['Heizung', 'Sanitär', 'Klima', 'Lüftung', 'Elektro'];
-      let dirState = { searchQuery: '', activeCategory: 'All' };
-      function renderDirectoryPage() {
-        const filteredBusinesses = ALL_BUSINESSES.filter(business => {
-            const matchesCategory = dirState.activeCategory === 'All' || business.category === dirState.activeCategory;
-            const matchesSearch = dirState.searchQuery.length === 0 || business.name.toLowerCase().includes(dirState.searchQuery.toLowerCase()) || business.city.toLowerCase().includes(dirState.searchQuery.toLowerCase());
-            return matchesCategory && matchesSearch;
+function attachEventListeners() {
+    document.getElementById('search-input').addEventListener('input', (e) => {
+        appState.searchQuery = e.target.value;
+        renderDirectoryGrid();
+    });
+
+    document.querySelectorAll('.filter-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            appState.activeCategory = e.target.getAttribute('data-category');
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-brand-dark', 'text-white');
+                btn.classList.add('bg-white', 'text-brand-dark', 'hover:bg-gray-100', 'border', 'border-gray-200');
+            });
+            e.target.classList.add('bg-brand-dark', 'text-white');
+            e.target.classList.remove('bg-white', 'text-brand-dark', 'hover:bg-gray-100', 'border', 'border-gray-200');
+            renderDirectoryGrid();
         });
-        let html = `
-            <div class="bg-white py-16 md:py-24 border-b border-gray-100"><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center"><div class="inline-flex justify-center items-center p-4 bg-brand-surface rounded-full mb-6"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-brand-copper"><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><path d="M12 20h4"/><path d="M12 20H8"/><path d="M12 4H8v4h4V4Z"/></svg></div><h1 class="text-4xl md:text-6xl font-display font-black text-brand-dark mb-4">${t('directory.title')}</h1><p class="text-lg md:text-xl text-brand-steel max-w-2xl mx-auto">${t('directory.subtitle')}</p></div></div>
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16"><div class="sticky top-20 z-40 bg-brand-surface/80 backdrop-blur-md p-4 mb-12 rounded-sm border border-gray-200 flex flex-col md:flex-row gap-4 items-center"><div class="relative w-full md:w-1/2 lg:w-1/3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input id="dir-search-input" type="text" value="${dirState.searchQuery}" placeholder="${t('search.placeholder_dir')}" class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-sm focus:ring-2 focus:ring-brand-copper outline-none transition" /></div><div class="flex flex-wrap gap-2 justify-center"><button data-cat="All" class="dir-cat-btn px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-full transition ${dirState.activeCategory === 'All' ? 'bg-brand-dark text-white' : 'bg-white text-brand-dark hover:bg-gray-100 border border-gray-200'}">All</button>${DIRECTORY_CATEGORIES.map(cat => `<button data-cat="${cat}" class="dir-cat-btn px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-full transition ${dirState.activeCategory === cat ? 'bg-brand-dark text-white' : 'bg-white text-brand-dark hover:bg-gray-100 border border-gray-200'}">${cat}</button>`).join('')}</div></div>
-            ${filteredBusinesses.length > 0 ? `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">${filteredBusinesses.map(biz => createDirectoryCard(biz)).join('')}</div>` : `<div class="text-center py-32 bg-white rounded-sm border border-dashed border-gray-300"><p class="text-brand-steel font-medium text-lg">No businesses found matching your criteria.</p><button id="clear-filters-btn" class="mt-4 text-brand-copper font-bold uppercase text-xs underline">Clear Filters</button></div>`}
-            </div>
-        `;
-        dirMainContent.innerHTML = html;
-        addDirectoryEventListeners();
-      }
-      function addDirectoryEventListeners() {
-        document.getElementById('dir-search-input')?.addEventListener('input', (e) => { dirState.searchQuery = e.target.value; renderDirectoryPage(); });
-        document.querySelectorAll('.dir-cat-btn').forEach(btn => btn.addEventListener('click', (e) => { dirState.activeCategory = e.currentTarget.dataset.cat; renderDirectoryPage(); }));
-        document.getElementById('clear-filters-btn')?.addEventListener('click', () => { dirState.searchQuery = ''; dirState.activeCategory = 'All'; renderDirectoryPage(); });
-      }
-      window.addEventListener('language-change', renderDirectoryPage);
-      document.addEventListener('DOMContentLoaded', renderDirectoryPage);
+    });
+}
 
-      // --- END: Embedded JS ---
-    </script>
-  </body>
+// Initial Load
+document.addEventListener('DOMContentLoaded', renderPage);
+</script>
+</body>
 </html>

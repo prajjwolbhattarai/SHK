@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SHK Rhein-Neckar | CMS</title>
+    <title>CMS | SHK Rhein-Neckar</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -11,164 +11,268 @@
       tailwind.config = {
         theme: {
           extend: {
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-              display: ['Montserrat', 'sans-serif'],
-            },
-            colors: {
-              'brand-dark': '#0f172a',
-              'brand-copper': '#b45309',
-              'brand-steel': '#475569',
-              'brand-surface': '#f8fafc',
-            }
+            fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Montserrat', 'sans-serif'] },
+            colors: { 'brand-dark': '#0f172a', 'brand-copper': '#b45309', 'brand-steel': '#475569', 'brand-surface': '#f8fafc' }
           }
         }
       }
     </script>
-    <style>
-      #cms-container, #editor-container { display: none; }
-    </style>
 </head>
 <body class="bg-gray-100 font-sans">
+    <div id="app-root">
+        <!-- App is rendered by JavaScript -->
+    </div>
 
-    <!-- LOGIN SCREEN -->
-    <div id="login-container" class="min-h-screen bg-brand-dark flex flex-col justify-center items-center p-4 relative overflow-hidden font-sans">
+<script>
+// V A N I L L A   J S   C M S
+
+// --- 1. DATA STORE (Loaded from localStorage or mock) ---
+let articles = [];
+let directory = [];
+let categories = [];
+const MOCK_ARTICLES_DATA = [{ id: 'art-1', type: 'article', title: 'Neue Energieverordnungen 2025', summary: 'Ein umfassender Bericht.', content: '<p>Details hier...</p>', imageUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200', category: 'Branchen-News', author: 'Redaktion', publishedAt: new Date().toISOString(), featured: true, views: 1234, shares: 56, readTime: 180 }];
+const MOCK_DIRECTORY_DATA = [{ id: 'dir-1', name: 'Heizungstechnik Müller GmbH', category: 'Heizung', address: 'Hauptstraße 10', city: 'Mannheim', zip: '68159', phone: '0621 123456', website: 'https://heizung-mueller.de', description: 'Spezialist für moderne Heizsysteme.', logoUrl: 'https://logo.clearbit.com/heizung-mueller.de' }];
+const MOCK_CATEGORIES_DATA = ['Branchen-News', 'Betriebs-Features', 'Technologie'];
+
+function loadData() {
+    articles = JSON.parse(localStorage.getItem('shk_articles')) || MOCK_ARTICLES_DATA;
+    directory = JSON.parse(localStorage.getItem('shk_directory')) || MOCK_DIRECTORY_DATA;
+    categories = JSON.parse(localStorage.getItem('shk_categories')) || MOCK_CATEGORIES_DATA;
+}
+function saveData() {
+    localStorage.setItem('shk_articles', JSON.stringify(articles));
+    localStorage.setItem('shk_directory', JSON.stringify(directory));
+    localStorage.setItem('shk_categories', JSON.stringify(categories));
+    alert('Local data saved!');
+}
+
+// --- 2. STATE MANAGEMENT ---
+const appState = {
+    isAuthenticated: false,
+    activeView: 'dashboard',
+    isEditing: false,
+    currentItem: null,
+};
+
+// --- 3. RENDER FUNCTIONS ---
+function render() {
+    const root = document.getElementById('app-root');
+    appState.isAuthenticated = sessionStorage.getItem('shk_auth') === 'true';
+
+    if (!appState.isAuthenticated) {
+        root.innerHTML = renderLogin();
+        attachLoginListeners();
+    } else if (appState.isEditing) {
+        root.innerHTML = renderEditor();
+        attachEditorListeners();
+    } else {
+        root.innerHTML = renderCMS();
+        attachCMSListeners();
+    }
+}
+
+function renderLogin() {
+    return `
+    <div class="min-h-screen bg-brand-dark flex flex-col justify-center items-center p-4">
       <div class="bg-white w-full max-w-sm rounded-sm shadow-2xl overflow-hidden z-10">
         <div class="p-8">
           <div class="text-center mb-8">
-             <img src="shklogo.jpg" alt="SHK Rhein-Neckar" class="h-20 w-auto mx-auto mb-4" />
+             <img src="shklogo.jpg" alt="SHK Rhein-Neckar" class="h-20 w-auto mx-auto mb-4"/>
              <p class="text-brand-steel text-xs uppercase tracking-widest mt-1">Internal CMS</p>
           </div>
           <form id="login-form" class="space-y-5">
             <div>
-              <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Email Address</label>
-              <input type="email" required class="w-full border border-gray-300 rounded-sm p-3 text-sm focus:border-brand-copper outline-none transition" placeholder="editor@shk-rhein-neckar.de" value="editor@shk-rhein-neckar.de" />
-            </div>
-            <div>
               <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Password</label>
-              <input type="password" required class="w-full border border-gray-300 rounded-sm p-3 text-sm focus:border-brand-copper outline-none transition" placeholder="••••••••" value="admin" />
+              <input type="password" id="password" required class="w-full border border-gray-300 rounded-sm p-3 text-sm focus:border-brand-copper outline-none transition" placeholder="••••••••"/>
             </div>
-            <button type="submit" id="login-button" class="w-full bg-brand-dark text-white py-3 rounded-sm font-bold uppercase text-xs tracking-wider hover:bg-brand-copper transition flex items-center justify-center group">
-              <span>Sign In</span>
-            </button>
+            <button type="submit" class="w-full bg-brand-dark text-white py-3 rounded-sm font-bold uppercase text-xs tracking-wider hover:bg-brand-copper transition">Sign In</button>
           </form>
-        </div>
-        <div class="bg-gray-50 p-4 text-center border-t border-gray-100">
-            <p class="text-[10px] uppercase font-bold text-gray-400">Authorized Personnel Only</p>
         </div>
       </div>
       <a href="index.html" class="mt-8 text-white/40 text-xs font-bold uppercase tracking-widest hover:text-white transition cursor-pointer z-10">← Back to Magazine</a>
-    </div>
+    </div>`;
+}
 
-    <!-- MAIN CMS INTERFACE -->
-    <div id="cms-container" class="min-h-screen flex">
-      <!-- Sidebar will be injected here -->
-      <aside id="cms-sidebar" class="w-64 bg-brand-dark text-gray-400 flex flex-col fixed h-full z-10"></aside>
-      
-      <!-- Main Content Area -->
-      <main id="cms-main-content" class="ml-64 flex-grow p-8"></main>
-    </div>
-
-    <!-- FULL SCREEN EDITOR -->
-    <div id="editor-container" class="min-h-screen bg-gray-50 pb-20 font-sans">
-      <!-- Editor will be injected here -->
-    </div>
-
-    <script>
-      // --- START: Embedded JS ---
-      
-      // --- data.js ---
-      const INITIAL_CATEGORIES = [
-        'Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie',
-        'Energie & Nachhaltigkeit', 'Regional'
-      ];
-      const generateContent = (title, topic, category, imageKeyword) => `<p class="lead">In der heutigen Ausgabe von SHK Rhein-Neckar widmen wir uns dem Thema <strong>${topic}</strong>. Ein Bereich, der für Fachhandwerker in der Region immer wichtiger wird.</p><h2>Warum ${topic} jetzt relevant ist</h2><p>Die Branche befindet sich im Wandel. Experten sind sich einig: Wer jetzt nicht handelt, verliert den Anschluss. In Mannheim und Heidelberg sehen wir bereits, wie führende Betriebe diese Entwicklung für sich nutzen.</p><figure><img src="https://images.unsplash.com/photo-${imageKeyword}?auto=format&fit=crop&q=80&w=1200" alt="${topic}" style="width: 100%; border-radius: 4px; margin: 32px 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);"><figcaption style="text-align: center; font-size: 0.9em; color: #666; margin-top: -20px; margin-bottom: 32px; font-style: italic;">Praxisbeispiel: ${topic} im Einsatz.</figcaption></figure><h3>Herausforderungen in der Praxis</h3><p>Natürlich ist die Umstellung nicht ohne Hürden. Materialengpässe, Fachkräftemangel und bürokratische Hürden bremsen oft die Euphorie. Doch die Zahlen sprechen eine klare Sprache: Die Investition lohnt sich langfristig.</p><blockquote>"Wir haben unsere Prozesse komplett auf ${topic} ausgerichtet und konnten die Effizienz um 30% steigern." – Ein lokaler Handwerksmeister</blockquote><h3>Fazit für Ihren Betrieb</h3><p>Nutzen Sie die kommenden Monate, um sich in diesem Bereich weiterzubilden. Die Handwerkskammer und lokale Innungen bieten entsprechende Schulungen an.</p><ul><li>Prüfen Sie Ihre aktuelle Aufstellung bezüglich ${topic}.</li><li>Sprechen Sie mit Ihren Lieferanten über neue Möglichkeiten.</li><li>Schulen Sie Ihre Mitarbeiter frühzeitig.</li></ul>`;
-      const ARTICLE_DATA = {'Branchen-News':[{t:'Neue Energieverordnungen 2025: Was gilt ab Januar?',img:'1497366216548-37526070297c'},{t:'Rückblick ISH Messe Frankfurt: Die Highlights',img:'1542744173-8e7e53415bb0'},{t:'Großhandelspreise stabilisieren sich endlich',img:'1586528116311-ad8dd3c8310d'},{t:'Fusion von zwei großen Heizungs-Herstellern',img:'1507679721845-63bd00e6183b'},{t:'Handwerkermangel erreicht neuen Höhepunkt',img:'1504328345606-18bbc8c9d7d1'},{t:'Digitalisierungspflicht für Bauanträge kommt',img:'1454165804606-c3d57bc86b40'},{t:'Neue DIN-Normen für Trinkwasserhygiene',img:'1532601224476-15c79f2f7a51'},{t:'Förderstopp für reine Gasheizungen beschlossen',img:'1621905251189-08b45d6a269e'},{t:'SHK-Konjunkturbarometer Q3: Stimmung gemischt',img:'1590283603385-17ffb3a7f29f'},{t:'Lieferengpässe bei Wärmepumpen beendet',img:'1513828583688-601bf3925e2e'},{t:'Tarifverhandlungen im Handwerk: Einigung erzielt',img:'1521791136064-7986c2920216'},{t:'Smart-Home Standards endlich vereinheitlicht',img:'1558002038-1091a1661116'}],'Betriebs-Features':[{t:'Wie Müller & Söhne komplett papierlos wurden',img:'1516321318423-f06f85e504b3'},{t:'Erfolgsgeschichte: Vom Ein-Mann-Betrieb zur GmbH',img:'1556761175-5973dc0f32e7'},{t:'Nachfolgeplanung: Wenn der Junior übernimmt',img:'1519389950476-295375a3c876'},{t:'Werkstatt-Optimierung nach Lean-Prinzipien',img:'1581091226825-a6a2a5aee158'},{t:'Kundenbindung durch digitale Wartungsverträge',img:'1551288049-bebda4e38f71'},{t:'Fuhrpark-Management: E-Mobilität im Handwerk',img:'1593941707882-a5bba14938c7'},{t:'Büro-Organisation: Tools die Zeit sparen',img:'1497215728101-856f4ea42174'},{t:'Marketing für Handwerker: Instagram & Co',img:'1611162617474-5b21e879e113'},{t:'Die perfekte Baustellen-Dokumentation',img:'1503387762-592deb58ef4e'},{t:'Effiziente Lagerhaltung: Nie wieder Suchen',img:'1586528116311-ad8dd3c8310d'},{t:'Mitarbeitermotivation im stressigen Alltag',img:'1522071820081-009f0129c71c'},{t:'Finanzierung von Großprojekten sicherstellen',img:'1554224155-8d04cb21cd6c'}],'Personal & Karriere':[{t:'Azubi-Recruiting auf TikTok: Ein Leitfaden',img:'1611162616305-c69b3fa7fbe0'},{t:'Frauen im SHK-Handwerk: Ein Porträt',img:'1573496359142-b8d87734a5a2'},{t:'Gehaltsreport 2025: Was verdient ein Meister?',img:'1554224155-8d04cb21cd6c'},{t:'Weiterbildung zum Gebäude-Energieberater',img:'1517048696773-61f6231e4c03'},{t:'Work-Life-Balance auf Montage: Geht das?',img:'1501504905252-473c47e087f8'},{t:'Führungskräfte-Training für Jungmeister',img:'1519389950476-295375a3c876'},{t:'Quereinsteiger erfolgreich ins Team integrieren',img:'1521791136064-7986c2920216'},{t:'Gesundheitsmanagement: Rücken schonen',img:'1571019614242-c5c5dee9f50b'},{t:'Die 4-Tage-Woche im Praxistest',img:'1454165804606-c3d57bc86b40'},{t:'Azubi-Austauschprogramme in Europa',img:'1523240795612-9a054b0db644'},{t:'Benefits, die Fachkräfte wirklich wollen',img:'1556761175-5973dc0f32e7'},{t:'Karrierewege nach der Ausbildung',img:'1486312338219-ce68d2c6f44d'}],Technologie:[{t:'KI in der Heizungswartung: Predictive Maintenance',img:'1518770660439-4636190af475'},{t:'Drohnen für Dach- und Kamininspektionen',img:'1506947411449-b64ff92201ed'},{t:'3D-Badplanung mit der VR-Brille erleben',img:'1592478411213-61532f94c038'},{t:'Der vernetzte Heizungskeller der Zukunft',img:'1558002038-1091a1661116'},{t:'Wasserstoff-Ready Kessel: Stand der Technik',img:'1532601224476-15c79f2f7a51'},{t:'Die besten Apps für das digitale Aufmaß',img:'1551288049-bebda4e38f71'},{t:'Smarte Thermostate im großen Vergleich',img:'1563770099-43e98d63375a'},{t:'Robotik bei der Rohrsanierung',img:'1485827404703-89b55fcc595e'},{t:'IoT-Sensoren zur Leckageortung',img:'1550751827-4bd374c3f58b'},{t:'Exoskelette für schwere Lasten auf dem Bau',img:'1581091226825-a6a2a5aee158'},{t:'Software für die effiziente Einsatzplanung',img:'1460925895917-afdab827c52f'},{t:'Cyber-Security für Smart Home Installationen',img:'1563986768609-322da13575f3'}],'Energie & Nachhaltigkeit':[{t:'Wärmepumpen im Altbau: Was ist möglich?',img:'1592833159057-65a2d0856048'},{t:'Solarthermie vs. Photovoltaik: Der Vergleich',img:'1509391366360-2e959784a276'},{t:'Grauwassernutzung im Einfamilienhaus',img:'1517478347898-1317d7b13998'},{t:'Holzpellets: Eine nachhaltige Alternative?',img:'1513828583688-601bf3925e2e'},{t:'Geothermie in der Rhein-Neckar Region',img:'1466611653243-cae5f2460d85'},{t:'Energieausweis richtig lesen und erstellen',img:'1450101499163-c8848c66ca85'},{t:'Hydraulischer Abgleich einfach erklärt',img:'1621905252507-b35492cc74b4'},{t:'Wohnraumlüftung mit Wärmerückgewinnung',img:'1513262334863-1492b45e771c'},{t:'Grüne Kredite für energetische Sanierungen',img:'1554224155-8d04cb21cd6c'},{t:'CO2-Bepreisung und ihre Folgen für Kunden',img:'1516937044662-5e3791418bfe'},{t:'Passivhaus-Standards 2025',img:'1500336236962-42173167a57a'},{t:'Recycling von alten Heizungsanlagen',img:'1532996126620-e918996f6428'}],Regional:[{t:'Großprojekt: Sanierung Mannheim Klinikum',img:'1504917595217-d4dc5ebe6122'},{t:'Herausforderung: Heidelberger Schloss',img:'1568632168969-92b425b04169'},{t:'Neubaugebiet Ludwigshafen Süd: Ein Bericht',img:'1597217329598-a620b784a440'},{t:'Interview mit der Handwerkskammer Mannheim',img:'1556761175-5973dc0f32e7'},{t:'Lokale Förderprogramme Rhein-Neckar im Check',img:'1579621970568-a3aa04251b77'},{t:'Kooperation mit Stadtwerken Heidelberg',img:'1473341304177-f26f84052f40'},{t:'SHK-Innungsausflug in den Odenwald',img:'1501504905252-473c47e087f8'},{t:'Firmenjubiläum Schmidt GmbH Weinheim',img:'1519389950476-295375a3c876'},{t:'Berufsschule Mannheim modernisiert Werkstätten',img:'1581094794329-cd136ce4dad9'},{t:'Hochwasserschutz am Neckar: Pumpen im Einsatz',img:'1583321500900-82807e458f3c'},{t:'Fernwärmeausbau in der Metropolregion',img:'1513828742343-522d4a9713c2'},{t:'Start-up Szene im Technologiepark Heidelberg',img:'1559136555-930d72f1d300'}]};
-      const GENERATED_ARTICLES = [];
-      let idCounter = 1;
-      Object.entries(ARTICLE_DATA).forEach(([category,items])=>{items.forEach((item,index)=>{GENERATED_ARTICLES.push({id:`art-${idCounter++}`,type:'article',title:item.t,summary:`Ein umfassender Bericht über ${item.t.split(':')[0]}. Erfahren Sie, was dies für die Region Rhein-Neckar bedeutet.`,content:generateContent(item.t,item.t.split(':')[0],category,item.img),imageUrl:`https://images.unsplash.com/photo-${item.img}?auto=format&fit=crop&q=80&w=1200`,category:category,author:index%3===0?'Redaktion':(index%3===1?'Markus Weber':'Julia Schmidt'),publishedAt:new Date(Date.now()-(index*86400000)-(Math.random()*1000000000)).toISOString(),featured:index===0&&category==='Branchen-News',views:Math.floor(Math.random()*5000)+500,shares:Math.floor(Math.random()*300),readTime:Math.floor(Math.random()*300)+120,videoUrl:index===3?'https://www.youtube.com/watch?v=Fj0X1Wn6Eew':undefined})})});
-      const STATIC_PAGES = [{id:'page-imprint',type:'page',title:'Impressum',summary:'Rechtliche Informationen',content:`<h2>Impressum</h2><p><strong>Angaben gemäß § 5 TMG</strong></p><p>SHK Rhein-Neckar Magazin GmbH<br>Wasserturmstraße 12<br>68161 Mannheim<br>Deutschland</p><p><strong>Vertreten durch:</strong><br>Max Mustermann</p><p><strong>Kontakt:</strong><br>Telefon: +49 (0) 621 12345-0<br>E-Mail: kontakt@shk-rhein-neckar.de</p>`,imageUrl:'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200',category:'Page',author:'Admin',publishedAt:new Date().toISOString(),featured:!1,views:0,shares:0,readTime:0},{id:'page-privacy',type:'page',title:'Datenschutzerklärung',summary:'Datenschutz',content:'<h2>Datenschutz</h2><p>Wir nehmen den Schutz Ihrer Daten ernst...</p>',imageUrl:'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=1200',category:'Page',author:'Admin',publishedAt:new Date().toISOString(),featured:!1,views:0,shares:0,readTime:0},{id:'page-terms',type:'page',title:'AGB',summary:'Allgemeine Geschäftsbedingungen',content:'<h2>AGB</h2><p>Allgemeine Geschäftsbedingungen für die Nutzung...</p>',imageUrl:'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&q=80&w=1200',category:'Page',author:'Admin',publishedAt:new Date().toISOString(),featured:!1,views:0,shares:0,readTime:0},{id:'page-submit',type:'page',title:'Story einreichen',summary:'Senden Sie uns Ihre Story',content:`<h2>Ihre Geschichte im Magazin</h2><p>Senden Sie uns Ihre Projektberichte an <a href="mailto:redaktion@shk-rhein-neckar.de">redaktion@shk-rhein-neckar.de</a></p>`,imageUrl:'https://images.unsplash.com/photo-1512486130939-2c4f79935e4f?auto=format&fit=crop&q=80&w=1200',category:'Page',author:'Redaktion',publishedAt:new Date().toISOString(),featured:!1,views:0,shares:0,readTime:0},{id:'page-advertising',type:'page',title:'Werben & Partner',summary:'Werbemöglichkeiten',content:`<h2>Media-Daten</h2><p>Erreichen Sie 5000+ Fachkräfte. Kontakt: <a href="mailto:ads@shk-rhein-neckar.de">ads@shk-rhein-neckar.de</a></p>`,imageUrl:'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=1200',category:'Page',author:'Sales',publishedAt:new Date().toISOString(),featured:!1,views:0,shares:0,readTime:0},{id:'page-jobs',type:'page',title:'Stellenmarkt',summary:'Jobs in der Region',content:`<h2>SHK Jobs Rhein-Neckar</h2><p>Inserieren Sie hier. Kontakt: <a href="mailto:jobs@shk-rhein-neckar.de">jobs@shk-rhein-neckar.de</a></p>`,imageUrl:'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&q=80&w=1200',category:'Page',author:'HR',publishedAt:new Date().toISOString(),featured:!1,views:0,shares:0,readTime:0}];
-      const MOCK_DIRECTORY=[{id:"dir-1",name:"Heizungstechnik Müller GmbH",category:"Heizung",address:"Hauptstraße 10",city:"Mannheim",zip:"68159",phone:"0621 123456",website:"https://heizung-mueller.de",description:"Spezialist für moderne Heizsysteme und Wärmepumpen.",logoUrl:"https://logo.clearbit.com/heizung-mueller.de"},{id:"dir-2",name:"Sanitär-Service Weber",category:"Sanitär",address:"Bergheimer Straße 58",city:"Heidelberg",zip:"69115",phone:"06221 654321",website:"https://sanitaer-weber.de",description:"Komplettbäder aus einer Hand. Barrierefreie Umbauten.",logoUrl:"https://logo.clearbit.com/sanitaer-weber.de"},{id:"dir-3",name:"Klima-Profis Rhein-Neckar",category:"Klima",address:"Industriestraße 35",city:"Ludwigshafen",zip:"67063",phone:"0621 987654",website:"https://klima-profis-rn.de",description:"Installation und Wartung von Klimaanlagen für Gewerbe und Privat.",logoUrl:"https://logo.clearbit.com/klima-profis-rn.de"},{id:"dir-4",name:"Lüftungsbau Schmidt",category:"Lüftung",address:"Mittelstraße 5",city:"Weinheim",zip:"69469",phone:"06201 123789",website:"https://lueftung-schmidt.de",description:"Planung und Einbau von zentralen und dezentralen Lüftungsanlagen.",logoUrl:"https://logo.clearbit.com/lueftung-schmidt.de"},{id:"dir-5",name:"Elektro-Technik Fischer",category:"Elektro",address:"Schulstraße 21",city:"Schwetzingen",zip:"68723",phone:"06202 987123",website:"https://elektro-fischer.com",description:"Smart Home Installationen und Photovoltaik-Anlagen.",logoUrl:"https://logo.clearbit.com/elektro-fischer.com"},{id:"dir-6",name:"Bade-Träume GmbH",category:"Sanitär",address:"Planken 4",city:"Mannheim",zip:"68161",phone:"0621 555666",website:"https://badetraeume-ma.de",description:"Exklusive Badgestaltung und hochwertige Armaturen.",logoUrl:"https://logo.clearbit.com/badetraeume-ma.de"},{id:"dir-7",name:"Wärme-Konzept Rhein-Neckar",category:"Heizung",address:"Kurfürsten-Anlage 1",city:"Heidelberg",zip:"69115",phone:"06221 777888",website:"https://waerme-konzept-hd.de",description:"Energieberatung und hydraulischer Abgleich.",logoUrl:"https://logo.clearbit.com/waerme-konzept-hd.de"},{id:"dir-8",name:"Frische Luft Systeme",category:"Lüftung",address:"Bürgermeister-Grünzweig-Straße 11",city:"Ludwigshafen",zip:"67059",phone:"0621 333444",website:"https://frischeluft-lu.de",description:"Spezialist für Wohnraumlüftung mit Wärmerückgewinnung.",logoUrl:"https://logo.clearbit.com/frischeluft-lu.de"},{id:"dir-9",name:"Solar & Strom Wagner",category:"Elektro",address:"Mannheimer Landstraße 2",city:"Hockenheim",zip:"68766",phone:"06205 222333",website:"https://solar-wagner.de",description:"Installation von PV-Anlagen und Stromspeichern.",logoUrl:"https://logo.clearbit.com/solar-wagner.de"},{id:"dir-10",name:"Haustechnik Klein",category:"Heizung",address:"Bahnhofstraße 40",city:"Sinsheim",zip:"74889",phone:"07261 444555",website:"https://haustechnik-klein.de",description:"24h Notdienst für Heizung und Sanitär.",logoUrl:"https://logo.clearbit.com/haustechnik-klein.de"},{id:"dir-11",name:"Die Bad-Designer",category:"Sanitär",address:"Rohrbacher Str. 12",city:"Heidelberg",zip:"69115",phone:"06221 666777",website:"https://die-baddesigner.de",description:"Individuelle Badplanung in 3D.",logoUrl:"https://logo.clearbit.com/die-baddesigner.de"},{id:"dir-12",name:"Kühltechnik Becker",category:"Klima",address:"Friedrich-Ebert-Straße 1",city:"Viernheim",zip:"68519",phone:"06204 888999",website:"https://kuehltechnik-becker.de",description:"Klimatisierung für Serverräume und Gewerbe.",logoUrl:"https://logo.clearbit.com/kuehltechnik-becker.de"},{id:"dir-13",name:"Elektro Bauer & Söhne",category:"Elektro",address:"Marktplatz 9",city:"Worms",zip:"67547",phone:"06241 111222",website:"https://elektro-bauer.de",description:"Traditionsbetrieb seit 1950.",logoUrl:"https://logo.clearbit.com/elektro-bauer.de"},{id:"dir-14",name:"Pellet-Heizungen Frank",category:"Heizung",address:"Odenwaldstraße 22",city:"Eberbach",zip:"69412",phone:"06271 333444",website:"https://pellet-frank.de",description:"Biomasse-Heizungen und Pelletlager.",logoUrl:"https://logo.clearbit.com/pellet-frank.de"},{id:"dir-15",name:"Wasser-Welt Ludwigshafen",category:"Sanitär",address:"Rheinuferstraße 7",city:"Ludwigshafen",zip:"67061",phone:"0621 555111",website:"https://wasser-welt-lu.de",description:"Wasseraufbereitung und Legionellenprüfung.",logoUrl:"https://logo.clearbit.com/wasser-welt-lu.de"},{id:"dir-16",name:"Air-Control GmbH",category:"Klima",address:"Augustaanlage 30",city:"Mannheim",zip:"68165",phone:"0621 222888",website:"https://air-control-ma.de",description:"Großanlagen für Bürogebäude und Industrie.",logoUrl:"https://logo.clearbit.com/air-control-ma.de"},{id:"dir-17",name:"Licht & Kraft Elektroservice",category:"Elektro",address:"Hauptstraße 100",city:"Wiesloch",zip:"69168",phone:"06222 777999",website:"https://licht-kraft-wiesloch.de",description:"E-Ladesäulen und Netzwerktechnik.",logoUrl:"https://logo.clearbit.com/licht-kraft-wiesloch.de"},{id:"dir-18",name:"Heizungs-Notdienst 24/7",category:"Heizung",address:"Mobil in der Region",city:"Rhein-Neckar",zip:"68159",phone:"0176 12345678",website:"https://notdienst-shk-rn.de",description:"Soforthilfe bei Heizungsausfall.",logoUrl:"https://logo.clearbit.com/notdienst-shk-rn.de"},{id:"dir-19",name:"Bad & Fliese Lehmann",category:"Sanitär",address:"Industriestraße 8",city:"Speyer",zip:"67346",phone:"06232 444333",website:"https://bad-lehmann.de",description:"Komplettsanierung inklusive Fliesenarbeiten.",logoUrl:"https://logo.clearbit.com/bad-lehmann.de"},{id:"dir-20",name:"Energietechnik Vogel",category:"Heizung",address:"Schlossstraße 3",city:"Bruchsal",zip:"76646",phone:"07251 222111",website:"https://energietechnik-vogel.de",description:"Experte für Solarthermie und Blockheizkraftwerke.",logoUrl:"https://logo.clearbit.com/energietechnik-vogel.de"}];
-      const ALL_ARTICLES = [...GENERATED_ARTICLES, ...STATIC_PAGES];
-      const ALL_BUSINESSES = MOCK_DIRECTORY;
-
-      // --- googleApiService.js ---
-      const APPS_SCRIPT_URL = '';
-      const syncDataWithGoogle = async (payload) => {
-        if (!APPS_SCRIPT_URL) {
-          console.error("Google Apps Script URL is not configured.");
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          console.log("DEV MODE: Simulating successful sync.");
-          return Promise.resolve({ articles: payload.articles, directory: payload.directory });
-        }
-        try {
-          const response = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ action: 'sync', data: payload }),
-          });
-          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-          return await response.json();
-        } catch (error) {
-          console.error("Failed to sync data with Google:", error);
-          throw error;
-        }
-      };
-
-      // --- admin-page.js ---
-      let state={isAuthenticated:sessionStorage.getItem("shk_authed")==="true",articles:[...ALL_ARTICLES],directory:[...ALL_BUSINESSES],categories:[...INITIAL_CATEGORIES],activeView:"dashboard",isEditing:!1,currentItem:null,syncState:"idle"},loginContainer=document.getElementById("login-container"),cmsContainer=document.getElementById("cms-container"),editorContainer=document.getElementById("editor-container"),sidebar=document.getElementById("cms-sidebar"),mainContent=document.getElementById("cms-main-content"),ICONS={Home:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',FileText:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>',Layout:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>',Tag:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>',Building:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>',BarChart:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>',RefreshCw:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>',LogOut:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',Edit:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>',Trash2:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>',Plus:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'};function render(){state.isAuthenticated?(loginContainer.style.display="none",state.isEditing?(cmsContainer.style.display="none",editorContainer.style.display="block",renderEditor()):(cmsContainer.style.display="flex",editorContainer.style.display="none",renderSidebar(),renderMainContent())):(loginContainer.style.display="flex",cmsContainer.style.display="none",editorContainer.style.display="none")}function renderSidebar(){const navItems=[{view:"dashboard",label:"Dashboard",icon:ICONS.Home},{view:"articles",label:"Articles",icon:ICONS.FileText},{view:"pages",label:"Pages",icon:ICONS.Layout},{view:"categories",label:"Categories",icon:ICONS.Tag},{view:"directory",label:"Directory",icon:ICONS.Building},{view:"analytics",label:"Analytics",icon:ICONS.BarChart},{view:"sync",label:"Sync Center",icon:ICONS.RefreshCw}];sidebar.innerHTML=`
+function renderCMS() {
+    const newsArticles = articles.filter(a => a.type === 'article' || !a.type);
+    return `
+    <div class="min-h-screen bg-gray-100 font-sans flex">
+      <aside class="w-64 bg-brand-dark text-gray-400 flex flex-col fixed h-full z-10">
         <div class="p-6">
-            <div class="flex items-center space-x-2 text-white mb-8">
-                <img src="shklogo.jpg" alt="SHK CMS" class="h-10 w-auto rounded-sm" />
-                <span class="text-xs uppercase tracking-wider font-medium opacity-50">CMS</span>
-            </div>
-            <nav class="space-y-2">
-                ${navItems.map(item=>`<button data-view="${item.view}" class="nav-button w-full flex items-center space-x-3 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-wider transition ${state.activeView===item.view?"bg-brand-copper text-white":"hover:bg-white/5 hover:text-white"}">${item.icon} <span>${item.label}</span></button>`).join("")}
-            </nav>
+           <div class="flex items-center space-x-2 text-white mb-8"><img src="shklogo.jpg" alt="SHK CMS" class="h-10 w-auto rounded-sm bg-white p-1"/><span class="text-xs uppercase tracking-wider font-medium opacity-50">CMS</span></div>
+           <nav class="space-y-2">
+             <button data-view="dashboard" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-wider transition ${appState.activeView === 'dashboard' ? 'bg-brand-copper text-white' : 'hover:bg-white/5 hover:text-white'}"><span>Dashboard</span></button>
+             <button data-view="articles" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-wider transition ${appState.activeView === 'articles' ? 'bg-brand-copper text-white' : 'hover:bg-white/5 hover:text-white'}"><span>Articles</span></button>
+             <button data-view="directory" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-wider transition ${appState.activeView === 'directory' ? 'bg-brand-copper text-white' : 'hover:bg-white/5 hover:text-white'}"><span>Directory</span></button>
+           </nav>
         </div>
-        <div class="mt-auto p-6 border-t border-gray-800">
-            <button id="logout-button" class="flex items-center space-x-2 text-sm font-medium hover:text-white transition">
-                ${ICONS.LogOut} <span>Logout</span>
-            </button>
+        <div class="mt-auto p-6 border-t border-gray-800"><button id="logout-btn" class="flex items-center space-x-2 text-sm font-medium hover:text-white transition"><span>Logout</span></button></div>
+      </aside>
+      <main class="ml-64 flex-grow p-8">
+        <h1 class="text-3xl font-display font-bold text-gray-900 capitalize mb-10">${appState.activeView}</h1>
+        <div id="view-content">
+            ${appState.activeView === 'dashboard' ? `<div>Dashboard content here. Local changes are saved to browser storage. Use a real database for production. <button id="save-data-btn" class="bg-blue-500 text-white p-2">Save to Local Storage</button></div>` : ''}
+            ${appState.activeView === 'articles' ? `
+                <div class="flex justify-end mb-6"><button id="create-article-btn" class="create-btn flex items-center bg-brand-copper text-white px-5 py-2.5 rounded-sm font-bold uppercase text-xs">New Article</button></div>
+                <div class="bg-white rounded-sm shadow-sm border"><table class="w-full text-left"><thead><tr><th class="p-4">Title</th><th class="p-4">Category</th><th class="p-4">Actions</th></tr></thead>
+                <tbody>${newsArticles.map(a => `<tr><td class="p-4">${a.title}</td><td>${a.category}</td><td><button data-id="${a.id}" class="edit-article-btn p-2">Edit</button><button data-id="${a.id}" class="delete-article-btn p-2">Delete</button></td></tr>`).join('')}</tbody></table></div>
+            ` : ''}
+            ${appState.activeView === 'directory' ? `
+                <div class="flex justify-end mb-6"><button id="create-business-btn" class="create-btn flex items-center bg-brand-copper text-white px-5 py-2.5 rounded-sm font-bold uppercase text-xs">New Entry</button></div>
+                <div class="bg-white rounded-sm shadow-sm border"><table class="w-full text-left"><thead><tr><th class="p-4">Name</th><th class="p-4">City</th><th class="p-4">Actions</th></tr></thead>
+                <tbody>${directory.map(b => `<tr><td class="p-4">${b.name}</td><td>${b.city}</td><td><button data-id="${b.id}" class="edit-business-btn p-2">Edit</button><button data-id="${b.id}" class="delete-business-btn p-2">Delete</button></td></tr>`).join('')}</tbody></table></div>
+            ` : ''}
         </div>
-    `,addSidebarEventListeners()}function renderMainContent(){const header=`<div class="flex justify-between items-center mb-10"><h1 class="text-3xl font-display font-bold text-gray-900 capitalize">${state.activeView}</h1></div>`;let content="";switch(state.activeView){case"dashboard":content=renderDashboard();break;case"articles":content=renderTable("article");break;case"pages":content=renderTable("page");break;case"directory":content=renderDirectoryTable();break;case"categories":content=renderCategories();break;case"analytics":content=renderAnalytics();break;case"sync":content=renderSyncCenter();break}mainContent.innerHTML=header+content,addMainContentViewEventListeners()}function renderDashboard(){return'<div class="bg-white p-6 rounded-sm shadow-sm border border-gray-200">Welcome to the Dashboard. Select a view from the sidebar to get started.</div>'}function renderTable(type){const items=state.articles.filter(a=>type==="article"?a.type==="article":a.type==="page");return`
-        <div class="flex justify-end mb-6">
-            <button data-action="create" data-type="${type}" class="flex items-center bg-brand-copper text-white px-5 py-2.5 rounded-sm hover:bg-orange-800 transition shadow-sm font-bold uppercase text-xs tracking-wider">${ICONS.Plus} New</button>
+      </main>
+    </div>`;
+}
+
+function renderEditor() {
+    const item = appState.currentItem;
+    const isArticle = !!item.content; // Differentiate article from business
+    return `
+    <div class="min-h-screen bg-gray-50 pb-20 font-sans">
+      <div class="sticky top-0 z-40 bg-white border-b px-6 py-4 flex justify-between items-center shadow-sm">
+        <h2 class="text-lg font-bold text-gray-800">${item.id ? 'Edit' : 'Create'} ${isArticle ? 'Article' : 'Business'}</h2>
+        <div class="flex space-x-3">
+          <button id="cancel-edit-btn" class="text-gray-500 p-2">Cancel</button>
+          <button id="save-item-btn" class="bg-green-600 text-white px-6 py-2 rounded-sm font-bold uppercase text-xs">Save</button>
         </div>
-        <div class="bg-white rounded-sm shadow-sm border border-gray-200 overflow-hidden">
-            <table class="w-full text-left border-collapse">
-                <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider font-semibold border-b border-gray-200">
-                    <tr>
-                        <th class="p-4 pl-6">Title</th>
-                        ${type==="article"?'<th class="p-4">Category</th>':""}
-                        <th class="p-4 text-right pr-6">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    ${items.map(item=>`<tr class="hover:bg-gray-50 transition group"><td class="p-4 pl-6 font-medium text-gray-900">${item.title}</td>${type==="article"?`<td class="p-4"><span class="bg-gray-100 text-gray-700 px-2 py-1 rounded-sm text-[10px] uppercase font-bold tracking-wide border border-gray-200">${item.category}</span></td>`:""}<td class="p-4 text-right space-x-2 pr-6"><button data-action="edit" data-id="${item.id}" class="text-gray-400 hover:text-brand-copper p-1 transition">${ICONS.Edit}</button><button data-action="delete" data-id="${item.id}" data-type="article" class="text-gray-400 hover:text-red-500 p-1 transition">${ICONS.Trash2}</button></td></tr>`).join("")}
-                    ${items.length===0?'<tr><td colspan="3" class="p-8 text-center text-gray-400 text-sm">No content found.</td></tr>':""}
-                </tbody>
-            </table>
-        </div>
-    `}function renderDirectoryTable(){return`<div class="flex justify-end mb-6"><button data-action="create" data-type="business" class="flex items-center bg-brand-copper text-white px-5 py-2.5 rounded-sm hover:bg-orange-800 transition shadow-sm font-bold uppercase text-xs tracking-wider">${ICONS.Plus} New Entry</button></div><div class="bg-white rounded-sm shadow-sm border border-gray-200 overflow-hidden"><table class="w-full text-left"><thead><tr><th>Name</th><th>Category</th><th>City</th><th>Actions</th></tr></thead><tbody>${state.directory.map(b=>`<tr><td class="p-4">${b.name}</td><td>${b.category}</td><td>${b.city}</td><td><button data-action="edit" data-id="${b.id}">${ICONS.Edit}</button><button data-action="delete" data-id="${b.id}" data-type="business">${ICONS.Trash2}</button></td></tr>`).join("")}</tbody></table></div>`}function renderCategories(){return"Categories view not fully implemented in this version."}function renderAnalytics(){return"Analytics view not fully implemented in this version."}function renderSyncCenter(){let statusMessage="";state.syncState==="success"?statusMessage='<p class="mt-4 text-green-600 font-bold flex items-center justify-center">Sync Successful!</p>':state.syncState==="error"&&(statusMessage='<p class="mt-4 text-red-600 font-bold flex items-center justify-center">Sync Failed!</p>');return`
-        <div class="max-w-xl mx-auto text-center">
-            <div class="bg-white p-12 rounded-sm shadow-sm border">
-                ${ICONS.RefreshCw.replace("w-4 h-4","w-12 h-12 mx-auto text-brand-copper mb-4")}
-                <h2 class="text-2xl font-bold font-display text-brand-dark mb-2">Sync Center</h2>
-                <p class="text-brand-steel mb-8">Push your local changes to the Google Docs & Sheets database, and pull the latest version.</p>
-                <button id="sync-now-button" ${state.syncState==="loading"?"disabled":""} class="bg-brand-dark text-white font-bold uppercase tracking-wider text-sm px-8 py-4 rounded-sm hover:bg-brand-copper transition disabled:opacity-50 w-64 h-16 flex items-center justify-center mx-auto">
-                    ${state.syncState==="loading"?'<div class="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>':"Sync Now"}
-                </button>
-                ${statusMessage}
-            </div>
-        </div>`}function renderEditor(){const isArticle=state.currentItem.type==="article";editorContainer.innerHTML=`
-        <div class="sticky top-0 z-40 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm">
-            <h2 class="text-lg font-bold text-gray-800">${state.currentItem.title||"New Content"}</h2>
-            <div class="flex space-x-3">
-                <button id="editor-cancel" class="text-gray-500 hover:text-gray-800 transition">Cancel</button>
-                <button id="editor-save" class="flex items-center bg-green-600 text-white px-6 py-2 rounded-sm hover:bg-green-700 font-bold uppercase text-xs tracking-wider">Save</button>
-            </div>
-        </div>
-        <div class="max-w-4xl mx-auto p-6 space-y-4">
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Headline</label>
-                <input id="editor-title" type="text" value="${state.currentItem.title||""}" class="w
+      </div>
+      <div class="max-w-4xl mx-auto p-6 space-y-4">
+        ${isArticle ? `
+          <div><label class="text-xs font-bold">Title</label><input id="edit-title" value="${item.title || ''}" class="w-full border p-2 mt-1" /></div>
+          <div><label class="text-xs font-bold">Summary</label><textarea id="edit-summary" class="w-full border p-2 mt-1">${item.summary || ''}</textarea></div>
+          <div><label class="text-xs font-bold">Content</label><div id="editor" class="w-full border p-2 mt-1 bg-white" contenteditable>${item.content || ''}</div></div>
+        ` : `
+          <div><label class="text-xs font-bold">Name</label><input id="edit-name" value="${item.name || ''}" class="w-full border p-2 mt-1" /></div>
+          <div><label class="text-xs font-bold">City</label><input id="edit-city" value="${item.city || ''}" class="w-full border p-2 mt-1" /></div>
+          <div><label class="text-xs font-bold">Description</label><textarea id="edit-description" class="w-full border p-2 mt-1">${item.description || ''}</textarea></div>
+        `}
+      </div>
+    </div>`;
+}
+
+
+// --- 4. EVENT LISTENERS ---
+function attachLoginListeners() {
+    document.getElementById('login-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        // Simple password check for demo
+        if (document.getElementById('password').value) {
+            sessionStorage.setItem('shk_auth', 'true');
+            appState.isAuthenticated = true;
+            render();
+        } else {
+            alert('Password required.');
+        }
+    });
+}
+
+function attachCMSListeners() {
+    document.getElementById('logout-btn').addEventListener('click', () => {
+        sessionStorage.removeItem('shk_auth');
+        appState.isAuthenticated = false;
+        render();
+    });
+
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            appState.activeView = e.currentTarget.getAttribute('data-view');
+            render();
+        });
+    });
+
+    // CRUD buttons
+    document.getElementById('create-article-btn')?.addEventListener('click', () => handleCreate('article'));
+    document.getElementById('create-business-btn')?.addEventListener('click', () => handleCreate('business'));
+    
+    document.querySelectorAll('.edit-article-btn').forEach(b => b.addEventListener('click', (e) => handleEdit('article', e.currentTarget.dataset.id)));
+    document.querySelectorAll('.delete-article-btn').forEach(b => b.addEventListener('click', (e) => handleDelete('article', e.currentTarget.dataset.id)));
+    
+    document.querySelectorAll('.edit-business-btn').forEach(b => b.addEventListener('click', (e) => handleEdit('business', e.currentTarget.dataset.id)));
+    document.querySelectorAll('.delete-business-btn').forEach(b => b.addEventListener('click', (e) => handleDelete('business', e.currentTarget.dataset.id)));
+
+    document.getElementById('save-data-btn')?.addEventListener('click', saveData);
+}
+
+function attachEditorListeners() {
+    document.getElementById('cancel-edit-btn').addEventListener('click', () => {
+        appState.isEditing = false;
+        appState.currentItem = null;
+        render();
+    });
+    document.getElementById('save-item-btn').addEventListener('click', handleSave);
+}
+
+// --- 5. CRUD LOGIC ---
+function handleCreate(type) {
+    appState.isEditing = true;
+    if (type === 'article') {
+        appState.currentItem = { type: 'article', title: '', summary: '', content: '' };
+    } else {
+        appState.currentItem = { name: '', city: '', description: '' };
+    }
+    render();
+}
+function handleEdit(type, id) {
+    appState.isEditing = true;
+    if (type === 'article') {
+        appState.currentItem = { ...articles.find(a => a.id === id) };
+    } else {
+        appState.currentItem = { ...directory.find(b => b.id === id) };
+    }
+    render();
+}
+function handleDelete(type, id) {
+    if (!confirm('Are you sure?')) return;
+    if (type === 'article') {
+        articles = articles.filter(a => a.id !== id);
+    } else {
+        directory = directory.filter(b => b.id !== id);
+    }
+    saveData();
+    render();
+}
+function handleSave() {
+    const item = appState.currentItem;
+    const isArticle = !!item.content || item.type === 'article';
+
+    if (isArticle) {
+        const updatedArticle = {
+            ...item,
+            id: item.id || `art-${Date.now()}`,
+            title: document.getElementById('edit-title').value,
+            summary: document.getElementById('edit-summary').value,
+            content: document.getElementById('editor').innerHTML,
+        };
+        const index = articles.findIndex(a => a.id === updatedArticle.id);
+        if (index > -1) articles[index] = updatedArticle;
+        else articles.unshift(updatedArticle);
+    } else {
+         const updatedBusiness = {
+            ...item,
+            id: item.id || `dir-${Date.now()}`,
+            name: document.getElementById('edit-name').value,
+            city: document.getElementById('edit-city').value,
+            description: document.getElementById('edit-description').value,
+        };
+        const index = directory.findIndex(b => b.id === updatedBusiness.id);
+        if (index > -1) directory[index] = updatedBusiness;
+        else directory.unshift(updatedBusiness);
+    }
+    
+    appState.isEditing = false;
+    appState.currentItem = null;
+    saveData();
+    render();
+}
+
+// --- 6. INITIALIZATION ---
+document.addEventListener('DOMContentLoaded', () => {
+    loadData();
+    render();
+});
+</script>
+</body>
+</html>
