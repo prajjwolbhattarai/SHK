@@ -37,21 +37,25 @@
 // --- V A N I L L A   J S   C M S ---
 
 // --- 1. DATA & STATE STORE ---
-let articles = []; // Contains both articles and pages
+let articles = []; 
 let directory = [];
 let categories = [];
+let users = [];
+let mediaLibrary = [];
 let settings = {
     articlesScriptUrl: '',
-    userRole: 'Administrator'
+    gaMeasurementId: '',
+    newsletterApiKey: '',
 };
 
 const INITIAL_CATEGORIES_MOCK = ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
 
 const appState = {
     isAuthenticated: false,
-    activeView: 'dashboard', // dashboard, articles, pages, categories, directory, settings
+    currentUser: null,
+    activeView: 'dashboard', 
     modalOpen: false,
-    modalType: null, // 'business', 'category'
+    modalType: null, 
     editingItem: null,
     syncState: 'idle'
 };
@@ -68,9 +72,17 @@ function loadData() {
     
     const sSettings = localStorage.getItem('shk_settings');
     settings = sSettings ? JSON.parse(sSettings) : settings;
+    
+    const sUsers = localStorage.getItem('shk_users');
+    users = sUsers ? JSON.parse(sUsers) : [];
+
+    const sMedia = localStorage.getItem('shk_media');
+    mediaLibrary = sMedia ? JSON.parse(sMedia) : [];
 
     // Seed if empty
     if (articles.length === 0) seedMockData();
+    if (users.length === 0) seedUsers();
+    if (mediaLibrary.length === 0) seedMedia();
 }
 
 function saveData() {
@@ -78,11 +90,24 @@ function saveData() {
     localStorage.setItem('shk_directory', JSON.stringify(directory));
     localStorage.setItem('shk_categories', JSON.stringify(categories));
     localStorage.setItem('shk_settings', JSON.stringify(settings));
+    localStorage.setItem('shk_users', JSON.stringify(users));
+    localStorage.setItem('shk_media', JSON.stringify(mediaLibrary));
 }
 
 function seedMockData() {
     articles = [
-        { id: '1', type: 'article', title: 'Wärmepumpen-Boom in Mannheim', summary: 'Die Nachfrage steigt rasant.', content: '<h2>Markt im Wandel</h2><p>Die Zahlen sprechen eine klare Sprache...</p>', author: 'Redaktion', category: 'Branchen-News', status: 'published', publishedAt: new Date().toISOString(), featured: true, views: 1250 },
+        { 
+            id: '1', type: 'article', title: 'Wärmepumpen-Boom in Mannheim', 
+            slug: 'waermepumpen-boom-mannheim',
+            metaTitle: 'Wärmepumpen Boom: Analyse für Rhein-Neckar',
+            metaDescription: 'Wie sich der Markt in der Region entwickelt.',
+            summary: 'Die Nachfrage steigt rasant.', 
+            content: '<h2>Markt im Wandel</h2><p>Die Zahlen sprechen eine klare Sprache...</p>', 
+            author: 'Redaktion', category: 'Branchen-News', status: 'published', 
+            publishedAt: new Date().toISOString(), featured: true, views: 1250,
+            tags: ['Heizung', 'Markt', '2025'],
+            revisions: [{date: new Date().toISOString(), user: 'Admin', note: 'Initial Create'}]
+        },
         { id: '2', type: 'page', title: 'Impressum', summary: 'Rechtliche Informationen', content: '<p>Angaben gemäß § 5 TMG...</p>', author: 'Admin', category: 'Page', status: 'published', publishedAt: new Date().toISOString(), featured: false, views: 100 }
     ];
     directory = [
@@ -90,11 +115,28 @@ function seedMockData() {
     ];
 }
 
+function seedUsers() {
+    users = [
+        { id: 'u1', name: 'Admin User', role: 'Administrator', email: 'admin@shk-rn.de', bio: 'Chief Editor', avatar: 'https://ui-avatars.com/api/?name=Admin+User' },
+        { id: 'u2', name: 'Sarah Editor', role: 'Editor', email: 'sarah@shk-rn.de', bio: 'Senior Editor', avatar: 'https://ui-avatars.com/api/?name=Sarah+Editor' },
+        { id: 'u3', name: 'Tom Contributor', role: 'Contributor', email: 'tom@shk-rn.de', bio: 'Freelancer', avatar: 'https://ui-avatars.com/api/?name=Tom+Contributor' }
+    ];
+}
+
+function seedMedia() {
+    mediaLibrary = [
+        { id: 'm1', name: 'Heat Pump Hero', url: 'https://images.unsplash.com/photo-1581092334651-ddf26d9a09d0?auto=format&fit=crop&q=80&w=300', date: new Date().toISOString() },
+        { id: 'm2', name: 'Solar Roof', url: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&q=80&w=300', date: new Date().toISOString() }
+    ];
+}
+
 // --- 2. RENDER ENGINE ---
 
 function render() {
     const root = document.getElementById('app-root');
-    appState.isAuthenticated = sessionStorage.getItem('shk_auth') === 'true';
+    const authUser = sessionStorage.getItem('shk_auth_user');
+    appState.currentUser = authUser ? JSON.parse(authUser) : null;
+    appState.isAuthenticated = !!appState.currentUser;
 
     if (!appState.isAuthenticated) {
         root.innerHTML = renderLogin();
@@ -128,8 +170,14 @@ function renderLogin() {
             </div>
             <form id="login-form" class="space-y-4">
                 <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Select Demo User</label>
+                    <select id="login-user-select" class="w-full border border-gray-300 p-3 rounded-sm text-sm outline-none focus:border-brand-copper">
+                        ${users.map(u => `<option value='${JSON.stringify(u)}'>${u.name} (${u.role})</option>`).join('')}
+                    </select>
+                </div>
+                <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Password</label>
-                    <input type="password" id="password" class="w-full border border-gray-300 p-3 rounded-sm text-sm focus:border-brand-copper outline-none" placeholder="••••••••" required>
+                    <input type="password" id="password" class="w-full border border-gray-300 p-3 rounded-sm text-sm focus:border-brand-copper outline-none" placeholder="Any password works" required>
                 </div>
                 <button type="submit" class="w-full bg-brand-dark text-white py-3 rounded-sm font-bold uppercase text-xs tracking-wider hover:bg-brand-copper transition">Sign In</button>
             </form>
@@ -138,25 +186,32 @@ function renderLogin() {
 }
 
 function renderSidebar() {
+    const role = appState.currentUser.role;
     const navItem = (id, icon, label) => `
         <button onclick="navigate('${id}')" class="flex items-center w-full px-6 py-3 text-sm font-medium transition-colors duration-200 ${appState.activeView === id ? 'bg-brand-copper text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}">
             <i data-lucide="${icon}" class="w-4 h-4 mr-3"></i> ${label}
         </button>`;
 
     return `
-    <aside class="flex flex-col w-64 bg-brand-dark border-r border-gray-800">
+    <aside class="flex flex-col w-64 bg-brand-dark border-r border-gray-800 flex-shrink-0">
         <div class="flex items-center justify-center h-20 border-b border-gray-800">
              <img src="shklogo.jpg" alt="Logo" class="h-8 bg-white p-1 rounded-sm"/>
         </div>
-        <div class="flex flex-col flex-grow py-4 space-y-1">
+        <div class="flex flex-col flex-grow py-4 space-y-1 overflow-y-auto no-scrollbar">
             ${navItem('dashboard', 'layout-dashboard', 'Dashboard')}
             ${navItem('articles', 'file-text', 'Articles')}
             ${navItem('pages', 'layout', 'Pages')}
-            ${navItem('categories', 'tag', 'Categories')}
+            ${navItem('media', 'image', 'Media Library')}
             ${navItem('directory', 'building-2', 'Directory')}
-            <div class="pt-4 mt-4 border-t border-gray-800">
-                ${navItem('settings', 'settings', 'Settings')}
-            </div>
+            
+            ${['Administrator', 'Editor'].includes(role) ? `
+                <div class="pt-4 mt-4 border-t border-gray-800">
+                    <p class="px-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Admin</p>
+                    ${navItem('categories', 'tag', 'Categories')}
+                    ${role === 'Administrator' ? navItem('users', 'users', 'Users') : ''}
+                    ${role === 'Administrator' ? navItem('settings', 'settings', 'Settings') : ''}
+                </div>
+            ` : ''}
         </div>
         <div class="p-4 border-t border-gray-800">
             <button onclick="logout()" class="flex items-center w-full text-gray-400 hover:text-white transition text-xs font-bold uppercase tracking-wider">
@@ -167,12 +222,16 @@ function renderSidebar() {
 }
 
 function renderHeader() {
+    const u = appState.currentUser;
     return `
-    <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200">
-        <h2 class="text-xl font-bold text-gray-800 capitalize">${appState.activeView}</h2>
+    <header class="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200 sticky top-0 z-40">
+        <h2 class="text-xl font-bold text-gray-800 capitalize">${appState.activeView.replace('-', ' ')}</h2>
         <div class="flex items-center space-x-4">
-             <span class="text-xs font-bold text-brand-copper bg-orange-50 px-2 py-1 rounded border border-orange-100">${settings.userRole}</span>
-             <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600">AD</div>
+             <span class="text-xs font-bold text-brand-copper bg-orange-50 px-2 py-1 rounded border border-orange-100">${u.role}</span>
+             <div class="flex items-center space-x-2">
+                <img src="${u.avatar}" class="w-8 h-8 rounded-full border border-gray-200">
+                <span class="text-sm font-medium text-gray-700 hidden md:block">${u.name}</span>
+             </div>
         </div>
     </header>`;
 }
@@ -183,8 +242,10 @@ function renderMainContent() {
         case 'articles': return renderContentList('article');
         case 'pages': return renderContentList('page');
         case 'editor': return renderEditor();
+        case 'media': return renderMediaLibrary();
         case 'categories': return renderCategories();
         case 'directory': return renderDirectory();
+        case 'users': return renderUsers();
         case 'settings': return renderSettings();
         default: return renderDashboard();
     }
@@ -194,29 +255,36 @@ function renderMainContent() {
 function renderDashboard() {
     const totalViews = articles.reduce((acc, curr) => acc + (curr.views || 0), 0);
     const pubArticles = articles.filter(a => a.type === 'article' && a.status === 'published').length;
+    const drafts = articles.filter(a => a.type === 'article' && a.status === 'draft').length;
     
-    // SVG Chart
-    const points = [10, 25, 18, 40, 35, 60, 55, 80, 70, 95];
+    // Simple SVG Sparkline
+    const points = [20, 45, 30, 60, 50, 80, 65, 90, 85, 100];
     const path = points.map((val, i) => `${i * 100},${100 - val}`).join(' L ');
     
     return `
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div class="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
             <div class="flex justify-between items-start mb-4">
                 <div><p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Visits</p><h3 class="text-3xl font-bold text-brand-dark mt-1">${totalViews.toLocaleString()}</h3></div>
-                <div class="p-2 bg-blue-50 text-blue-600 rounded-lg"><i data-lucide="users" class="w-5 h-5"></i></div>
+                <div class="p-2 bg-blue-50 text-blue-600 rounded-lg"><i data-lucide="bar-chart-2" class="w-5 h-5"></i></div>
             </div>
-            <div class="text-xs text-green-600 font-bold flex items-center"><i data-lucide="trending-up" class="w-3 h-3 mr-1"></i> +12% vs last month</div>
+            ${settings.gaMeasurementId ? '<p class="text-[10px] text-green-600 font-bold">Live Data Active</p>' : '<p class="text-[10px] text-gray-400">Mock Data</p>'}
         </div>
         <div class="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
             <div class="flex justify-between items-start mb-4">
-                <div><p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Published Articles</p><h3 class="text-3xl font-bold text-brand-dark mt-1">${pubArticles}</h3></div>
+                <div><p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Published</p><h3 class="text-3xl font-bold text-brand-dark mt-1">${pubArticles}</h3></div>
                 <div class="p-2 bg-green-50 text-green-600 rounded-lg"><i data-lucide="file-check" class="w-5 h-5"></i></div>
             </div>
         </div>
         <div class="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
             <div class="flex justify-between items-start mb-4">
-                <div><p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Business Listings</p><h3 class="text-3xl font-bold text-brand-dark mt-1">${directory.length}</h3></div>
+                <div><p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Drafts</p><h3 class="text-3xl font-bold text-brand-dark mt-1">${drafts}</h3></div>
+                <div class="p-2 bg-yellow-50 text-yellow-600 rounded-lg"><i data-lucide="file-edit" class="w-5 h-5"></i></div>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
+            <div class="flex justify-between items-start mb-4">
+                <div><p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Directory</p><h3 class="text-3xl font-bold text-brand-dark mt-1">${directory.length}</h3></div>
                 <div class="p-2 bg-orange-50 text-brand-copper rounded-lg"><i data-lucide="building-2" class="w-5 h-5"></i></div>
             </div>
         </div>
@@ -224,7 +292,10 @@ function renderDashboard() {
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 bg-white p-6 rounded-sm shadow-sm border border-gray-200">
-            <h3 class="font-bold text-gray-800 mb-6">Traffic Overview</h3>
+            <h3 class="font-bold text-gray-800 mb-6 flex justify-between">
+                <span>Performance</span>
+                <span class="text-xs font-normal text-gray-500">Last 30 Days</span>
+            </h3>
             <div class="relative h-64 w-full">
                 <svg viewBox="0 0 900 100" class="w-full h-full overflow-visible" preserveAspectRatio="none">
                     <path d="M 0,${100 - points[0]} L ${path}" fill="none" stroke="#b45309" stroke-width="3" vector-effect="non-scaling-stroke" />
@@ -236,6 +307,11 @@ function renderDashboard() {
                         </linearGradient>
                     </defs>
                 </svg>
+            </div>
+            <div class="grid grid-cols-3 gap-4 mt-6 text-center text-sm border-t pt-4">
+                <div><span class="block font-bold text-gray-800">Organic</span><span class="text-gray-500 text-xs">65%</span></div>
+                <div><span class="block font-bold text-gray-800">Social</span><span class="text-gray-500 text-xs">25%</span></div>
+                <div><span class="block font-bold text-gray-800">Direct</span><span class="text-gray-500 text-xs">10%</span></div>
             </div>
         </div>
 
@@ -257,16 +333,16 @@ function renderDashboard() {
     </div>`;
 }
 
-// --- VIEW: ARTICLES / PAGES LIST ---
+// --- VIEW: LISTS ---
 function renderContentList(type) {
     const items = articles.filter(a => (a.type || 'article') === type);
     const title = type === 'article' ? 'Articles' : 'Pages';
     
     return `
     <div class="flex justify-between mb-6">
-        <h3 class="font-bold text-lg">${title}</h3>
+        <h3 class="font-bold text-lg">${title} Management</h3>
         <button onclick="createNew('${type}')" class="bg-brand-copper text-white px-5 py-2 rounded-sm font-bold uppercase text-xs tracking-wider flex items-center hover:bg-orange-700 transition">
-            <i data-lucide="plus" class="w-4 h-4 mr-2"></i> New ${type === 'article' ? 'Article' : 'Page'}
+            <i data-lucide="plus" class="w-4 h-4 mr-2"></i> New ${title}
         </button>
     </div>
     <div class="bg-white rounded-sm shadow-sm border border-gray-200 overflow-hidden">
@@ -283,8 +359,17 @@ function renderContentList(type) {
             <tbody class="divide-y divide-gray-100 text-sm">
                 ${items.map(a => `
                 <tr class="hover:bg-gray-50 transition">
-                    <td class="p-4 font-medium text-gray-900">${a.title}</td>
-                    <td class="p-4"><span class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wide ${a.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">${a.status || 'Draft'}</span></td>
+                    <td class="p-4 font-medium text-gray-900">
+                        ${a.title}
+                        ${a.featured ? '<span class="ml-2 text-[10px] bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded font-bold uppercase">Top Story</span>' : ''}
+                    </td>
+                    <td class="p-4">
+                        <span class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wide 
+                            ${a.status === 'published' ? 'bg-green-100 text-green-700' : 
+                              a.status === 'scheduled' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}">
+                            ${a.status || 'Draft'}
+                        </span>
+                    </td>
                     ${type === 'article' ? `<td class="p-4 text-gray-600">${a.category}</td>` : ''}
                     <td class="p-4 text-gray-600">${a.publishedAt ? new Date(a.publishedAt).toLocaleDateString() : '-'}</td>
                     <td class="p-4 text-right space-x-2">
@@ -298,72 +383,183 @@ function renderContentList(type) {
     </div>`;
 }
 
-// --- VIEW: EDITOR ---
+// --- VIEW: ADVANCED EDITOR ---
 function renderEditor() {
     const a = appState.editingItem || { title: '', content: '', status: 'draft', type: 'article' };
     const isPage = a.type === 'page';
 
     return `
     <div class="flex flex-col lg:flex-row gap-6 h-full pb-20">
-        <div class="flex-grow bg-white rounded-sm shadow-sm border border-gray-200 flex flex-col">
+        <!-- Main Content Area -->
+        <div class="flex-grow bg-white rounded-sm shadow-sm border border-gray-200 flex flex-col min-h-[600px]">
             <div class="p-6 border-b border-gray-100">
                 <input type="text" id="editor-title" value="${a.title}" placeholder="Enter Title Here..." class="w-full text-3xl font-bold font-display placeholder-gray-300 border-none outline-none">
             </div>
             
-            <div class="flex items-center gap-1 p-2 bg-gray-50 border-b border-gray-200 flex-wrap">
-                <button onclick="execCmd('bold')" class="p-2 hover:bg-gray-200 rounded"><i data-lucide="bold" class="w-4 h-4"></i></button>
-                <button onclick="execCmd('italic')" class="p-2 hover:bg-gray-200 rounded"><i data-lucide="italic" class="w-4 h-4"></i></button>
+            <div class="flex items-center gap-1 p-2 bg-gray-50 border-b border-gray-200 flex-wrap sticky top-0 z-20">
+                <button onclick="execCmd('bold')" class="p-2 hover:bg-gray-200 rounded" title="Bold"><i data-lucide="bold" class="w-4 h-4"></i></button>
+                <button onclick="execCmd('italic')" class="p-2 hover:bg-gray-200 rounded" title="Italic"><i data-lucide="italic" class="w-4 h-4"></i></button>
                 <div class="w-px h-6 bg-gray-300 mx-1"></div>
                 <button onclick="execCmd('formatBlock', 'H2')" class="p-2 hover:bg-gray-200 rounded text-xs font-bold">H2</button>
                 <button onclick="execCmd('formatBlock', 'H3')" class="p-2 hover:bg-gray-200 rounded text-xs font-bold">H3</button>
+                <button onclick="execCmd('formatBlock', 'P')" class="p-2 hover:bg-gray-200 rounded text-xs font-bold">P</button>
+                <button onclick="execCmd('formatBlock', 'BLOCKQUOTE')" class="p-2 hover:bg-gray-200 rounded text-xs font-bold">Quote</button>
                 <div class="w-px h-6 bg-gray-300 mx-1"></div>
-                <label class="p-2 hover:bg-gray-200 rounded cursor-pointer"><i data-lucide="image" class="w-4 h-4"></i><input type="file" class="hidden" accept="image/*" onchange="insertImage(this)"></label>
+                <button onclick="execCmd('insertUnorderedList')" class="p-2 hover:bg-gray-200 rounded"><i data-lucide="list" class="w-4 h-4"></i></button>
+                <div class="w-px h-6 bg-gray-300 mx-1"></div>
+                <!-- Image Upload -->
+                <label class="p-2 hover:bg-gray-200 rounded cursor-pointer" title="Upload Image from Computer">
+                    <i data-lucide="image-plus" class="w-4 h-4"></i>
+                    <input type="file" class="hidden" accept="image/*" onchange="insertImage(this)">
+                </label>
             </div>
             
-            <div id="editor-content" contenteditable="true" class="flex-grow p-8 outline-none prose max-w-none overflow-y-auto" placeholder="Start writing...">${a.content}</div>
+            <div id="editor-content" contenteditable="true" class="flex-grow p-8 outline-none prose max-w-none overflow-y-auto" placeholder="Start writing your story...">${a.content}</div>
         </div>
 
-        <div class="w-full lg:w-80 space-y-6">
+        <!-- Sidebar -->
+        <div class="w-full lg:w-80 space-y-4">
+            
+            <!-- Publish Action -->
             <div class="bg-white p-4 rounded-sm shadow-sm border border-gray-200">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xs font-bold uppercase text-gray-400">Publishing</h3>
-                    <span class="text-xs font-bold ${a.status==='published'?'text-green-600':'text-orange-500'}">${a.status === 'published' ? 'Published' : 'Draft'}</span>
+                    <h3 class="text-xs font-bold uppercase text-gray-400">Status</h3>
+                    <span class="text-xs font-bold ${a.status==='published'?'text-green-600':a.status==='scheduled'?'text-blue-600':'text-orange-500'} uppercase">${a.status || 'Draft'}</span>
                 </div>
                 <div class="space-y-3">
-                     <button onclick="saveContent('published')" class="w-full bg-green-600 text-white py-2 rounded-sm font-bold uppercase text-xs">Publish</button>
-                     <button onclick="saveContent('draft')" class="w-full bg-gray-100 text-gray-600 py-2 rounded-sm font-bold uppercase text-xs hover:bg-gray-200">Save Draft</button>
-                     <button onclick="cancelEdit()" class="w-full text-red-500 text-xs font-bold hover:underline">Discard</button>
+                     <button onclick="saveContent('published')" class="w-full bg-green-600 text-white py-2 rounded-sm font-bold uppercase text-xs hover:bg-green-700 transition">Publish Now</button>
+                     <button onclick="saveContent('draft')" class="w-full bg-gray-100 text-gray-600 py-2 rounded-sm font-bold uppercase text-xs hover:bg-gray-200 transition">Save Draft</button>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-100">
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Schedule Publish</label>
+                    <input type="datetime-local" id="editor-schedule" class="w-full text-xs border border-gray-300 rounded-sm p-2" value="${a.status === 'scheduled' ? a.publishedAt.slice(0,16) : ''}">
                 </div>
             </div>
 
+            <!-- Meta Data -->
             <div class="bg-white p-4 rounded-sm shadow-sm border border-gray-200 space-y-4">
-                <h3 class="text-xs font-bold uppercase text-gray-400 border-b pb-2">Meta</h3>
-                
+                <h3 class="text-xs font-bold uppercase text-gray-400 border-b pb-2">Settings</h3>
                 ${!isPage ? `
                 <div>
                     <label class="text-xs font-bold text-gray-600 block mb-1">Category</label>
-                    <select id="editor-category" class="w-full border border-gray-300 rounded-sm p-2 text-sm">
+                    <select id="editor-category" class="w-full border border-gray-300 rounded-sm p-2 text-sm bg-white">
                         ${categories.map(c => `<option value="${c}" ${a.category === c ? 'selected' : ''}>${c}</option>`).join('')}
                     </select>
                 </div>
                 <div>
                     <label class="text-xs font-bold text-gray-600 block mb-1">Author</label>
-                    <input type="text" id="editor-author" value="${a.author || 'Redaktion'}" class="w-full border border-gray-300 rounded-sm p-2 text-sm">
+                    <select id="editor-author" class="w-full border border-gray-300 rounded-sm p-2 text-sm bg-white">
+                         ${users.map(u => `<option value="${u.name}" ${a.author === u.name ? 'selected' : ''}>${u.name}</option>`).join('')}
+                         <option value="Redaktion" ${a.author === 'Redaktion' ? 'selected' : ''}>Redaktion</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-600 block mb-1">Tags (comma separated)</label>
+                    <input type="text" id="editor-tags" value="${(a.tags || []).join(', ')}" class="w-full border border-gray-300 rounded-sm p-2 text-sm" placeholder="Heizung, Markt...">
+                </div>
+                 <div class="flex items-center pt-2">
+                    <input type="checkbox" id="editor-featured" ${a.featured ? 'checked' : ''} class="mr-2 accent-brand-copper">
+                    <label for="editor-featured" class="text-sm text-gray-700">Set as Top Story</label>
                 </div>
                 ` : ''}
-
                 <div>
-                    <label class="text-xs font-bold text-gray-600 block mb-1">Summary</label>
-                    <textarea id="editor-summary" rows="3" class="w-full border border-gray-300 rounded-sm p-2 text-sm">${a.summary || ''}</textarea>
+                    <label class="text-xs font-bold text-gray-600 block mb-1">Excerpt</label>
+                    <textarea id="editor-summary" rows="3" class="w-full border border-gray-300 rounded-sm p-2 text-sm text-gray-600">${a.summary || ''}</textarea>
                 </div>
-
-                ${!isPage ? `
-                 <div class="flex items-center pt-2">
-                    <input type="checkbox" id="editor-featured" ${a.featured ? 'checked' : ''} class="mr-2">
-                    <label for="editor-featured" class="text-sm text-gray-700">Top Story</label>
-                </div>` : ''}
             </div>
+
+            <!-- SEO & Slugs -->
+            <div class="bg-white p-4 rounded-sm shadow-sm border border-gray-200 space-y-4">
+                <h3 class="text-xs font-bold uppercase text-gray-400 border-b pb-2">SEO</h3>
+                <div>
+                    <label class="text-xs font-bold text-gray-600 block mb-1">Custom Slug</label>
+                    <input type="text" id="editor-slug" value="${a.slug || ''}" class="w-full border border-gray-300 rounded-sm p-2 text-sm bg-gray-50 font-mono text-xs" placeholder="my-custom-url">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-600 block mb-1">Meta Title</label>
+                    <input type="text" id="editor-meta-title" value="${a.metaTitle || ''}" class="w-full border border-gray-300 rounded-sm p-2 text-sm">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-600 block mb-1">Meta Description</label>
+                    <textarea id="editor-meta-desc" rows="2" class="w-full border border-gray-300 rounded-sm p-2 text-sm">${a.metaDescription || ''}</textarea>
+                </div>
+            </div>
+
+            <!-- Revisions & Integrations -->
+            <div class="bg-white p-4 rounded-sm shadow-sm border border-gray-200 space-y-4">
+                 <button onclick="alert('Sent to Newsletter API (Mock)')" class="w-full border border-gray-300 text-gray-600 py-2 rounded-sm font-bold uppercase text-[10px] hover:bg-gray-50 flex items-center justify-center">
+                    <i data-lucide="mail" class="w-3 h-3 mr-2"></i> Push to Newsletter
+                 </button>
+                 
+                 <div class="pt-4 border-t border-gray-100">
+                    <h3 class="text-xs font-bold uppercase text-gray-400 mb-2">Revision History</h3>
+                    <ul class="space-y-2 text-xs text-gray-500">
+                        ${(a.revisions || []).slice(0,3).map(r => `
+                            <li class="flex justify-between">
+                                <span>${new Date(r.date).toLocaleDateString()}</span>
+                                <span class="text-gray-400">${r.user}</span>
+                            </li>
+                        `).join('')}
+                        ${!(a.revisions?.length) ? '<li>No revisions yet</li>' : ''}
+                    </ul>
+                 </div>
+            </div>
+
         </div>
+    </div>`;
+}
+
+// --- VIEW: MEDIA LIBRARY ---
+function renderMediaLibrary() {
+    return `
+    <div class="flex justify-between mb-6">
+        <h3 class="font-bold text-lg">Central Media Library</h3>
+        <label class="bg-brand-copper text-white px-5 py-2 rounded-sm font-bold uppercase text-xs tracking-wider flex items-center hover:bg-orange-700 transition cursor-pointer">
+            <i data-lucide="upload" class="w-4 h-4 mr-2"></i> Upload Image
+            <input type="file" class="hidden" accept="image/*" onchange="uploadMedia(this)">
+        </label>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        ${mediaLibrary.map(m => `
+        <div class="group relative bg-white rounded-sm shadow-sm border border-gray-200 aspect-square overflow-hidden">
+            <img src="${m.url}" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center space-y-2">
+                <button onclick="copyToClipboard('${m.url}')" class="text-white text-xs font-bold hover:text-brand-copper flex items-center"><i data-lucide="copy" class="w-4 h-4 mr-1"></i> Copy URL</button>
+                <button onclick="deleteMedia('${m.id}')" class="text-white text-xs font-bold hover:text-red-500 flex items-center"><i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Delete</button>
+            </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+// --- VIEW: USERS ---
+function renderUsers() {
+    return `
+    <div class="flex justify-between mb-6">
+        <h3 class="font-bold text-lg">User Management</h3>
+        <button onclick="openModal('user')" class="bg-brand-copper text-white px-5 py-2 rounded-sm font-bold uppercase text-xs tracking-wider flex items-center hover:bg-orange-700 transition">
+            <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i> Add User
+        </button>
+    </div>
+    <div class="bg-white rounded-sm shadow-sm border border-gray-200 overflow-hidden">
+        <table class="w-full text-left">
+            <thead class="bg-gray-50 text-xs font-bold text-gray-500 uppercase border-b border-gray-200">
+                <tr><th>User</th><th>Role</th><th>Email</th><th class="text-right">Action</th></tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 text-sm">
+                ${users.map(u => `
+                <tr class="hover:bg-gray-50">
+                    <td class="p-4 flex items-center">
+                        <img src="${u.avatar}" class="w-8 h-8 rounded-full mr-3">
+                        <span class="font-medium">${u.name}</span>
+                    </td>
+                    <td class="p-4"><span class="bg-gray-100 px-2 py-1 rounded text-xs font-bold">${u.role}</span></td>
+                    <td class="p-4 text-gray-500">${u.email}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="deleteUser('${u.id}')" class="text-gray-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </td>
+                </tr>`).join('')}
+            </tbody>
+        </table>
     </div>`;
 }
 
@@ -372,12 +568,10 @@ function renderCategories() {
     return `
     <div class="max-w-3xl">
         <h3 class="font-bold text-lg mb-6">Manage Categories</h3>
-        
         <div class="bg-white p-6 rounded-sm shadow-sm border border-gray-200 mb-6 flex gap-2">
             <input type="text" id="new-cat-input" placeholder="New Category Name" class="flex-grow border border-gray-300 p-2 rounded-sm focus:border-brand-copper outline-none">
             <button onclick="addCategory()" class="bg-brand-dark text-white px-4 py-2 rounded-sm font-bold uppercase text-xs">Add</button>
         </div>
-
         <div class="bg-white rounded-sm shadow-sm border border-gray-200 overflow-hidden">
             <table class="w-full text-left">
                 <thead class="bg-gray-50 text-xs font-bold text-gray-500 uppercase border-b border-gray-200">
@@ -433,26 +627,36 @@ function renderSettings() {
     <div class="max-w-2xl bg-white p-8 rounded-sm shadow-sm border border-gray-200">
         <h3 class="text-lg font-bold mb-6 border-b pb-4">Configuration</h3>
         
-        <div class="mb-8">
-            <h4 class="text-sm font-bold uppercase text-gray-500 mb-4">Sync Center</h4>
-            <p class="text-sm text-gray-600 mb-4">Connect your Google Apps Script Web App URL.</p>
-            
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1">Apps Script URL</label>
-                    <input type="text" id="settings-url" value="${settings.articlesScriptUrl || ''}" class="w-full border border-gray-300 p-2 rounded-sm text-sm">
-                </div>
-                
-                <div class="flex items-center space-x-4 pt-2">
-                    <button onclick="saveSettings()" class="bg-brand-dark text-white px-6 py-2 rounded-sm font-bold uppercase text-xs">Save</button>
-                    <button onclick="triggerSync()" id="sync-btn" class="border border-gray-300 text-gray-700 px-6 py-2 rounded-sm font-bold uppercase text-xs hover:bg-gray-50 flex items-center">
-                        <i data-lucide="refresh-cw" class="w-4 h-4 mr-2 ${appState.syncState === 'loading' ? 'animate-spin' : ''}"></i> 
-                        ${appState.syncState === 'loading' ? 'Syncing...' : 'Sync Now'}
-                    </button>
-                </div>
-                ${appState.syncState === 'success' ? '<p class="text-green-600 text-xs font-bold mt-2">Sync Completed.</p>' : ''}
-                ${appState.syncState === 'error' ? '<p class="text-red-500 text-xs font-bold mt-2">Sync Failed.</p>' : ''}
+        <div class="space-y-6">
+            <div>
+                <h4 class="text-sm font-bold uppercase text-gray-500 mb-2">Sync Engine</h4>
+                <p class="text-xs text-gray-400 mb-2">Connect to your Google Apps Script Backend.</p>
+                <input type="text" id="settings-url" value="${settings.articlesScriptUrl || ''}" placeholder="https://script.google.com/..." class="w-full border border-gray-300 p-2 rounded-sm text-sm">
             </div>
+
+            <div>
+                <h4 class="text-sm font-bold uppercase text-gray-500 mb-2">Integrations</h4>
+                <div class="grid gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Google Analytics Measurement ID</label>
+                        <input type="text" id="settings-ga" value="${settings.gaMeasurementId || ''}" placeholder="G-XXXXXXXXXX" class="w-full border border-gray-300 p-2 rounded-sm text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Newsletter API Key (Mailchimp)</label>
+                        <input type="password" id="settings-news" value="${settings.newsletterApiKey || ''}" class="w-full border border-gray-300 p-2 rounded-sm text-sm">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-4 pt-6 border-t">
+                <button onclick="saveSettings()" class="bg-brand-dark text-white px-6 py-2 rounded-sm font-bold uppercase text-xs">Save Settings</button>
+                <button onclick="triggerSync()" id="sync-btn" class="border border-gray-300 text-gray-700 px-6 py-2 rounded-sm font-bold uppercase text-xs hover:bg-gray-50 flex items-center">
+                    <i data-lucide="refresh-cw" class="w-4 h-4 mr-2 ${appState.syncState === 'loading' ? 'animate-spin' : ''}"></i> 
+                    ${appState.syncState === 'loading' ? 'Syncing...' : 'Sync Now'}
+                </button>
+            </div>
+            ${appState.syncState === 'success' ? '<p class="text-green-600 text-xs font-bold mt-2">Sync Completed Successfully.</p>' : ''}
+            ${appState.syncState === 'error' ? '<p class="text-red-500 text-xs font-bold mt-2">Sync Failed. Check URL.</p>' : ''}
         </div>
     </div>`;
 }
@@ -460,9 +664,9 @@ function renderSettings() {
 // --- MODAL ---
 function renderModal() {
     let content = '';
-    const b = appState.editingItem || { name: '', city: '', category: 'Heizung' };
     
     if (appState.modalType === 'business') {
+        const b = appState.editingItem || {};
         content = `
         <h3 class="font-bold text-lg mb-4">${b.id ? 'Edit' : 'Add'} Company</h3>
         <div class="space-y-4">
@@ -477,6 +681,22 @@ function renderModal() {
             <button onclick="closeModal()" class="px-4 py-2 text-gray-500 hover:text-gray-800">Cancel</button>
             <button onclick="saveBusiness()" class="bg-brand-copper text-white px-4 py-2 rounded-sm font-bold">Save</button>
         </div>`;
+    } else if (appState.modalType === 'user') {
+        content = `
+        <h3 class="font-bold text-lg mb-4">Add User</h3>
+        <div class="space-y-4">
+            <input id="modal-user-name" placeholder="Full Name" class="w-full border p-2 rounded-sm">
+            <input id="modal-user-email" placeholder="Email" class="w-full border p-2 rounded-sm">
+            <select id="modal-user-role" class="w-full border p-2 rounded-sm bg-white">
+                <option value="Contributor">Contributor</option>
+                <option value="Editor">Editor</option>
+                <option value="Administrator">Administrator</option>
+            </select>
+        </div>
+        <div class="flex justify-end mt-6 space-x-2">
+            <button onclick="closeModal()" class="px-4 py-2 text-gray-500 hover:text-gray-800">Cancel</button>
+            <button onclick="saveUser()" class="bg-brand-copper text-white px-4 py-2 rounded-sm font-bold">Create</button>
+        </div>`;
     }
 
     return `
@@ -489,28 +709,33 @@ function renderModal() {
 
 // --- 4. CONTROLLER / ACTIONS ---
 
-// Navigation
 function navigate(view) {
     appState.activeView = view;
     render();
 }
 
 function logout() {
-    sessionStorage.removeItem('shk_auth');
+    sessionStorage.removeItem('shk_auth_user');
     render();
 }
 
 function attachLoginListeners() {
     document.getElementById('login-form').addEventListener('submit', (e) => {
         e.preventDefault();
-        const pw = document.getElementById('password').value;
-        if (pw) { sessionStorage.setItem('shk_auth', 'true'); render(); }
+        const userJson = document.getElementById('login-user-select').value;
+        sessionStorage.setItem('shk_auth_user', userJson);
+        render();
     });
 }
 
-// Article/Page Logic
 function createNew(type) {
-    appState.editingItem = { type, title: '', content: '<p>New Content...</p>', status: 'draft', category: type === 'article' ? categories[0] : 'Page' };
+    appState.editingItem = { 
+        type, title: '', content: '<p>Start writing...</p>', status: 'draft', 
+        category: type === 'article' ? categories[0] : 'Page',
+        tags: [],
+        author: appState.currentUser.name,
+        revisions: []
+    };
     appState.activeView = 'editor';
     render();
 }
@@ -538,14 +763,36 @@ function saveContent(status) {
     const item = appState.editingItem;
     item.title = document.getElementById('editor-title').value;
     item.content = document.getElementById('editor-content').innerHTML;
-    item.summary = document.getElementById('editor-summary').value;
-    item.status = status;
-    item.publishedAt = item.publishedAt || new Date().toISOString();
     
+    // Check Scheduled Date
+    const scheduledDate = document.getElementById('editor-schedule') ? document.getElementById('editor-schedule').value : null;
+    if (scheduledDate) {
+        item.status = 'scheduled';
+        item.publishedAt = new Date(scheduledDate).toISOString();
+    } else {
+        item.status = status;
+        if (!item.publishedAt) item.publishedAt = new Date().toISOString();
+    }
+
     if(item.type === 'article') {
         item.category = document.getElementById('editor-category').value;
         item.author = document.getElementById('editor-author').value;
         item.featured = document.getElementById('editor-featured').checked;
+        item.summary = document.getElementById('editor-summary').value;
+        item.slug = document.getElementById('editor-slug').value;
+        item.metaTitle = document.getElementById('editor-meta-title').value;
+        item.metaDescription = document.getElementById('editor-meta-desc').value;
+        
+        const tagStr = document.getElementById('editor-tags').value;
+        item.tags = tagStr ? tagStr.split(',').map(t=>t.trim()) : [];
+        
+        // Add Revision
+        if (!item.revisions) item.revisions = [];
+        item.revisions.unshift({
+            date: new Date().toISOString(),
+            user: appState.currentUser.name,
+            note: 'Updated'
+        });
     }
 
     if (!item.title) return alert('Title is required');
@@ -560,6 +807,7 @@ function saveContent(status) {
     render();
 }
 
+// Editor Utilities
 function execCmd(cmd, val) { document.execCommand(cmd, false, val); }
 function insertImage(input) {
     if (input.files && input.files[0]) {
@@ -569,7 +817,37 @@ function insertImage(input) {
     }
 }
 
-// Categories Logic
+// Media Library
+function uploadMedia(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            mediaLibrary.unshift({
+                id: 'media-' + Date.now(),
+                url: e.target.result,
+                name: input.files[0].name,
+                date: new Date().toISOString()
+            });
+            saveData();
+            render();
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function deleteMedia(id) {
+    if(confirm('Delete image?')) {
+        mediaLibrary = mediaLibrary.filter(m => m.id !== id);
+        saveData();
+        render();
+    }
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => alert('URL Copied!'));
+}
+
+// Categories
 function addCategory() {
     const val = document.getElementById('new-cat-input').value;
     if(val && !categories.includes(val)) {
@@ -587,7 +865,7 @@ function deleteCategory(cat) {
     }
 }
 
-// Directory Logic
+// Directory / Users Modals
 function openModal(type) {
     appState.modalType = type;
     appState.editingItem = type === 'business' ? {} : null;
@@ -602,14 +880,6 @@ function editBusiness(id) {
     appState.modalType = 'business';
     appState.modalOpen = true;
     render();
-}
-
-function deleteBusiness(id) {
-    if(confirm('Delete business?')) {
-        directory = directory.filter(d => d.id !== id);
-        saveData();
-        render();
-    }
 }
 
 function saveBusiness() {
@@ -631,9 +901,33 @@ function saveBusiness() {
     closeModal();
 }
 
+function saveUser() {
+    const u = {
+        id: 'user-' + Date.now(),
+        name: document.getElementById('modal-user-name').value,
+        email: document.getElementById('modal-user-email').value,
+        role: document.getElementById('modal-user-role').value,
+        avatar: `https://ui-avatars.com/api/?name=${document.getElementById('modal-user-name').value}`
+    };
+    if(!u.name) return alert('Name required');
+    users.push(u);
+    saveData();
+    closeModal();
+}
+
+function deleteUser(id) {
+    if(confirm('Delete user?')) {
+        users = users.filter(u => u.id !== id);
+        saveData();
+        render();
+    }
+}
+
 // Settings & Sync
 function saveSettings() {
     settings.articlesScriptUrl = document.getElementById('settings-url').value;
+    settings.gaMeasurementId = document.getElementById('settings-ga').value;
+    settings.newsletterApiKey = document.getElementById('settings-news').value;
     saveData();
     alert('Settings Saved');
 }
@@ -648,7 +942,7 @@ async function triggerSync() {
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'sync', articles, directory, categories })
+            body: JSON.stringify({ action: 'sync', articles, directory, categories, users, mediaLibrary })
         });
         
         setTimeout(() => {
@@ -663,7 +957,6 @@ async function triggerSync() {
     }
 }
 
-// Init
 document.addEventListener('DOMContentLoaded', () => {
     loadData();
     render();
