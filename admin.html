@@ -45,7 +45,8 @@ function loadData() {
     users = ls('shk_users') || [];
     mediaLibrary = ls('shk_media') || [];
 
-    if (articles.length === 0 || directory.length === 0) seedMockData();
+    if (articles.length === 0) seedArticles();
+    if (directory.length === 0) seedDirectory();
     if (users.length === 0) seedUsers();
 }
 
@@ -60,19 +61,33 @@ function saveData() {
     window.dispatchEvent(new Event('storage'));
 }
 
-function seedMockData() {
+function seedArticles() {
     articles = [
-        {id:"art-1",type:"article",title:"Neue Energieverordnungen 2025: Was gilt ab Januar?",summary:"Ein umfassender Bericht über Neue Energieverordnungen 2025.",imageUrl:"https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200",category:"Branchen-News",author:"Redaktion",publishedAt:"2025-10-25T10:00:00.000Z",featured:true,status:'published',views:1240},
-        {id:"art-2",type:"article",title:"Rückblick ISH Messe Frankfurt: Die Highlights",summary:"Die wichtigsten Trends der Weltleitmesse.",imageUrl:"https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=1200",category:"Branchen-News",author:"Markus Weber",publishedAt:"2025-10-24T10:00:00.000Z",featured:false,status:'published',views:890},
-        {id:"art-3",type:"article",title:"Großhandelspreise stabilisieren sich",summary:"Entwarnung für Handwerksbetriebe.",imageUrl:"https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=1200",category:"Branchen-News",author:"Julia Schmidt",publishedAt:"2025-10-23T10:00:00.000Z",featured:false,status:'published',views:560},
-        {id:"art-4",type:"article",title:"Digitalisierung im Handwerk: Eine Chance",summary:"Wie Apps und Software den Alltag erleichtern.",imageUrl:"https://images.unsplash.com/photo-1504384308090-c54be3855833?auto=format&fit=crop&q=80&w=1200",category:"Technologie",author:"Redaktion",publishedAt:"2025-10-20T10:00:00.000Z",featured:false,status:'published',views:410},
-        {id:"art-5",type:"article",title:"Wärmepumpen-Förderung: Update Q4",summary:"Die neuesten Infos vom BAFA.",imageUrl:"https://images.unsplash.com/photo-1581094794329-cd2d2dec5d83?auto=format&fit=crop&q=80&w=1200",category:"Energie & Nachhaltigkeit",author:"Hans Müller",publishedAt:"2025-10-18T10:00:00.000Z",featured:false,status:'published',views:1500}
+        {id:"art-1",type:"article",title:"Neue Energieverordnungen 2025: Was gilt ab Januar?",summary:"Ein umfassender Bericht über die neuen GEG-Vorgaben, Förderungen und was Handwerksbetriebe jetzt wissen müssen.",imageUrl:"https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200",category:"Branchen-News",author:"Redaktion",publishedAt:"2025-10-25T10:00:00.000Z",featured:true,status:'published',views:1240, content: "<h2>Der Wandel beginnt jetzt</h2><p>Die Energiewende nimmt Fahrt auf...</p>"},
+        {id:"art-2",type:"article",title:"Rückblick ISH Messe Frankfurt: Die Highlights",summary:"Die wichtigsten Trends der Weltleitmesse für Wasser, Wärme, Luft – von KI-Steuerung bis Wasserstoff.",imageUrl:"https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=1200",category:"Branchen-News",author:"Markus Weber",publishedAt:"2025-10-24T10:00:00.000Z",featured:false,status:'published',views:890, content: "<p>Die Messe war ein voller Erfolg...</p>"},
+        {id:"art-3",type:"article",title:"Großhandelspreise stabilisieren sich",summary:"Entwarnung für Handwerksbetriebe: Materialpreise für Kupfer und Keramik pendeln sich auf Vorkrisenniveau ein.",imageUrl:"https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=1200",category:"Branchen-News",author:"Julia Schmidt",publishedAt:"2025-10-23T10:00:00.000Z",featured:false,status:'published',views:560, content: "<p>Gute Nachrichten für die Kalkulation...</p>"},
+        {id:"art-4",type:"article",title:"Fachkräftemangel: Strategien aus der Region",summary:"Wie Mannheimer Betriebe mit neuen Ausbildungsmodellen erfolgreich Nachwuchs gewinnen.",imageUrl:"https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&q=80&w=1200",category:"Personal & Karriere",author:"Redaktion",publishedAt:"2025-10-22T10:00:00.000Z",featured:false,status:'published',views:410, content: "<p>Ausbildung neu gedacht...</p>"},
+        {id:"art-5",type:"article",title:"Wärmepumpen im Altbau: Ein Praxis-Guide",summary:"Technische Lösungen und Argumentationshilfen für das Kundengespräch.",imageUrl:"https://images.unsplash.com/photo-1581094794329-cd2d2dec5d83?auto=format&fit=crop&q=80&w=1200",category:"Technologie",author:"Hans Müller",publishedAt:"2025-10-20T10:00:00.000Z",featured:false,status:'published',views:1500, content: "<p>Nicht jedes Haus ist gleich...</p>"},
+        {id:"art-6",type:"article",title:"Smart Home im Badezimmer",summary:"Digitale Duschsteuerungen und intelligente Spiegel auf dem Vormarsch.",imageUrl:"https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?auto=format&fit=crop&q=80&w=1200",category:"Technologie",author:"Redaktion",publishedAt:"2025-10-18T10:00:00.000Z",featured:false,status:'published',views:320, content: "<p>Der Komfort steigt...</p>"},
+        {id:"art-7",type:"article",title:"Nachhaltige Wassernutzung in Gewerbeimmobilien",summary:"Grauwasseranlagen rechnen sich schneller als gedacht.",imageUrl:"https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?auto=format&fit=crop&q=80&w=1200",category:"Energie & Nachhaltigkeit",author:"Sarah Tech",publishedAt:"2025-10-15T10:00:00.000Z",featured:false,status:'published',views:210, content: "<p>Wasser ist ein kostbares Gut...</p>"},
+        {id:"art-8",type:"article",title:"Betriebsübergabe: So gelingt der Generationenwechsel",summary:"Interview mit der Handwerkskammer Mannheim.",imageUrl:"https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&q=80&w=1200",category:"Betriebs-Features",author:"Redaktion",publishedAt:"2025-10-12T10:00:00.000Z",featured:false,status:'published',views:670, content: "<p>Planung ist alles...</p>"},
+        {id:"art-9",type:"article",title:"Software für das Handwerk: Marktübersicht 2025",summary:"Von der Terminplanung bis zur Abrechnung: Die besten Tools.",imageUrl:"https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=1200",category:"Technologie",author:"Markus Weber",publishedAt:"2025-10-10T10:00:00.000Z",featured:false,status:'published',views:980, content: "<p>Effizienz durch Software...</p>"},
+        {id:"art-10",type:"article",title:"Regionale SHK-Innung feiert Jubiläum",summary:"50 Jahre Innovation und Handwerkstradition in Heidelberg.",imageUrl:"https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=1200",category:"Regional",author:"Redaktion",publishedAt:"2025-10-05T10:00:00.000Z",featured:false,status:'published',views:450, content: "<p>Ein Festakt mit vielen Gästen...</p>"}
     ];
+}
+
+function seedDirectory() {
     directory = [
         {id:"dir-1",name:"Heizungstechnik Müller GmbH",category:"Heizung",address:"Hauptstraße 10",city:"Mannheim",zip:"68159",phone":"0621 123456",website:"https://heizung-mueller.de",description:"Spezialist für moderne Heizsysteme und Wärmepumpen."},
-        {id:"dir-2",name:"Sanitär-Service Weber",category:"Sanitär",address:"Bergheimer Straße 58",city:"Heidelberg",zip:"69115",phone":"06221 654321",website:"https://sanitaer-weber.de",description:"Komplettbäder aus einer Hand."},
+        {id:"dir-2",name:"Sanitär-Service Weber",category:"Sanitär",address:"Bergheimer Straße 58",city:"Heidelberg",zip:"69115",phone":"06221 654321",website:"https://sanitaer-weber.de",description:"Komplettbäder aus einer Hand. Barrierefreie Umbauten."},
         {id:"dir-3",name:"Klima-Profis Rhein-Neckar",category:"Klima",address:"Industriestraße 35",city:"Ludwigshafen",zip:"67063",phone":"0621 987654",website:"https://klima-profis-rn.de",description:"Installation und Wartung von Klimaanlagen."},
-        {id:"dir-4",name:"Elektro Schmitt",category:"Elektro",address:"Waldstraße 12",city:"Schwetzingen",zip:"68723",phone":"06202 55555",website:"https://elektro-schmitt-test.de",description:"Smart Home und PV-Anlagen."}
+        {id:"dir-4",name:"Elektro Schmitt",category:"Elektro",address:"Waldstraße 12",city:"Schwetzingen",zip:"68723",phone":"06202 55555",website:"https://elektro-schmitt-test.de",description:"Smart Home und PV-Anlagen."},
+        {id:"dir-5",name:"Lüftungsbau Nord",category:"Lüftung",address:"Hafenstraße 1",city:"Mannheim",zip:"68159",phone":"0621 112233",website:"https://lueftung-nord.de",description:"Industrielle Lüftungsanlagen."},
+        {id:"dir-6",name:"Bad & Co. Design",category:"Sanitär",address:"Schlossplatz 4",city:"Schwetzingen",zip:"68723",phone":"06202 123123",website:"https://bad-co.de",description:"Exklusive Badausstellungen."},
+        {id:"dir-7",name:"Solarkraft Süd",category:"Elektro",address:"Sonnenweg 9",city:"Walldorf",zip:"69190",phone":"06227 998877",website:"https://solarkraft-sued.de",description:"Photovoltaik und Speicherlösungen."},
+        {id:"dir-8",name:"Rohrfrei Express",category:"Sanitär",address:"Notfallweg 112",city:"Mannheim",zip:"68161",phone":"0800 112233",website:"https://rohrfrei-express.de",description:"24h Notdienst für Rohrreinigung."},
+        {id:"dir-9",name:"Wärme Plus",category:"Heizung",address:"Berliner Ring 5",city:"Viernheim",zip:"68519",phone":"06204 445566",website:"https://waerme-plus.de",description:"Energieberatung und Heizungstausch."},
+        {id:"dir-10",name:"Kälte Technik GmbH",category:"Klima",address:"Eisstraße 1",city:"Mannheim",zip:"68309",phone":"0621 777888",website:"https://kaelte-technik-ma.de",description:"Kühlräume und Klimatisierung."}
     ];
 }
 
@@ -86,15 +101,15 @@ function render() {
     lucide.createIcons();
 }
 
-function renderLogin(){ return `<div class="min-h-screen bg-brand-dark flex items-center justify-center"><div class="bg-white p-8 rounded shadow-lg w-96"><h2 class="text-xl font-bold mb-4">CMS Login</h2><button onclick="login()" class="w-full bg-brand-copper text-white py-2 rounded">Login as Admin</button></div></div>`}
+function renderLogin(){ return `<div class="min-h-screen bg-brand-dark flex items-center justify-center flex-col"><img src="shklogo.jpg" class="h-16 mb-8 p-2 bg-white rounded"><div class="bg-white p-8 rounded shadow-lg w-96"><h2 class="text-xl font-bold mb-4">CMS Login</h2><button onclick="login()" class="w-full bg-brand-copper text-white py-2 rounded font-bold uppercase tracking-wider">Login as Admin</button></div></div>`}
 function login(){ appState.currentUser=users[0]; render(); }
 function logout(){ appState.currentUser=null; render(); }
 
 function renderSidebar(){ 
-    const nav = (id,ic,l) => `<button onclick="appState.activeView='${id}';render()" class="flex items-center w-full px-6 py-3 text-sm ${appState.activeView===id?'bg-brand-copper text-white':'text-gray-400 hover:text-white'}"><i data-lucide="${ic}" class="w-4 h-4 mr-3"></i> ${l}</button>`;
-    return `<aside class="w-64 bg-brand-dark border-r border-gray-800 flex-col flex"><div class="h-20 flex items-center justify-center border-b border-gray-800"><span class="text-white font-bold">SHK CMS</span></div><div class="flex-1 py-4">${nav('dashboard','layout-dashboard','Dashboard')}${nav('articles','file-text','Articles')}${nav('directory','building-2','Directory')}</div><div class="p-4 border-t border-gray-800"><button onclick="appState.activeView='settings';render()" class="text-gray-400 text-sm flex items-center"><i data-lucide="settings" class="w-4 h-4 mr-2"></i> Settings</button></div></aside>`;
+    const nav = (id,ic,l) => `<button onclick="appState.activeView='${id}';render()" class="flex items-center w-full px-6 py-3 text-sm font-medium transition ${appState.activeView===id?'bg-brand-copper text-white':'text-gray-400 hover:text-white hover:bg-white/5'}"><i data-lucide="${ic}" class="w-4 h-4 mr-3"></i> ${l}</button>`;
+    return `<aside class="w-64 bg-brand-dark border-r border-gray-800 flex-col flex"><div class="h-20 flex items-center justify-center border-b border-gray-800"><img src="shklogo.jpg" class="h-8 bg-white p-1 rounded"></div><div class="flex-1 py-4 space-y-1 overflow-y-auto no-scrollbar">${nav('dashboard','layout-dashboard','Dashboard')}${nav('articles','file-text','Articles')}${nav('directory','building-2','Directory')}</div><div class="p-4 border-t border-gray-800"><button onclick="appState.activeView='settings';render()" class="text-gray-400 text-sm flex items-center hover:text-white transition"><i data-lucide="settings" class="w-4 h-4 mr-2"></i> Settings</button><button onclick="logout()" class="text-gray-400 text-sm flex items-center hover:text-red-400 transition mt-4"><i data-lucide="log-out" class="w-4 h-4 mr-2"></i> Logout</button></div></aside>`;
 }
-function renderHeader(){ return `<header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6"><h2 class="text-xl font-bold capitalize">${appState.activeView}</h2><div class="flex items-center space-x-2"><span class="text-sm font-bold">${appState.currentUser.name}</span></div></header>`}
+function renderHeader(){ return `<header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6"><h2 class="text-xl font-bold capitalize text-brand-dark">${appState.activeView}</h2><div class="flex items-center space-x-3"><span class="text-xs font-bold uppercase tracking-wider bg-gray-100 px-2 py-1 rounded text-gray-600">${appState.currentUser.role}</span><span class="text-sm font-bold text-brand-dark">${appState.currentUser.name}</span></div></header>`}
 
 function renderMain(){
     if(appState.activeView==='dashboard') return renderDashboard();
@@ -106,74 +121,81 @@ function renderMain(){
 }
 
 function renderDashboard(){
-    return `<div class="grid grid-cols-3 gap-6 mb-8">
-        <div class="bg-white p-6 rounded shadow"><h3 class="text-gray-500 text-xs font-bold uppercase">Total Articles</h3><p class="text-3xl font-bold">${articles.length}</p></div>
-        <div class="bg-white p-6 rounded shadow"><h3 class="text-gray-500 text-xs font-bold uppercase">Directory Entries</h3><p class="text-3xl font-bold">${directory.length}</p></div>
+    return `<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-6 rounded shadow border border-gray-100"><h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Total Articles</h3><p class="text-3xl font-bold text-brand-dark">${articles.length}</p></div>
+        <div class="bg-white p-6 rounded shadow border border-gray-100"><h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Directory Entries</h3><p class="text-3xl font-bold text-brand-dark">${directory.length}</p></div>
+        <div class="bg-white p-6 rounded shadow border border-gray-100"><h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Categories</h3><p class="text-3xl font-bold text-brand-dark">${categories.length}</p></div>
     </div>`;
 }
 
 function renderArticles(){
-    return `<div class="flex justify-between mb-6"><h3 class="font-bold">Manage Articles</h3><div class="flex gap-2"><button onclick="sync('articles')" class="border border-gray-300 px-4 py-2 rounded text-xs font-bold uppercase hover:bg-gray-50 flex items-center"><i data-lucide="refresh-cw" class="w-3 h-3 mr-2 ${appState.syncStateArticles==='loading'?'animate-spin':''}"></i> Sync Articles</button><button onclick="editItem(null,'article')" class="bg-brand-copper text-white px-4 py-2 rounded text-xs font-bold uppercase">New Article</button></div></div>
-    <div class="bg-white rounded shadow overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-gray-50 border-b"><tr><th class="p-4">Title</th><th class="p-4">Category</th><th class="p-4 text-right">Action</th></tr></thead>
-    <tbody>${articles.map(a=>`<tr class="border-b"><td class="p-4">${a.title}</td><td class="p-4 text-gray-500">${a.category}</td><td class="p-4 text-right"><button onclick="editItem('${a.id}','article')" class="text-blue-600 mr-2">Edit</button><button onclick="deleteItem('${a.id}','article')" class="text-red-600">Delete</button></td></tr>`).join('')}</tbody></table></div>`;
+    return `<div class="flex justify-between mb-6"><h3 class="font-bold text-lg">Manage Articles</h3><div class="flex gap-2"><button onclick="sync('articles')" class="border border-gray-300 px-4 py-2 rounded text-xs font-bold uppercase hover:bg-gray-50 flex items-center bg-white"><i data-lucide="refresh-cw" class="w-3 h-3 mr-2 ${appState.syncStateArticles==='loading'?'animate-spin':''}"></i> Sync Articles</button><button onclick="editItem(null,'article')" class="bg-brand-copper text-white px-4 py-2 rounded text-xs font-bold uppercase hover:bg-orange-700 transition">New Article</button></div></div>
+    <div class="bg-white rounded shadow border border-gray-200 overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase text-xs font-bold"><tr><th class="p-4">Title</th><th class="p-4">Category</th><th class="p-4">Status</th><th class="p-4 text-right">Action</th></tr></thead>
+    <tbody class="divide-y divide-gray-100">${articles.map(a=>`<tr class="hover:bg-gray-50"><td class="p-4 font-medium text-brand-dark">${a.title}</td><td class="p-4 text-gray-500">${a.category}</td><td class="p-4"><span class="px-2 py-1 text-[10px] font-bold uppercase rounded ${a.status==='published'?'bg-green-100 text-green-700':'bg-gray-100 text-gray-600'}">${a.status||'draft'}</span></td><td class="p-4 text-right"><button onclick="editItem('${a.id}','article')" class="text-gray-400 hover:text-brand-copper mr-3"><i data-lucide="edit-3" class="w-4 h-4"></i></button><button onclick="deleteItem('${a.id}','article')" class="text-gray-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`).join('')}</tbody></table></div>`;
 }
 
 function renderDirectory(){
-    return `<div class="flex justify-between mb-6"><h3 class="font-bold">Manage Directory</h3><div class="flex gap-2"><button onclick="sync('directory')" class="border border-gray-300 px-4 py-2 rounded text-xs font-bold uppercase hover:bg-gray-50 flex items-center"><i data-lucide="refresh-cw" class="w-3 h-3 mr-2 ${appState.syncStateDirectory==='loading'?'animate-spin':''}"></i> Sync Directory</button><button onclick="openModal('business')" class="bg-brand-copper text-white px-4 py-2 rounded text-xs font-bold uppercase">Add Business</button></div></div>
-    <div class="bg-white rounded shadow overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-gray-50 border-b"><tr><th class="p-4">Name</th><th class="p-4">Category</th><th class="p-4 text-right">Action</th></tr></thead>
-    <tbody>${directory.map(d=>`<tr class="border-b"><td class="p-4">${d.name}</td><td class="p-4 text-gray-500">${d.category}</td><td class="p-4 text-right"><button onclick="editBiz('${d.id}')" class="text-blue-600 mr-2">Edit</button><button onclick="deleteItem('${d.id}','directory')" class="text-red-600">Delete</button></td></tr>`).join('')}</tbody></table></div>`;
+    return `<div class="flex justify-between mb-6"><h3 class="font-bold text-lg">Manage Directory</h3><div class="flex gap-2"><button onclick="sync('directory')" class="border border-gray-300 px-4 py-2 rounded text-xs font-bold uppercase hover:bg-gray-50 flex items-center bg-white"><i data-lucide="refresh-cw" class="w-3 h-3 mr-2 ${appState.syncStateDirectory==='loading'?'animate-spin':''}"></i> Sync Directory</button><button onclick="openModal('business')" class="bg-brand-copper text-white px-4 py-2 rounded text-xs font-bold uppercase hover:bg-orange-700 transition">Add Business</button></div></div>
+    <div class="bg-white rounded shadow border border-gray-200 overflow-hidden"><table class="w-full text-left text-sm"><thead class="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase text-xs font-bold"><tr><th class="p-4">Name</th><th class="p-4">Category</th><th class="p-4 text-right">Action</th></tr></thead>
+    <tbody class="divide-y divide-gray-100">${directory.map(d=>`<tr class="hover:bg-gray-50"><td class="p-4 font-medium text-brand-dark">${d.name}</td><td class="p-4 text-gray-500">${d.category}</td><td class="p-4 text-right"><button onclick="editBiz('${d.id}')" class="text-gray-400 hover:text-brand-copper mr-3"><i data-lucide="edit-3" class="w-4 h-4"></i></button><button onclick="deleteItem('${d.id}','directory')" class="text-gray-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`).join('')}</tbody></table></div>`;
 }
 
 function renderSettings(){
-    return `<div class="bg-white p-8 rounded shadow max-w-2xl">
-        <h3 class="font-bold text-lg mb-6">Backend Configuration</h3>
-        <div class="space-y-6">
+    return `<div class="bg-white p-8 rounded shadow border border-gray-200 max-w-2xl">
+        <h3 class="font-bold text-lg mb-6 border-b pb-4">Sync Configuration</h3>
+        <div class="space-y-8">
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Articles Google Apps Script URL</label>
-                <div class="flex gap-2"><input id="url-articles" value="${settings.articlesScriptUrl}" class="flex-1 border p-2 rounded text-sm"><button onclick="sync('articles')" class="bg-gray-100 border px-4 rounded text-xs font-bold">Sync</button></div>
-                <p class="text-xs ${appState.syncStateArticles==='success'?'text-green-600':'text-gray-400'} mt-1">${appState.syncStateArticles==='success'?'Sync Successful':(appState.syncStateArticles==='error'?'Sync Failed':'IDLE')}</p>
+                <div class="flex justify-between items-center mb-2"><label class="text-xs font-bold text-gray-500 uppercase">Articles Backend (Google Doc Script)</label><span class="text-[10px] font-bold uppercase ${appState.syncStateArticles==='success'?'text-green-600':'text-gray-400'}">${appState.syncStateArticles}</span></div>
+                <div class="flex gap-2"><input id="url-articles" value="${settings.articlesScriptUrl}" placeholder="https://script.google.com/..." class="flex-1 border border-gray-300 p-2 rounded text-sm focus:border-brand-copper outline-none"><button onclick="sync('articles')" class="bg-gray-100 border border-gray-300 px-4 rounded text-xs font-bold hover:bg-white transition uppercase">Sync</button></div>
             </div>
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Directory Google Apps Script URL</label>
-                <div class="flex gap-2"><input id="url-directory" value="${settings.directoryScriptUrl}" class="flex-1 border p-2 rounded text-sm"><button onclick="sync('directory')" class="bg-gray-100 border px-4 rounded text-xs font-bold">Sync</button></div>
-                <p class="text-xs ${appState.syncStateDirectory==='success'?'text-green-600':'text-gray-400'} mt-1">${appState.syncStateDirectory==='success'?'Sync Successful':(appState.syncStateDirectory==='error'?'Sync Failed':'IDLE')}</p>
+                <div class="flex justify-between items-center mb-2"><label class="text-xs font-bold text-gray-500 uppercase">Directory Backend (Google Sheet Script)</label><span class="text-[10px] font-bold uppercase ${appState.syncStateDirectory==='success'?'text-green-600':'text-gray-400'}">${appState.syncStateDirectory}</span></div>
+                <div class="flex gap-2"><input id="url-directory" value="${settings.directoryScriptUrl}" placeholder="https://script.google.com/..." class="flex-1 border border-gray-300 p-2 rounded text-sm focus:border-brand-copper outline-none"><button onclick="sync('directory')" class="bg-gray-100 border border-gray-300 px-4 rounded text-xs font-bold hover:bg-white transition uppercase">Sync</button></div>
             </div>
-            <button onclick="saveSettingsUI()" class="bg-brand-dark text-white px-6 py-2 rounded font-bold text-xs uppercase mt-4">Save URLs</button>
+            <div class="pt-4 border-t"><button onclick="saveSettingsUI()" class="bg-brand-dark text-white px-6 py-2 rounded font-bold text-xs uppercase hover:bg-brand-copper transition">Save All Settings</button></div>
         </div>
     </div>`;
 }
 
 function renderEditor(){
     const a = appState.editingItem;
-    return `<div class="bg-white p-6 rounded shadow h-full flex flex-col">
-        <input id="ed-title" value="${a.title}" placeholder="Title" class="text-2xl font-bold mb-4 border-none outline-none w-full">
-        <div class="flex gap-2 mb-4 border-b pb-2"><button onclick="document.execCommand('bold')" class="p-1 font-bold">B</button><button onclick="document.execCommand('italic')" class="p-1 italic">I</button></div>
-        <div id="ed-content" contenteditable="true" class="flex-1 outline-none prose max-w-none">${a.content||'<p>Start writing...</p>'}</div>
-        <div class="mt-4 flex justify-between items-center border-t pt-4">
-            <select id="ed-cat" class="border p-1 text-sm">${categories.map(c=>`<option ${a.category===c?'selected':''}>${c}</option>`).join('')}</select>
-            <div class="flex gap-2"><button onclick="appState.activeView='articles';render()" class="text-gray-500 px-4 py-2">Cancel</button><button onclick="saveArticle()" class="bg-brand-copper text-white px-4 py-2 rounded font-bold">Save Article</button></div>
+    return `<div class="bg-white p-6 rounded shadow border border-gray-200 h-full flex flex-col">
+        <input id="ed-title" value="${a.title}" placeholder="Article Title" class="text-3xl font-bold font-display mb-6 border-none outline-none w-full placeholder-gray-300">
+        <div class="flex gap-2 mb-4 border-b border-gray-100 pb-2 bg-gray-50 p-2 rounded">
+            <button onclick="document.execCommand('bold')" class="p-1 hover:bg-gray-200 rounded font-bold w-8 text-center">B</button>
+            <button onclick="document.execCommand('italic')" class="p-1 hover:bg-gray-200 rounded italic w-8 text-center">I</button>
+            <div class="w-px h-6 bg-gray-300 mx-1"></div>
+            <button onclick="document.execCommand('formatBlock',false,'h2')" class="p-1 hover:bg-gray-200 rounded text-xs font-bold px-2">H2</button>
+            <label class="p-1 hover:bg-gray-200 rounded cursor-pointer ml-auto"><i data-lucide="image" class="w-4 h-4"></i><input type="file" class="hidden" onchange="uploadImage(this)"></label>
+        </div>
+        <div id="ed-content" contenteditable="true" class="flex-1 outline-none prose max-w-none p-4 overflow-y-auto">${a.content||'<p>Start writing your story...</p>'}</div>
+        <div class="mt-4 flex flex-col md:flex-row gap-4 border-t pt-4">
+            <div class="flex-1"><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Category</label><select id="ed-cat" class="w-full border p-2 text-sm rounded bg-white">${categories.map(c=>`<option ${a.category===c?'selected':''}>${c}</option>`).join('')}</select></div>
+            <div class="flex-1"><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Featured Image URL</label><input id="ed-img" value="${a.imageUrl||''}" class="w-full border p-2 text-sm rounded"></div>
+            <div class="flex items-end gap-2"><button onclick="appState.activeView='articles';render()" class="text-gray-500 px-4 py-2 text-sm hover:text-gray-800">Cancel</button><button onclick="saveArticle()" class="bg-brand-copper text-white px-6 py-2 rounded font-bold uppercase text-xs hover:bg-orange-700 transition">Save Article</button></div>
         </div>
     </div>`;
 }
 
 function renderModal() {
     const d = appState.editingItem || {};
-    return `<div class="fixed inset-0 bg-black/50 flex items-center justify-center"><div class="bg-white p-6 rounded shadow w-96">
-        <h3 class="font-bold mb-4">${d.id?'Edit':'Add'} Business</h3>
-        <input id="m-name" value="${d.name||''}" placeholder="Name" class="w-full border p-2 mb-2 rounded">
-        <input id="m-city" value="${d.city||''}" placeholder="City" class="w-full border p-2 mb-2 rounded">
-        <select id="m-cat" class="w-full border p-2 mb-4 rounded">${['Heizung','Sanitär','Klima'].map(c=>`<option ${d.category===c?'selected':''}>${c}</option>`).join('')}</select>
-        <div class="flex justify-end gap-2"><button onclick="appState.modalOpen=false;render()" class="text-gray-500">Cancel</button><button onclick="saveBiz()" class="bg-brand-copper text-white px-4 py-2 rounded">Save</button></div>
+    return `<div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm"><div class="bg-white p-8 rounded shadow-2xl w-full max-w-md border border-gray-200">
+        <h3 class="font-bold text-xl mb-6 text-brand-dark">${d.id?'Edit':'Add'} Business</h3>
+        <div class="space-y-4">
+            <input id="m-name" value="${d.name||''}" placeholder="Company Name" class="w-full border border-gray-300 p-2 rounded text-sm focus:border-brand-copper outline-none">
+            <input id="m-city" value="${d.city||''}" placeholder="City" class="w-full border border-gray-300 p-2 rounded text-sm focus:border-brand-copper outline-none">
+            <select id="m-cat" class="w-full border border-gray-300 p-2 rounded text-sm bg-white">${['Heizung','Sanitär','Klima','Lüftung','Elektro'].map(c=>`<option ${d.category===c?'selected':''}>${c}</option>`).join('')}</select>
+            <input id="m-web" value="${d.website||''}" placeholder="Website URL" class="w-full border border-gray-300 p-2 rounded text-sm focus:border-brand-copper outline-none">
+        </div>
+        <div class="flex justify-end gap-2 mt-8"><button onclick="appState.modalOpen=false;render()" class="text-gray-500 hover:text-gray-800 px-4 text-sm font-medium">Cancel</button><button onclick="saveBiz()" class="bg-brand-copper text-white px-6 py-2 rounded font-bold uppercase text-xs hover:bg-orange-700 transition">Save Business</button></div>
     </div></div>`;
 }
 
 // --- LOGIC ---
 function editItem(id, type) {
     if(type==='article') {
-        appState.editingItem = id ? {...articles.find(a=>a.id===id)} : {id:'',title:'',content:'',category:'Branchen-News'};
+        appState.editingItem = id ? {...articles.find(a=>a.id===id)} : {id:'',title:'',content:'',category:'Branchen-News',status:'draft',imageUrl:''};
         appState.activeView='editor';
-    } else {
-        // ...
     }
     render();
 }
@@ -184,9 +206,11 @@ function saveArticle() {
     a.title = document.getElementById('ed-title').value;
     a.content = document.getElementById('ed-content').innerHTML;
     a.category = document.getElementById('ed-cat').value;
-    a.summary = a.content.replace(/<[^>]*>/g, '').substring(0,100)+'...';
+    a.imageUrl = document.getElementById('ed-img').value;
+    a.summary = a.content.replace(/<[^>]*>/g, '').substring(0,120)+'...';
     if(!a.id) a.id = 'art-'+Date.now();
     a.publishedAt = a.publishedAt || new Date().toISOString();
+    a.status = 'published';
     
     const idx = articles.findIndex(x=>x.id===a.id);
     if(idx>=0) articles[idx]=a; else articles.unshift(a);
@@ -200,7 +224,9 @@ function saveBiz() {
     b.name = document.getElementById('m-name').value;
     b.city = document.getElementById('m-city').value;
     b.category = document.getElementById('m-cat').value;
+    b.website = document.getElementById('m-web').value;
     if(!b.id) b.id = 'dir-'+Date.now();
+    b.logoUrl = `https://logo.clearbit.com/${b.website.replace(/https?:\/\//,'')}`;
     const idx = directory.findIndex(x=>x.id===b.id);
     if(idx>=0) directory[idx]=b; else directory.unshift(b);
     saveData();
@@ -209,11 +235,19 @@ function saveBiz() {
 }
 
 function deleteItem(id, type) {
-    if(!confirm('Delete?')) return;
+    if(!confirm('Delete this item?')) return;
     if(type==='article') articles = articles.filter(a=>a.id!==id);
     if(type==='directory') directory = directory.filter(d=>d.id!==id);
     saveData();
     render();
+}
+
+function uploadImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) { document.execCommand('insertImage', false, e.target.result); };
+        reader.readAsDataURL(input.files[0]);
+    }
 }
 
 function saveSettingsUI() {
@@ -240,10 +274,11 @@ async function sync(type) {
 
     try {
         await fetch(url, { method: 'POST', mode: 'no-cors', headers: {'Content-Type':'text/plain'}, body: JSON.stringify(payload) });
-        // Optimistic success
+        // Optimistic success update
         setTimeout(() => {
             if(isArt) appState.syncStateArticles='success'; else appState.syncStateDirectory='success';
             render();
+            // Reset status after 3s
             setTimeout(() => {
                 if(isArt) appState.syncStateArticles='idle'; else appState.syncStateDirectory='idle';
                 render();
