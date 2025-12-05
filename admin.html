@@ -550,7 +550,58 @@ const renderCategories=()=>`
         </div>
     </div>`;
 
-// --- ACTIONS ---
+// --- ACTIONS & AUTO-SYNC ---
+
+// Auto-Sync Logic
+async function autoFetchServerData() {
+    const artUrl = settings.articlesScriptUrl;
+    const dirUrl = settings.directoryScriptUrl;
+    if (!artUrl && !dirUrl) return;
+
+    console.log("CMS Auto-Sync: Inspecting Google Data...");
+    let updated = false;
+
+    // Fetch Articles
+    if (artUrl) {
+        try {
+            const res = await fetch(artUrl);
+            const data = await res.json();
+            if (data && Array.isArray(data.articles)) {
+                articles = data.articles;
+                if (data.categories) categories = data.categories;
+                updated = true;
+            }
+        } catch(e) { console.error("Auto-Sync Articles Error:", e); }
+    }
+
+    // Fetch Directory
+    if (dirUrl && dirUrl !== artUrl) {
+        try {
+            const res = await fetch(dirUrl);
+            const data = await res.json();
+            if (data && Array.isArray(data.directory)) {
+                directory = data.directory;
+                updated = true;
+            }
+        } catch(e) { console.error("Auto-Sync Directory Error:", e); }
+    }
+
+    if (updated) {
+        saveData();
+        console.log("CMS Auto-Sync: Data updated.");
+        // Only re-render list views to avoid disrupting editor
+        if (['articles', 'pages', 'directory', 'categories', 'dashboard'].includes(appState.activeView)) {
+            render();
+        }
+    }
+}
+
+// Start Auto-Sync on Load
+function startAutoSync() {
+    autoFetchServerData(); // Initial fetch
+    setInterval(autoFetchServerData, 5 * 60 * 1000); // 5 minutes
+}
+
 function saveSettings() {
     settings.articlesScriptUrl = document.getElementById('settings-articles-url').value;
     settings.directoryScriptUrl = document.getElementById('settings-directory-url').value;
@@ -604,6 +655,9 @@ function navigate(e){appState.activeView=e,render()}function logout(){sessionSto
 document.addEventListener('DOMContentLoaded', () => {
     loadData();
     render();
+    if(localStorage.getItem('shk_auth_user')) {
+        startAutoSync();
+    }
 });
 
 </script>
