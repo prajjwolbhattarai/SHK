@@ -20,20 +20,6 @@
               'brand-copper': '#b45309',
               'brand-steel': '#475569',
               'brand-surface': '#f8fafc',
-            },
-            animation: {
-              'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
-              'fade-in': 'fadeIn 1s ease-out forwards',
-            },
-            keyframes: {
-              fadeInUp: {
-                '0%': { opacity: '0', transform: 'translateY(20px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
-              },
-              fadeIn: {
-                '0%': { opacity: '0' },
-                '100%': { opacity: '1' },
-              }
             }
           }
         }
@@ -42,29 +28,22 @@
     <style>
       .writing-mode-vertical { writing-mode: vertical-rl; }
     </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.2.1/",
-    "react": "https://aistudiocdn.com/react@^19.2.1",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
-    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.10.1",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0"
-  }
-}
-</script>
-</head>
-  <body class="bg-brand-surface text-slate-900 antialiased selection:bg-brand-copper selection:text-white">
+  </head>
+  <body class="bg-white text-slate-900 antialiased selection:bg-brand-copper selection:text-white">
     
+    <div id="progress-bar" class="fixed top-0 left-0 w-full h-1 z-[60] bg-transparent">
+        <div class="h-full bg-brand-copper transition-all duration-100 ease-out shadow-[0_0_10px_#b45309]" style="width: 0%"></div>
+    </div>
+
     <header id="header-placeholder"></header>
 
     <main id="main-content">
-      <!-- Content will be injected by js/index-page.js -->
+      <!-- Article content will be injected by js/article-page.js -->
     </main>
 
     <footer id="footer-placeholder"></footer>
 
     <script src="js/main.js" type="module"></script>
-    <script src="js/index-page.js" type="module"></script>
+    <script src="js/article-page.js" type="module"></script>
   </body>
 </html>

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SHK Rhein-Neckar | Industry Magazine</title>
+    <title>SHK Rhein-Neckar | Business Directory</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -20,51 +20,23 @@
               'brand-copper': '#b45309',
               'brand-steel': '#475569',
               'brand-surface': '#f8fafc',
-            },
-            animation: {
-              'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
-              'fade-in': 'fadeIn 1s ease-out forwards',
-            },
-            keyframes: {
-              fadeInUp: {
-                '0%': { opacity: '0', transform: 'translateY(20px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
-              },
-              fadeIn: {
-                '0%': { opacity: '0' },
-                '100%': { opacity: '1' },
-              }
             }
           }
         }
       }
     </script>
-    <style>
-      .writing-mode-vertical { writing-mode: vertical-rl; }
-    </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.2.1/",
-    "react": "https://aistudiocdn.com/react@^19.2.1",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
-    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.10.1",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0"
-  }
-}
-</script>
-</head>
+  </head>
   <body class="bg-brand-surface text-slate-900 antialiased selection:bg-brand-copper selection:text-white">
     
     <header id="header-placeholder"></header>
 
     <main id="main-content">
-      <!-- Content will be injected by js/index-page.js -->
+      <!-- Directory content will be injected by js/directory-page.js -->
     </main>
 
     <footer id="footer-placeholder"></footer>
 
     <script src="js/main.js" type="module"></script>
-    <script src="js/index-page.js" type="module"></script>
+    <script src="js/directory-page.js" type="module"></script>
   </body>
 </html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SHK Rhein-Neckar | CMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              display: ['Montserrat', 'sans-serif'],
+            },
+            colors: {
+              'brand-dark': '#0f172a',
+              'brand-copper': '#b45309',
+              'brand-steel': '#475569',
+              'brand-surface': '#f8fafc',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      #cms-container, #editor-container { display: none; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-container" class="min-h-screen bg-brand-dark flex flex-col justify-center items-center p-4 relative overflow-hidden font-sans">
+      <div class="bg-white w-full max-w-sm rounded-sm shadow-2xl overflow-hidden z-10">
+        <div class="p-8">
+          <div class="text-center mb-8">
+             <img src="https://k.sinaimg.cn/n/sinakd20230526s/256/w256h0/20230526/519e-e3b97b1029e08097b692482596409605.jpg/w700d1q75cms.jpg" alt="SHK Rhein-Neckar" class="h-20 w-auto mx-auto mb-4" />
+             <p class="text-brand-steel text-xs uppercase tracking-widest mt-1">Internal CMS</p>
+          </div>
+          <form id="login-form" class="space-y-5">
+            <div>
+              <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Email Address</label>
+              <input type="email" required class="w-full border border-gray-300 rounded-sm p-3 text-sm focus:border-brand-copper outline-none transition" placeholder="editor@shk-rhein-neckar.de" value="editor@shk-rhein-neckar.de" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Password</label>
+              <input type="password" required class="w-full border border-gray-300 rounded-sm p-3 text-sm focus:border-brand-copper outline-none transition" placeholder="••••••••" value="admin" />
+            </div>
+            <button type="submit" id="login-button" class="w-full bg-brand-dark text-white py-3 rounded-sm font-bold uppercase text-xs tracking-wider hover:bg-brand-copper transition flex items-center justify-center group">
+              <span>Sign In</span>
+            </button>
+          </form>
+        </div>
+        <div class="bg-gray-50 p-4 text-center border-t border-gray-100">
+            <p class="text-[10px] uppercase font-bold text-gray-400">Authorized Personnel Only</p>
+        </div>
+      </div>
+      <a href="index.html" class="mt-8 text-white/40 text-xs font-bold uppercase tracking-widest hover:text-white transition cursor-pointer z-10">← Back to Magazine</a>
+    </div>
+
+    <!-- MAIN CMS INTERFACE -->
+    <div id="cms-container" class="min-h-screen flex">
+      <!-- Sidebar will be injected here -->
+      <aside id="cms-sidebar" class="w-64 bg-brand-dark text-gray-400 flex flex-col fixed h-full z-10"></aside>
+      
+      <!-- Main Content Area -->
+      <main id="cms-main-content" class="ml-64 flex-grow p-8"></main>
+    </div>
+
+    <!-- FULL SCREEN EDITOR -->
+    <div id="editor-container" class="min-h-screen bg-gray-50 pb-20 font-sans">
+      <!-- Editor will be injected here -->
+    </div>
+
+    <script src="js/admin-page.js" type="module"></script>
+</body>
+</html>
