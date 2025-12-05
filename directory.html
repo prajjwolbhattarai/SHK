@@ -7,6 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+      @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      .spinner { border-top-color: #b45309; animation: spin 1s linear infinite; }
+    </style>
     <script>
       tailwind.config = {
         theme: {
@@ -36,9 +40,47 @@
 <script>
 // V A N I L L A   J S   A P P L I C A T I O N (Directory Page)
 
-// --- 1. DATA STORE ---
-const INITIAL_CATEGORIES = JSON.parse(localStorage.getItem('shk_categories')) || ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
-const MOCK_DIRECTORY = JSON.parse(localStorage.getItem('shk_directory')) || [];
+// --- 1. DATA STORE & LIVE FETCHING ---
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxiD4ryVZpHISk_L275irKaNb8dRzAmZDCrZQvloe5S_GEaXEVjPp22ECavhF-9KHfSGg/exec';
+const CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
+
+let DIRECTORY_LIST = [];
+let CATEGORIES_LIST = [];
+
+async function loadDataFromServer() {
+    const cachedData = localStorage.getItem('shk_data_cache');
+    const cacheTimestamp = localStorage.getItem('shk_data_cache_timestamp');
+    
+    if (cachedData && cacheTimestamp && (Date.now() - cacheTimestamp < CACHE_DURATION_MS)) {
+        console.log("Loading directory data from cache.");
+        const data = JSON.parse(cachedData);
+        DIRECTORY_LIST = data.directory || [];
+        CATEGORIES_LIST = data.categories || [];
+        return;
+    }
+
+    console.log("Fetching live directory data...");
+    try {
+        const response = await fetch(SCRIPT_URL);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        
+        DIRECTORY_LIST = data.directory || [];
+        CATEGORIES_LIST = data.categories || [];
+
+        localStorage.setItem('shk_data_cache', JSON.stringify(data));
+        localStorage.setItem('shk_data_cache_timestamp', Date.now());
+
+    } catch (error) {
+        console.error("Failed to fetch live data:", error);
+        if(cachedData) {
+            const data = JSON.parse(cachedData);
+            DIRECTORY_LIST = data.directory || [];
+            CATEGORIES_LIST = data.categories || [];
+        }
+        // You might want to show an error message in the UI
+    }
+}
 
 // --- 2. LANGUAGE MANAGER ---
 const translations = { de: { 'directory.title': 'Branchenverzeichnis', 'directory.subtitle': 'Finden Sie qualifizierte SHK-Fachbetriebe in der Rhein-Neckar-Region.', 'search.placeholder_dir': 'Suche nach Name oder Stadt...' }, en: { 'directory.title': 'Business Directory', 'directory.subtitle': 'Find qualified SHK professionals in the Rhein-Neckar region.', 'search.placeholder_dir': 'Search by name or city...' }};
@@ -78,11 +120,11 @@ function renderDirectoryGrid() {
     const grid = document.getElementById('directory-grid');
     if (!grid) return;
     
-    const filteredBusinesses = MOCK_DIRECTORY.filter(business => {
+    const filteredBusinesses = DIRECTORY_LIST.filter(business => {
       const matchesCategory = appState.activeCategory === 'All' || business.category === appState.activeCategory;
       const matchesSearch = appState.searchQuery.length === 0 ||
-        business.name.toLowerCase().includes(appState.searchQuery.toLowerCase()) ||
-        business.city.toLowerCase().includes(appState.searchQuery.toLowerCase());
+        (business.name || '').toLowerCase().includes(appState.searchQuery.toLowerCase()) ||
+        (business.city || '').toLowerCase().includes(appState.searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
 
@@ -96,8 +138,8 @@ function renderDirectoryGrid() {
 function renderPage() {
     languageManager.getLanguage();
     const t = languageManager.t;
-    document.getElementById('header-container').innerHTML = createHeaderHTML(INITIAL_CATEGORIES);
-    document.getElementById('footer-container').innerHTML = createFooterHTML(INITIAL_CATEGORIES);
+    document.getElementById('header-container').innerHTML = createHeaderHTML(CATEGORIES_LIST);
+    document.getElementById('footer-container').innerHTML = createFooterHTML(CATEGORIES_LIST);
     
     document.getElementById('main-content').innerHTML = `
         <div class="bg-white py-16 md:py-24 border-b border-gray-100">
@@ -116,7 +158,12 @@ function renderPage() {
                     ${['Heizung', 'Sanitär', 'Klima', 'Lüftung', 'Elektro'].map(cat => `<button data-category="${cat}" class="filter-btn px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-full transition bg-white text-brand-dark hover:bg-gray-100 border border-gray-200">${cat}</button>`).join('')}
                 </div>
             </div>
-            <div id="directory-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
+            <div id="directory-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                 <div id="loader" class="col-span-full flex flex-col items-center justify-center min-h-[40vh] text-center">
+                    <div class="spinner w-10 h-10 border-4 border-gray-200 rounded-full"></div>
+                    <p class="mt-4 text-brand-steel font-medium">Lade Verzeichnis...</p>
+                </div>
+            </div>
         </div>`;
     
     renderDirectoryGrid();
@@ -144,7 +191,17 @@ function attachEventListeners() {
 }
 
 // Initial Load
-document.addEventListener('DOMContentLoaded', renderPage);
+document.addEventListener('DOMContentLoaded', async () => {
+    // We only need to render the static parts of the layout first
+    languageManager.getLanguage();
+    document.getElementById('header-container').innerHTML = createHeaderHTML(CATEGORIES_LIST);
+    document.getElementById('footer-container').innerHTML = createFooterHTML(CATEGORIES_LIST);
+    renderPage();
+    
+    // Then load the data and render the dynamic grid
+    await loadDataFromServer();
+    renderDirectoryGrid();
+});
 </script>
 </body>
 </html>

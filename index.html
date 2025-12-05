@@ -9,6 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
       .writing-mode-vertical { writing-mode: vertical-rl; }
+      @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      .spinner { border-top-color: #b45309; animation: spin 1s linear infinite; }
     </style>
     <script>
       tailwind.config = {
@@ -47,17 +49,60 @@
     <div id="progress-bar-container" class="fixed top-0 left-0 w-full h-1 z-[60] bg-transparent"></div>
     <div id="header-container"></div>
     <main id="main-content">
-        <!-- Content is rendered by JavaScript -->
+        <!-- Initial Loading State -->
+        <div id="loader" class="flex flex-col items-center justify-center min-h-[60vh] text-center">
+            <div class="spinner w-12 h-12 border-4 border-gray-200 rounded-full"></div>
+            <p class="mt-4 text-brand-steel font-medium">Lade neueste Artikel...</p>
+        </div>
     </main>
     <div id="footer-container"></div>
 
 <script>
 // V A N I L L A   J S   A P P L I C A T I O N
 
-// --- 1. DATA STORE ---
-// All data is now loaded from localStorage, which is managed by admin.html
-const ALL_ARTICLES = JSON.parse(localStorage.getItem('shk_articles')) || [];
-const INITIAL_CATEGORIES = JSON.parse(localStorage.getItem('shk_categories')) || ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
+// --- 1. DATA STORE & LIVE FETCHING ---
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxiD4ryVZpHISk_L275irKaNb8dRzAmZDCrZQvloe5S_GEaXEVjPp22ECavhF-9KHfSGg/exec';
+const CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutes
+
+let ALL_ARTICLES = [];
+let INITIAL_CATEGORIES = [];
+
+async function loadDataFromServer() {
+    const cachedData = localStorage.getItem('shk_data_cache');
+    const cacheTimestamp = localStorage.getItem('shk_data_cache_timestamp');
+    
+    if (cachedData && cacheTimestamp && (Date.now() - cacheTimestamp < CACHE_DURATION_MS)) {
+        console.log("Loading data from cache.");
+        const data = JSON.parse(cachedData);
+        ALL_ARTICLES = data.articles || [];
+        INITIAL_CATEGORIES = data.categories || ['Branchen-News'];
+        return;
+    }
+
+    console.log("Fetching live data from Google Apps Script...");
+    try {
+        const response = await fetch(SCRIPT_URL);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        
+        ALL_ARTICLES = data.articles || [];
+        INITIAL_CATEGORIES = data.categories || ['Branchen-News'];
+
+        localStorage.setItem('shk_data_cache', JSON.stringify(data));
+        localStorage.setItem('shk_data_cache_timestamp', Date.now());
+
+    } catch (error) {
+        console.error("Failed to fetch live data:", error);
+        // Fallback to cached data if fetch fails
+        if(cachedData) {
+            const data = JSON.parse(cachedData);
+            ALL_ARTICLES = data.articles || [];
+            INITIAL_CATEGORIES = data.categories || ['Branchen-News'];
+        }
+        document.getElementById('loader').innerHTML = '<p class="text-red-500">Fehler beim Laden der Artikel. Bitte versuchen Sie es später erneut.</p>';
+    }
+}
+
 
 // --- 2. LANGUAGE MANAGER ---
 const translations = {
@@ -74,7 +119,7 @@ const languageManager = {
     setLanguage: (lang) => {
         languageManager.currentLanguage = lang;
         localStorage.setItem('shk_lang', lang);
-        renderPage(); // Re-render the whole page on language change
+        renderPageLayout(); 
     },
     t: (key) => {
         return translations[languageManager.currentLanguage]?.[key] || translations['de'][key] || key;
@@ -162,7 +207,7 @@ const createFooterHTML = (categories) => {
         <div>
           <h3 class="text-xs font-bold uppercase tracking-widest text-brand-dark mb-6">Kontakt</h3>
           <ul class="space-y-3 text-sm text-brand-steel">
-            <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2 mt-1 flex-shrink-0"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> redaktion@shk-rhein-neckar.de</li>
+            <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2 mt-1 flex-shrink-0"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0 1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> redaktion@shk-rhein-neckar.de</li>
             <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2 mt-1 flex-shrink-0"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> Mannheim, Germany</li>
           </ul>
         </div>
@@ -252,9 +297,9 @@ function renderMagazinePage() {
     if (appState.searchQuery) {
         const lowerQuery = appState.searchQuery.toLowerCase();
         displayArticles = displayArticles.filter(a => 
-            a.title.toLowerCase().includes(lowerQuery) || 
-            a.summary.toLowerCase().includes(lowerQuery) ||
-            a.content.toLowerCase().includes(lowerQuery)
+            (a.title || '').toLowerCase().includes(lowerQuery) || 
+            (a.summary || '').toLowerCase().includes(lowerQuery) ||
+            (a.content || '').toLowerCase().includes(lowerQuery)
         );
     } else if (appState.activeCategory !== 'All') {
         displayArticles = displayArticles.filter(a => a.category === appState.activeCategory);
@@ -445,7 +490,7 @@ function attachMagazineEventListeners() {
             appState.searchQuery = '';
             appState.displayedCount = category === 'All' ? 6 : 9;
             window.history.pushState({category}, '', `index.html?category=${encodeURIComponent(category)}`);
-            renderPage();
+            renderPageLayout();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
     });
@@ -509,18 +554,18 @@ function attachGlobalEventListeners() {
                 e.preventDefault();
                 appState.searchQuery = document.getElementById('search-input').value;
                 appState.displayedCount = 100;
-                renderPage();
+                renderPageLayout();
             });
 
             document.getElementById('search-close-btn').addEventListener('click', () => {
                 appState.searchQuery = '';
-                renderPage(); 
+                renderPageLayout(); 
             });
         });
     }
 }
 
-function renderPage() {
+function renderPageLayout() {
     const urlParams = new URLSearchParams(window.location.search);
     const articleId = urlParams.get('id');
     const category = urlParams.get('category');
@@ -546,7 +591,10 @@ function renderPage() {
     attachGlobalEventListeners();
 }
 
-document.addEventListener('DOMContentLoaded', renderPage);
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadDataFromServer();
+    renderPageLayout();
+});
 
 </script>
 </body>
