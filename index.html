@@ -56,7 +56,10 @@
 <script>
 // V A N I L L A   J S   A P P L I C A T I O N
 
-// --- 1. DATA STORE ---
+// --- 1. CONFIGURATION ---
+const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxiD4ryVZpHISk_L275irKaNb8dRzAmZDCrZQvloe5S_GEaXEVjPp22ECavhF-9KHfSGg/exec';
+
+// --- 2. DATA STORE ---
 // Skeleton Data for instant load if CMS is empty
 const SKELETON_ARTICLES = [{"id":"art-1","type":"article","title":"Neue Energieverordnungen 2025: Was gilt ab Januar?","summary":"Ein umfassender Bericht über die neuen Vorschriften für Heizungssysteme in der Rhein-Neckar Region.","imageUrl":"https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200","category":"Branchen-News","author":"Redaktion","publishedAt":"2025-10-25T10:00:00.000Z","featured":true},{"id":"art-2","type":"article","title":"Wärmepumpen-Boom in Mannheim","summary":"Wie lokale Betriebe mit der steigenden Nachfrage umgehen und welche Förderungen aktuell verfügbar sind.","imageUrl":"https://images.unsplash.com/photo-1581092334651-ddf26d9a09d0?auto=format&fit=crop&q=80&w=1200","category":"Technologie","author":"Markus Weber","publishedAt":"2025-10-24T10:00:00.000Z","featured":false},{"id":"art-3","type":"article","title":"Fachkräftemangel: Strategien für 2026","summary":"Experteninterviews mit Handwerksmeistern aus Heidelberg über erfolgreiche Recruiting-Methoden.","imageUrl":"https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=1200","category":"Personal & Karriere","author":"Julia Schmidt","publishedAt":"2025-10-23T10:00:00.000Z","featured":false}];
 
@@ -83,10 +86,10 @@ ALL_ARTICLES = Array.isArray(ALL_ARTICLES) ? ALL_ARTICLES.filter(a => a.type !==
 
 const INITIAL_CATEGORIES = ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
 
-// --- 2. LANGUAGE MANAGER ---
+// --- 3. LANGUAGE MANAGER ---
 const translations={en:{'nav.home':'Home','nav.directory':'Directory','hero.title':'The Leading SHK Industry Magazine.','hero.subtitle':"Trusted industry coverage, insights, and success stories for sanitary, heating, and climate professionals in the Rhein-Neckar region.",'hero.read_latest':'Read Latest','hero.submit_story':'Submit a Story','section.top_story':'Top Story','section.latest_news':'Latest Industry News','newsletter.title':'Stay Informed. No Spam.','newsletter.text':'Get the weekly digest of the most important SHK news in Rhein-Neckar.','newsletter.placeholder':'Your work email...','newsletter.button':'Subscribe','footer.about':'The independent voice for the Sanitary, Heating, and Climate industry in the metropolitan region.','article.read_story':'Read Story','article.watch_video':'Watch Video','search.placeholder':'Search articles...','search.no_results':'No articles found matching your search.','btn.show_more':'Show More','btn.load_more':'Load More Articles','nav.get_featured':'Get Featured','cat.Branchen-News':'Industry News','cat.Betriebs-Features':'Company Features','cat.Personal & Karriere':'HR & Careers','cat.Technologie':'Technology','cat.Energie & Nachhaltigkeit':'Energy & Sustainability','cat.Regional':'Regional','article.read_time':'min read','article.share':'Share','directory.title':'Business Directory','directory.subtitle':'Find qualified SHK professionals in the Rhein-Neckar region.','search.placeholder_dir':'Search by name or city...'},de:{'nav.home':'Startseite','nav.directory':'Verzeichnis','hero.title':'Das führende SHK-Branchenmagazin.','hero.subtitle':'Verlässliche Berichterstattung, Einblicke und Erfolgsgeschichten für Sanitär-, Heizungs- und Klimaprofis in der Metropolregion Rhein-Neckar.','hero.read_latest':'Aktuelles lesen','hero.submit_story':'Story einreichen','section.top_story':'Top Story','section.latest_news':'Neueste Branchennachrichten','newsletter.title':'Informiert bleiben. Kein Spam.','newsletter.text':'Erhalten Sie die wöchentliche Zusammenfassung der wichtigsten SHK-Nachrichten.','newsletter.placeholder':'Ihre geschäftliche E-Mail...','newsletter.button':'Abonnieren','footer.about':'Die unabhängige Stimme für die Sanitär-, Heizungs- und Klimabranche in der Metropolregion.','article.read_story':'Artikel lesen','article.watch_video':'Video ansehen','search.placeholder':'Artikel suchen...','search.no_results':'Keine Artikel gefunden.','btn.show_more':'Mehr Anzeigen','btn.load_more':'Weitere Artikel laden','nav.get_featured':'Artikel Einreichen','cat.Branchen-News':'Branchen-News','cat.Betriebs-Features':'Betriebs-Features','cat.Personal & Karriere':'Personal & Karriere','cat.Technologie':'Technologie','cat.Energie & Nachhaltigkeit':'Energie & Nachhaltigkeit','cat.Regional':'Regional','article.read_time':'Min Lesezeit','article.share':'Teilen','directory.title':'Branchenverzeichnis','directory.subtitle':'Finden Sie qualifizierte SHK-Fachbetriebe in der Rhein-Neckar-Region.','search.placeholder_dir':'Suche nach Name oder Stadt...'}};const languageManager={currentLanguage:'de',getLanguage:()=>{const t=localStorage.getItem('shk_lang')||'de';return languageManager.currentLanguage=t,t},setLanguage:t=>{languageManager.currentLanguage=t,localStorage.setItem('shk_lang',t),renderPage()},t:t=>translations[languageManager.currentLanguage]?.[t]||translations.de[t]||t};
 
-// --- 3. COMPONENT TEMPLATES ---
+// --- 4. COMPONENT TEMPLATES ---
 const createHeaderHTML=(t,e,view)=>{const a=languageManager.t;return`
     <nav class="sticky top-0 z-50 transition-all duration-300 bg-white/95 backdrop-blur-md shadow-md border-b border-gray-200 py-0">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -214,12 +217,12 @@ const createDirectoryCardHTML=e=>{const t={Heizung:"bg-red-100 text-red-800 bord
         </div>
     </div>`};
 
-// --- 4. PAGE-SPECIFIC LOGIC ---
+// --- 5. PAGE-SPECIFIC LOGIC ---
 const appState = {
     view: 'magazine', // magazine, article, directory
     activeCategory: 'All',
     searchQuery: '',
-    displayedCount: 6,
+    displayedCount: 100, // Load all by default
     articlesLoading: false,
     directoryLoading: false,
 };
@@ -422,14 +425,19 @@ function renderDirectoryGrid() {
     }
 }
 
-// --- FETCHERS ---
+// --- 6. API FETCHERS ---
 async function fetchLiveArticles() {
-    const s = JSON.parse(localStorage.getItem('shk_settings'));
-    if (!s || !s.articlesScriptUrl) return;
+    let url = DEFAULT_SCRIPT_URL;
+    try {
+        const s = JSON.parse(localStorage.getItem('shk_settings'));
+        if (s && s.articlesScriptUrl) url = s.articlesScriptUrl;
+    } catch(e) {}
+    
     appState.articlesLoading = true;
     if(appState.view === 'magazine') renderMagazinePage(true);
+    
     try {
-        const response = await fetch(s.articlesScriptUrl);
+        const response = await fetch(url);
         const liveData = await response.json();
         if (liveData && Array.isArray(liveData.articles)) {
             ALL_ARTICLES = liveData.articles;
@@ -442,12 +450,16 @@ async function fetchLiveArticles() {
 }
 
 async function fetchLiveDirectory() {
-    const s = JSON.parse(localStorage.getItem('shk_settings'));
-    if (!s || !s.directoryScriptUrl) return;
+    let url = DEFAULT_SCRIPT_URL;
+    try {
+        const s = JSON.parse(localStorage.getItem('shk_settings'));
+        if (s && s.directoryScriptUrl) url = s.directoryScriptUrl;
+    } catch(e) {}
+
     appState.directoryLoading = true;
     if(appState.view === 'directory') document.getElementById('loading-indicator')?.classList.remove('hidden');
     try {
-        const response = await fetch(s.directoryScriptUrl);
+        const response = await fetch(url);
         const liveData = await response.json();
         if (liveData && Array.isArray(liveData.directory)) {
             ALL_DIRECTORY = liveData.directory;
