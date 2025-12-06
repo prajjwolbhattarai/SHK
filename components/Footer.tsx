@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Mail, MapPin } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';

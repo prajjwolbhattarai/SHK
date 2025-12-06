@@ -191,131 +191,6 @@ const CMS: React.FC<CMSProps> = ({ articles, setArticles, categories, setCategor
     return `w-full flex items-center space-x-3 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-wider transition ${isActive ? 'bg-brand-copper text-white' : 'hover:bg-white/5 hover:text-white'}`;
   };
 
-  // --- RENDER LOGIC ---
-
-  if (isEditingArticle) {
-    return (
-      <div className="min-h-screen bg-gray-50 pb-20 font-sans">
-        {/* Editor Header */}
-        <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm">
-          <div className="flex items-center space-x-4">
-            <button onClick={resetAllEditors} className="text-gray-500 hover:text-gray-800 transition">
-              <X className="w-6 h-6" />
-            </button>
-            <div className="h-6 w-px bg-gray-300"></div>
-            <div className="flex flex-col">
-              <span className="text-[10px] font-bold uppercase text-brand-copper tracking-widest">
-                {currentArticle.type === 'page' ? 'Page Editor' : 'Article Editor'}
-              </span>
-              <h2 className="text-lg font-bold text-gray-800 leading-none">
-                {currentArticle.title || 'New Content'}
-              </h2>
-            </div>
-          </div>
-          <div className="flex space-x-3">
-             <button 
-               onClick={handleSaveArticle}
-               className="flex items-center bg-green-600 text-white px-6 py-2 rounded-sm hover:bg-green-700 font-bold uppercase text-xs tracking-wider shadow-sm transition"
-             >
-               <Save className="w-4 h-4 mr-2" /> Save Changes
-             </button>
-          </div>
-        </div>
-
-        <div className="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Headline</label>
-                  <input type="text" value={currentArticle.title || ''} onChange={e => setCurrentArticle(prev => ({...prev, title: e.target.value}))} className="w-full text-2xl font-display font-bold border-b-2 border-gray-100 focus:border-brand-copper outline-none py-2 placeholder-gray-300 transition" placeholder="Enter headline here..."/>
-                </div>
-                <div>
-                   <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Summary (Teaser)</label>
-                   <textarea value={currentArticle.summary || ''} onChange={e => setCurrentArticle(prev => ({...prev, summary: e.target.value}))} className="w-full border border-gray-200 rounded-sm p-3 text-sm focus:ring-1 focus:ring-brand-copper outline-none transition" rows={3} placeholder="Short summary for the article cards..."/>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Content <span className="text-brand-copper font-normal ml-1">(Rich Text)</span></label>
-                  <RichTextEditor content={currentArticle.content || ''} onChange={(html) => setCurrentArticle(prev => ({...prev, content: html}))}/>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            <div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200 space-y-4">
-              <h3 className="font-bold text-gray-900 flex items-center border-b border-gray-100 pb-3 text-sm uppercase tracking-wider"><Eye className="w-4 h-4 mr-2" /> Publication</h3>
-              {currentArticle.type === 'article' && (
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Category</label>
-                  <select value={currentArticle.category} onChange={e => setCurrentArticle(prev => ({...prev, category: e.target.value}))} className="w-full border border-gray-300 rounded-sm p-2 text-sm bg-white focus:border-brand-copper outline-none">
-                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-              )}
-              {currentArticle.type === 'article' && (
-                <div>
-                   <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Featured Status</label>
-                   <div className="flex items-center p-3 border border-gray-100 rounded-sm hover:bg-gray-50 transition cursor-pointer" onClick={() => setCurrentArticle(prev => ({...prev, featured: !prev.featured}))}>
-                     <input type="checkbox" checked={currentArticle.featured || false} onChange={e => setCurrentArticle(prev => ({...prev, featured: e.target.checked}))} className="mr-3 h-4 w-4 text-brand-copper focus:ring-brand-copper border-gray-300 rounded"/>
-                     <span className="text-sm text-gray-700 select-none">Highlight on Homepage</span>
-                   </div>
-                </div>
-              )}
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Cover Image</label>
-                <div className="relative aspect-video bg-gray-100 rounded-sm overflow-hidden mb-2 group shadow-inner border border-gray-200">
-                  {currentArticle.imageUrl ? <img src={currentArticle.imageUrl} alt="Cover" className="w-full h-full object-cover" /> : <div className="flex items-center justify-center h-full text-gray-400 text-xs">No Image</div>}
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                     <button onClick={() => fileInputRef.current?.click()} className="bg-white p-2 rounded-full hover:bg-gray-200 transition" title="Upload"><ImageIcon className="w-4 h-4 text-gray-700" /></button>
-                  </div>
-                </div>
-                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleArticleImageUpload}/>
-              </div>
-               <div>
-                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Video URL</label>
-                   <div className="relative">
-                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Video className="h-3 w-3 text-gray-400" /></div>
-                       <input type="text" value={currentArticle.videoUrl || ''} onChange={e => setCurrentArticle(prev => ({...prev, videoUrl: e.target.value}))} className="w-full border border-gray-300 rounded-sm py-2 pl-8 pr-2 text-sm focus:border-brand-copper outline-none" placeholder="https://youtube.com/..."/>
-                   </div>
-               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (isEditingBusiness) {
-    const dirCats: DirectoryCategory[] = ['Heizung', 'Sanitär', 'Klima', 'Lüftung', 'Elektro'];
-    return (
-      <div className="min-h-screen bg-gray-50 font-sans">
-        <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm">
-          <h2 className="text-lg font-bold text-gray-800">Edit Directory Entry</h2>
-          <div className="flex space-x-3">
-            <button onClick={resetAllEditors} className="text-gray-500 hover:text-gray-800 transition"><X/></button>
-            <button onClick={handleSaveBusiness} className="flex items-center bg-green-600 text-white px-6 py-2 rounded-sm hover:bg-green-700 font-bold uppercase text-xs tracking-wider"><Save className="w-4 h-4 mr-2" /> Save</button>
-          </div>
-        </div>
-        <div className="max-w-4xl mx-auto p-6 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div><label className="text-xs font-bold">Name</label><input value={currentBusiness.name || ''} onChange={e => setCurrentBusiness(p => ({...p, name: e.target.value}))} className="w-full border p-2 rounded-sm" /></div>
-              <div><label className="text-xs font-bold">Category</label><select value={currentBusiness.category} onChange={e => setCurrentBusiness(p => ({...p, category: e.target.value as DirectoryCategory}))} className="w-full border p-2 rounded-sm bg-white">{dirCats.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-              <div><label className="text-xs font-bold">Address</label><input value={currentBusiness.address || ''} onChange={e => setCurrentBusiness(p => ({...p, address: e.target.value}))} className="w-full border p-2 rounded-sm" /></div>
-              <div className="grid grid-cols-2 gap-4">
-                <div><label className="text-xs font-bold">City</label><input value={currentBusiness.city || ''} onChange={e => setCurrentBusiness(p => ({...p, city: e.target.value}))} className="w-full border p-2 rounded-sm" /></div>
-                <div><label className="text-xs font-bold">ZIP</label><input value={currentBusiness.zip || ''} onChange={e => setCurrentBusiness(p => ({...p, zip: e.target.value}))} className="w-full border p-2 rounded-sm" /></div>
-              </div>
-              <div><label className="text-xs font-bold">Phone</label><input value={currentBusiness.phone || ''} onChange={e => setCurrentBusiness(p => ({...p, phone: e.target.value}))} className="w-full border p-2 rounded-sm" /></div>
-              <div><label className="text-xs font-bold">Website</label><input value={currentBusiness.website || ''} onChange={e => setCurrentBusiness(p => ({...p, website: e.target.value}))} className="w-full border p-2 rounded-sm" /></div>
-            </div>
-            <div><label className="text-xs font-bold">Description</label><textarea value={currentBusiness.description || ''} onChange={e => setCurrentBusiness(p => ({...p, description: e.target.value}))} className="w-full border p-2 rounded-sm" rows={4}></textarea></div>
-        </div>
-      </div>
-    );
-  }
-
   // Helper to render content based on activeView
   const renderContent = () => {
     switch (activeView) {
@@ -543,6 +418,131 @@ const CMS: React.FC<CMSProps> = ({ articles, setArticles, categories, setCategor
         return null;
     }
   };
+
+  // --- RENDER LOGIC ---
+
+  if (isEditingArticle) {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-20 font-sans">
+        {/* Editor Header */}
+        <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm">
+          <div className="flex items-center space-x-4">
+            <button onClick={resetAllEditors} className="text-gray-500 hover:text-gray-800 transition">
+              <X className="w-6 h-6" />
+            </button>
+            <div className="h-6 w-px bg-gray-300"></div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold uppercase text-brand-copper tracking-widest">
+                {currentArticle.type === 'page' ? 'Page Editor' : 'Article Editor'}
+              </span>
+              <h2 className="text-lg font-bold text-gray-800 leading-none">
+                {currentArticle.title || 'New Content'}
+              </h2>
+            </div>
+          </div>
+          <div className="flex space-x-3">
+             <button 
+               onClick={handleSaveArticle}
+               className="flex items-center bg-green-600 text-white px-6 py-2 rounded-sm hover:bg-green-700 font-bold uppercase text-xs tracking-wider shadow-sm transition"
+             >
+               <Save className="w-4 h-4 mr-2" /> Save Changes
+             </button>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Headline</label>
+                  <input type="text" value={currentArticle.title || ''} onChange={e => setCurrentArticle(prev => ({...prev, title: e.target.value}))} className="w-full text-2xl font-display font-bold border-b-2 border-gray-100 focus:border-brand-copper outline-none py-2 placeholder-gray-300 transition" placeholder="Enter headline here..."/>
+                </div>
+                <div>
+                   <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Summary (Teaser)</label>
+                   <textarea value={currentArticle.summary || ''} onChange={e => setCurrentArticle(prev => ({...prev, summary: e.target.value}))} className="w-full border border-gray-200 rounded-sm p-3 text-sm focus:ring-1 focus:ring-brand-copper outline-none transition" rows={3} placeholder="Short summary for the article cards..."/>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Content <span className="text-brand-copper font-normal ml-1">(Rich Text)</span></label>
+                  <RichTextEditor content={currentArticle.content || ''} onChange={(html) => setCurrentArticle(prev => ({...prev, content: html}))}/>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200 space-y-4">
+              <h3 className="font-bold text-gray-900 flex items-center border-b border-gray-100 pb-3 text-sm uppercase tracking-wider"><Eye className="w-4 h-4 mr-2" /> Publication</h3>
+              {currentArticle.type === 'article' && (
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Category</label>
+                  <select value={currentArticle.category} onChange={e => setCurrentArticle(prev => ({...prev, category: e.target.value}))} className="w-full border border-gray-300 rounded-sm p-2 text-sm bg-white focus:border-brand-copper outline-none">
+                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+              )}
+              {currentArticle.type === 'article' && (
+                <div>
+                   <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Featured Status</label>
+                   <div className="flex items-center p-3 border border-gray-100 rounded-sm hover:bg-gray-50 transition cursor-pointer" onClick={() => setCurrentArticle(prev => ({...prev, featured: !prev.featured}))}>
+                     <input type="checkbox" checked={currentArticle.featured || false} onChange={e => setCurrentArticle(prev => ({...prev, featured: e.target.checked}))} className="mr-3 h-4 w-4 text-brand-copper focus:ring-brand-copper border-gray-300 rounded"/>
+                     <span className="text-sm text-gray-700 select-none">Highlight on Homepage</span>
+                   </div>
+                </div>
+              )}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Cover Image</label>
+                <div className="relative aspect-video bg-gray-100 rounded-sm overflow-hidden mb-2 group shadow-inner border border-gray-200">
+                  {currentArticle.imageUrl ? <img src={currentArticle.imageUrl} alt="Cover" className="w-full h-full object-cover" /> : <div className="flex items-center justify-center h-full text-gray-400 text-xs">No Image</div>}
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                     <button onClick={() => fileInputRef.current?.click()} className="bg-white p-2 rounded-full hover:bg-gray-200 transition" title="Upload"><ImageIcon className="w-4 h-4 text-gray-700" /></button>
+                  </div>
+                </div>
+                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleArticleImageUpload}/>
+              </div>
+               <div>
+                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Video URL</label>
+                   <div className="relative">
+                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Video className="h-3 w-3 text-gray-400" /></div>
+                       <input type="text" value={currentArticle.videoUrl || ''} onChange={e => setCurrentArticle(prev => ({...prev, videoUrl: e.target.value}))} className="w-full border border-gray-300 rounded-sm py-2 pl-8 pr-2 text-sm focus:border-brand-copper outline-none" placeholder="https://youtube.com/..."/>
+                   </div>
+               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isEditingBusiness) {
+    const dirCats: DirectoryCategory[] = ['Heizung', 'Sanitär', 'Klima', 'Lüftung', 'Elektro'];
+    return (
+      <div className="min-h-screen bg-gray-50 font-sans">
+        <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm">
+          <h2 className="text-lg font-bold text-gray-800">Edit Directory Entry</h2>
+          <div className="flex space-x-3">
+            <button onClick={resetAllEditors} className="text-gray-500 hover:text-gray-800 transition"><X/></button>
+            <button onClick={handleSaveBusiness} className="flex items-center bg-green-600 text-white px-6 py-2 rounded-sm hover:bg-green-700 font-bold uppercase text-xs tracking-wider"><Save className="w-4 h-4 mr-2" /> Save</button>
+          </div>
+        </div>
+        <div className="max-w-4xl mx-auto p-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div><label className="text-xs font-bold">Name</label><input value={currentBusiness.name || ''} onChange={e => setCurrentBusiness(p => ({...p, name: e.target.value}))} className="w-full border p-2 rounded-sm" /></div>
+              <div><label className="text-xs font-bold">Category</label><select value={currentBusiness.category} onChange={e => setCurrentBusiness(p => ({...p, category: e.target.value as DirectoryCategory}))} className="w-full border p-2 rounded-sm bg-white">{dirCats.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+              <div><label className="text-xs font-bold">Address</label><input value={currentBusiness.address || ''} onChange={e => setCurrentBusiness(p => ({...p, address: e.target.value}))} className="w-full border p-2 rounded-sm" /></div>
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className="text-xs font-bold">City</label><input value={currentBusiness.city || ''} onChange={e => setCurrentBusiness(p => ({...p, city: e.target.value}))} className="w-full border p-2 rounded-sm" /></div>
+                <div><label className="text-xs font-bold">ZIP</label><input value={currentBusiness.zip || ''} onChange={e => setCurrentBusiness(p => ({...p, zip: e.target.value}))} className="w-full border p-2 rounded-sm" /></div>
+              </div>
+              <div><label className="text-xs font-bold">Phone</label><input value={currentBusiness.phone || ''} onChange={e => setCurrentBusiness(p => ({...p, phone: e.target.value}))} className="w-full border p-2 rounded-sm" /></div>
+              <div><label className="text-xs font-bold">Website</label><input value={currentBusiness.website || ''} onChange={e => setCurrentBusiness(p => ({...p, website: e.target.value}))} className="w-full border p-2 rounded-sm" /></div>
+            </div>
+            <div><label className="text-xs font-bold">Description</label><textarea value={currentBusiness.description || ''} onChange={e => setCurrentBusiness(p => ({...p, description: e.target.value}))} className="w-full border p-2 rounded-sm" rows={4}></textarea></div>
+        </div>
+      </div>
+    );
+  }
 
   // --- Main Dashboard View ---
   return (
