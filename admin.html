@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -27,74 +26,284 @@
 // --- V A N I L L A   J S   C M S ---
 
 const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxw9Sw74S1Yy5W0zVCRHZ7ZxTTOISUKZzk793WkeR8TW9eF61Mws4aGcOPRg1JaiUBuPQ/exec';
+const LOGO_URL = 'components/shklogo.jpg';
 
 let articles = [];
 let directory = [];
-let categories = [];
-let settings = { articlesScriptUrl: DEFAULT_SCRIPT_URL, userRole: 'Administrator' };
+let categories = ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
 
-const appState = { isAuthenticated: false, activeView: 'dashboard', modalOpen: false, modalType: null, editingItem: null, syncState: 'idle' };
+const appState = { 
+    isAuthenticated: false, 
+    activeView: 'dashboard', 
+    editingArticle: null, 
+    editingBusiness: null,
+    syncState: 'idle' 
+};
 
+// --- DATA LAYER ---
 function loadData() {
     articles = JSON.parse(localStorage.getItem('shk_articles')) || [];
     directory = JSON.parse(localStorage.getItem('shk_directory')) || [];
-    categories = JSON.parse(localStorage.getItem('shk_categories')) || ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
-    settings = JSON.parse(localStorage.getItem('shk_settings')) || settings;
-    if (articles.length === 0) seedMockArticles();
+    if (articles.length === 0) seedMockData();
 }
 
 function saveData() {
     localStorage.setItem('shk_articles', JSON.stringify(articles));
     localStorage.setItem('shk_directory', JSON.stringify(directory));
-    localStorage.setItem('shk_categories', JSON.stringify(categories));
-    localStorage.setItem('shk_settings', JSON.stringify(settings));
 }
 
-function seedMockArticles() {
+function seedMockData() {
     articles = [
-        { id: '1', title: 'Wärmepumpen-Boom in Mannheim', summary: 'Die Nachfrage steigt rasant.', content: '<h2>Markt im Wandel</h2><p>Die Zahlen sprechen eine klare Sprache...</p>', author: 'Redaktion', category: 'Branchen-News', status: 'published', publishedAt: new Date().toISOString(), featured: true, views: 1250 },
+        { id: '1', title: 'Willkommen beim neuen CMS', summary: 'Erste Schritte...', content: '<p>Starten Sie hier mit dem Schreiben.</p>', author: 'Admin', category: 'Branchen-News', publishedAt: new Date().toISOString(), imageUrl: '' },
     ];
-}
-
-function render() {
-    const root = document.getElementById('app-root');
-    appState.isAuthenticated = sessionStorage.getItem('shk_auth') === 'true';
-    if (!appState.isAuthenticated) {
-        root.innerHTML = `<div class="min-h-screen bg-brand-dark flex flex-col justify-center items-center p-4"><div class="bg-white w-full max-w-sm rounded-sm shadow-2xl p-8"><div class="text-center mb-8"><img src="components/shklogo.jpg" alt="Logo" class="h-16 mx-auto mb-2"/><p class="text-xs font-bold text-gray-400 uppercase tracking-widest">CMS Login</p></div><form id="login-form" class="space-y-4"><div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Password</label><input type="password" id="password" class="w-full border border-gray-300 p-3 rounded-sm text-sm focus:border-brand-copper outline-none" required></div><button type="submit" class="w-full bg-brand-dark text-white py-3 rounded-sm font-bold uppercase text-xs tracking-wider hover:bg-brand-copper transition">Sign In</button></form></div></div>`;
-        document.getElementById('login-form').addEventListener('submit', (e) => { e.preventDefault(); sessionStorage.setItem('shk_auth', 'true'); render(); });
-    } else {
-        root.innerHTML = `<div class="flex h-screen overflow-hidden"><aside class="w-64 bg-brand-dark flex flex-col"><div class="h-20 flex items-center justify-center border-b border-gray-800"><img src="components/shklogo.jpg" class="h-8 bg-white p-1 rounded-sm"/></div><div class="flex-grow py-4 space-y-1">${['dashboard','articles','directory','settings'].map(v=>`<button onclick="appState.activeView='${v}';render()" class="w-full text-left px-6 py-3 text-sm font-bold uppercase text-gray-400 hover:text-white hover:bg-white/5 ${appState.activeView===v?'bg-brand-copper text-white':''}">${v}</button>`).join('')}</div></aside><main class="flex-1 p-8 overflow-auto">${renderMainContent()}</main></div>`;
-        lucide.createIcons();
-    }
-}
-
-function renderMainContent() {
-    if(appState.activeView === 'settings') {
-        return `<div class="bg-white p-8 rounded-sm shadow-sm max-w-2xl"><h2 class="text-xl font-bold mb-6">Settings</h2><label class="block text-xs font-bold mb-2">Google Apps Script URL</label><input id="script-url" value="${settings.articlesScriptUrl}" class="w-full border p-2 mb-4 rounded-sm text-sm"><button onclick="saveSettings()" class="bg-brand-dark text-white px-6 py-2 text-xs font-bold uppercase rounded-sm">Save</button><hr class="my-8"><button onclick="triggerSync()" class="border border-gray-300 px-6 py-3 text-xs font-bold uppercase rounded-sm hover:bg-gray-50 flex items-center">${appState.syncState==='loading'?'Syncing...':'Sync Now'}</button></div>`;
-    }
-    if(appState.activeView === 'articles') return renderArticlesList();
-    return `<div class="bg-white p-8"><h2 class="text-2xl font-bold mb-4">Dashboard</h2><p>Welcome to SHK CMS.</p></div>`;
-}
-
-function renderArticlesList() {
-    return `<div class="flex justify-between mb-6"><h2 class="text-xl font-bold">Articles</h2><button onclick="seedMockArticles();saveData();render()" class="text-xs underline text-gray-500">Reset Data</button></div><div class="bg-white shadow-sm border border-gray-200"><table class="w-full text-left"><thead class="bg-gray-50 text-xs uppercase font-bold text-gray-500"><tr><th class="p-4">Title</th><th class="p-4">Status</th></tr></thead><tbody>${articles.map(a=>`<tr><td class="p-4">${a.title}</td><td class="p-4">${a.status}</td></tr>`).join('')}</tbody></table></div>`;
-}
-
-function saveSettings() {
-    settings.articlesScriptUrl = document.getElementById('script-url').value;
     saveData();
-    alert('Saved');
+}
+
+// --- ACTIONS ---
+function deleteArticle(id) {
+    if(confirm('Wirklich löschen?')) {
+        articles = articles.filter(a => a.id !== id);
+        saveData();
+        render();
+    }
+}
+
+function saveArticle(e) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const id = formData.get('id') || 'art-' + Date.now();
+    
+    const newArticle = {
+        id: id,
+        title: formData.get('title'),
+        category: formData.get('category'),
+        summary: formData.get('summary'),
+        content: document.getElementById('editor-content').innerHTML,
+        imageUrl: formData.get('imageUrl'),
+        author: 'Redaktion',
+        publishedAt: new Date().toISOString()
+    };
+
+    const idx = articles.findIndex(a => a.id === id);
+    if(idx >= 0) articles[idx] = newArticle;
+    else articles.unshift(newArticle);
+    
+    saveData();
+    appState.editingArticle = null;
+    render();
 }
 
 async function triggerSync() {
-    appState.syncState = 'loading'; render();
+    appState.syncState = 'loading'; 
+    render();
+    
     try {
-        await fetch(settings.articlesScriptUrl, { method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({action:'sync', articles, directory}) });
-        setTimeout(() => { appState.syncState = 'idle'; alert('Sync command sent! Check site in 30s.'); render(); }, 2000);
-    } catch(e) { console.error(e); appState.syncState = 'idle'; render(); }
+        // NOTE: 'no-cors' mode is used because Google Apps Script doesn't support CORS for POST easily without redirects.
+        // This implies we send data blindly. For reading, we use GET.
+        await fetch(DEFAULT_SCRIPT_URL, { 
+            method: 'POST', 
+            mode: 'no-cors', 
+            headers: {'Content-Type': 'application/json'}, 
+            body: JSON.stringify({action:'sync', articles, directory}) 
+        });
+        
+        setTimeout(() => { 
+            appState.syncState = 'idle'; 
+            alert('Daten wurden an Google Drive gesendet.'); 
+            render(); 
+        }, 2000);
+    } catch(e) { 
+        console.error(e); 
+        appState.syncState = 'error'; 
+        alert('Sync fehlgeschlagen: ' + e.message);
+        render(); 
+    }
 }
 
-document.addEventListener('DOMContentLoaded', () => { loadData(); render(); });
+// --- RENDERERS ---
+function renderLogin() {
+    return `
+    <div class="min-h-screen bg-brand-dark flex flex-col justify-center items-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-sm shadow-2xl p-8">
+            <div class="text-center mb-8">
+                <img src="${LOGO_URL}" alt="Logo" class="h-16 mx-auto mb-2"/>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">CMS Login</p>
+            </div>
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Password</label>
+                    <input type="password" id="password" class="w-full border border-gray-300 p-3 rounded-sm text-sm focus:border-brand-copper outline-none" required>
+                </div>
+                <button type="submit" class="w-full bg-brand-dark text-white py-3 rounded-sm font-bold uppercase text-xs tracking-wider hover:bg-brand-copper transition">Sign In</button>
+            </form>
+            <div class="mt-4 text-center">
+                <a href="index.html" class="text-xs text-gray-400 hover:text-brand-copper">Zurück zur Webseite</a>
+            </div>
+        </div>
+    </div>`;
+}
+
+function handleLogin(e) {
+    e.preventDefault();
+    // Simple mock auth
+    sessionStorage.setItem('shk_auth', 'true');
+    appState.isAuthenticated = true;
+    render();
+}
+
+function renderDashboard() {
+    return `
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
+            <h3 class="text-xs font-bold text-gray-400 uppercase">Artikel</h3>
+            <p class="text-3xl font-bold text-brand-dark">${articles.length}</p>
+        </div>
+        <div class="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
+            <h3 class="text-xs font-bold text-gray-400 uppercase">Verzeichnis</h3>
+            <p class="text-3xl font-bold text-brand-dark">${directory.length}</p>
+        </div>
+        <div class="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
+            <h3 class="text-xs font-bold text-gray-400 uppercase">Status</h3>
+            <p class="text-lg font-bold text-green-600">Online</p>
+        </div>
+    </div>
+    
+    <div class="bg-white p-8 rounded-sm shadow-sm border border-gray-200 text-center">
+        <i data-lucide="refresh-cw" class="w-12 h-12 mx-auto text-brand-copper mb-4 ${appState.syncState === 'loading' ? 'animate-spin' : ''}"></i>
+        <h2 class="text-xl font-bold mb-2">Google Drive Sync</h2>
+        <p class="text-gray-500 mb-6 max-w-md mx-auto">Laden Sie Ihre lokalen Änderungen in die Cloud hoch, um sie auf der Webseite verfügbar zu machen.</p>
+        <button onclick="triggerSync()" class="bg-brand-dark text-white px-8 py-3 font-bold uppercase text-xs tracking-widest hover:bg-brand-copper transition disabled:opacity-50" ${appState.syncState === 'loading' ? 'disabled' : ''}>
+            ${appState.syncState === 'loading' ? 'Synchronisiere...' : 'Jetzt Synchronisieren'}
+        </button>
+    </div>
+    `;
+}
+
+function renderArticleEditor() {
+    const article = appState.editingArticle || {};
+    return `
+    <div class="bg-white rounded-sm shadow-sm border border-gray-200 p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold">${article.id ? 'Artikel bearbeiten' : 'Neuer Artikel'}</h2>
+            <button onclick="appState.editingArticle=null;render()" class="text-gray-400 hover:text-red-500"><i data-lucide="x"></i></button>
+        </div>
+        <form onsubmit="saveArticle(event)" class="space-y-6">
+            <input type="hidden" name="id" value="${article.id || ''}">
+            <div class="grid grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Titel</label>
+                    <input name="title" value="${article.title || ''}" class="w-full border p-2 rounded-sm" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Kategorie</label>
+                    <select name="category" class="w-full border p-2 rounded-sm bg-white">
+                        ${categories.map(c => `<option value="${c}" ${article.category===c?'selected':''}>${c}</option>`).join('')}
+                    </select>
+                </div>
+            </div>
+            <div>
+                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Bild URL</label>
+                 <input name="imageUrl" value="${article.imageUrl || ''}" class="w-full border p-2 rounded-sm" placeholder="https://...">
+            </div>
+            <div>
+                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Zusammenfassung</label>
+                 <textarea name="summary" class="w-full border p-2 rounded-sm" rows="2">${article.summary || ''}</textarea>
+            </div>
+            <div>
+                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Inhalt (HTML)</label>
+                 <div class="border border-gray-300 rounded-sm">
+                    <div class="bg-gray-50 border-b border-gray-300 p-2 flex space-x-2">
+                        <button type="button" onclick="document.execCommand('bold')" class="p-1 hover:bg-gray-200 rounded"><i data-lucide="bold" class="w-4 h-4"></i></button>
+                        <button type="button" onclick="document.execCommand('italic')" class="p-1 hover:bg-gray-200 rounded"><i data-lucide="italic" class="w-4 h-4"></i></button>
+                        <button type="button" onclick="document.execCommand('formatBlock', false, 'h3')" class="p-1 hover:bg-gray-200 rounded"><i data-lucide="heading" class="w-4 h-4"></i></button>
+                    </div>
+                    <div id="editor-content" contenteditable="true" class="p-4 min-h-[300px] outline-none prose max-w-none">
+                        ${article.content || '<p>Text hier eingeben...</p>'}
+                    </div>
+                 </div>
+            </div>
+            <div class="flex justify-end pt-4">
+                <button type="submit" class="bg-green-600 text-white px-6 py-2 font-bold uppercase text-xs rounded-sm hover:bg-green-700">Speichern</button>
+            </div>
+        </form>
+    </div>`;
+}
+
+function renderArticlesList() {
+    return `
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">Artikel</h2>
+        <button onclick="appState.editingArticle={};render()" class="bg-brand-copper text-white px-4 py-2 text-xs font-bold uppercase rounded-sm flex items-center"><i data-lucide="plus" class="w-4 h-4 mr-2"></i> Neu</button>
+    </div>
+    <div class="bg-white shadow-sm border border-gray-200 overflow-hidden rounded-sm">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase font-bold text-xs">
+                <tr>
+                    <th class="p-4">Titel</th>
+                    <th class="p-4">Kategorie</th>
+                    <th class="p-4 text-right">Aktionen</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                ${articles.map(a => `
+                <tr class="hover:bg-gray-50">
+                    <td class="p-4 font-medium">${a.title}</td>
+                    <td class="p-4"><span class="bg-gray-100 px-2 py-1 rounded text-xs">${a.category}</span></td>
+                    <td class="p-4 text-right space-x-2">
+                        <button onclick='appState.editingArticle=${JSON.stringify(a).replace(/'/g, "&#39;")};render()' class="text-blue-600 hover:underline">Edit</button>
+                        <button onclick="deleteArticle('${a.id}')" class="text-red-600 hover:underline">Löschen</button>
+                    </td>
+                </tr>`).join('')}
+            </tbody>
+        </table>
+    </div>`;
+}
+
+// --- APP ROOT ---
+function render() {
+    const root = document.getElementById('app-root');
+    appState.isAuthenticated = sessionStorage.getItem('shk_auth') === 'true';
+
+    if (!appState.isAuthenticated) {
+        root.innerHTML = renderLogin();
+    } else {
+        const content = appState.editingArticle ? renderArticleEditor() :
+                        appState.activeView === 'articles' ? renderArticlesList() :
+                        renderDashboard();
+
+        root.innerHTML = `
+        <div class="flex h-screen overflow-hidden">
+            <aside class="w-64 bg-brand-dark flex flex-col text-gray-400">
+                <div class="h-20 flex items-center justify-center border-b border-gray-800">
+                    <img src="${LOGO_URL}" class="h-8 bg-white p-1 rounded-sm"/>
+                </div>
+                <div class="flex-grow py-4 space-y-1">
+                    <button onclick="appState.activeView='dashboard';appState.editingArticle=null;render()" class="w-full text-left px-6 py-3 text-sm font-bold uppercase hover:text-white hover:bg-white/5 ${appState.activeView==='dashboard'?'bg-brand-copper text-white':''} flex items-center"><i data-lucide="home" class="w-4 h-4 mr-3"></i> Dashboard</button>
+                    <button onclick="appState.activeView='articles';appState.editingArticle=null;render()" class="w-full text-left px-6 py-3 text-sm font-bold uppercase hover:text-white hover:bg-white/5 ${appState.activeView==='articles'?'bg-brand-copper text-white':''} flex items-center"><i data-lucide="file-text" class="w-4 h-4 mr-3"></i> Artikel</button>
+                </div>
+                <div class="p-6 border-t border-gray-800">
+                    <button onclick="sessionStorage.removeItem('shk_auth');render()" class="flex items-center text-sm hover:text-white"><i data-lucide="log-out" class="w-4 h-4 mr-2"></i> Logout</button>
+                </div>
+            </aside>
+            <main class="flex-1 p-8 overflow-auto bg-gray-100">
+                <header class="flex justify-between items-center mb-8">
+                    <h1 class="text-2xl font-bold uppercase tracking-wide text-gray-800">${appState.editingArticle ? 'Editor' : appState.activeView}</h1>
+                    <div class="text-sm text-gray-500">Angemeldet als <strong>Admin</strong></div>
+                </header>
+                ${content}
+            </main>
+        </div>`;
+    }
+    
+    if(window.lucide) lucide.createIcons();
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+    loadData();
+    render();
+});
+
 </script>
 </body>
 </html>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Menu, X, Globe, Search } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
@@ -23,8 +24,8 @@ const Header: React.FC<HeaderProps> = ({ categories, activeCategory, onCategoryC
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Use string path instead of import to avoid bundler issues with images
-  const logoUrl = 'components/shklogo.jpg';
+  // Use string path relative to the public root
+  const logoUrl = './components/shklogo.jpg';
 
   const languages: { code: Language; label: string; flag: string }[] = [
     { code: 'en', label: 'English', flag: '🇬🇧' },

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Lock } from 'lucide-react';
@@ -11,7 +12,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const logoUrl = 'components/shklogo.jpg';
+  const logoUrl = './components/shklogo.jpg';
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();

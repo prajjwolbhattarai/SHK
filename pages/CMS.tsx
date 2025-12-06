@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { Article, ContentType, Business, DirectoryCategory } from '../types';
 import { 
@@ -23,7 +24,7 @@ type ViewMode = 'dashboard' | 'articles' | 'pages' | 'categories' | 'directory' 
 
 const CMS: React.FC<CMSProps> = ({ articles, setArticles, categories, setCategories, directory, setDirectory, onLogout }) => {
   const [activeView, setActiveView] = useState<ViewMode>('dashboard');
-  const logoUrl = 'components/shklogo.jpg';
+  const logoUrl = './components/shklogo.jpg';
   
   // Article State
   const [isEditingArticle, setIsEditingArticle] = useState(false);
@@ -549,7 +550,7 @@ const CMS: React.FC<CMSProps> = ({ articles, setArticles, categories, setCategor
     <div className="min-h-screen bg-gray-100 font-sans flex">
       <aside className="w-64 bg-brand-dark text-gray-400 flex flex-col fixed h-full z-10">
         <div className="p-6">
-           <div className="flex items-center space-x-2 text-white mb-8"><img src={logoUrl} alt="SHK CMS" className="h-10 w-auto rounded-sm bg-white" /><span className="text-xs uppercase tracking-wider font-medium opacity-50">CMS</span></div>
+           <div className="flex items-center space-x-2 text-white mb-8"><img src={logoUrl} alt="CMS Logo" className="h-10 w-auto rounded-sm bg-white" /><span className="text-xs uppercase tracking-wider font-medium opacity-50">CMS</span></div>
            <nav className="space-y-2">
              <button onClick={() => setActiveView('dashboard')} className={getNavButtonClass('dashboard')}><Home className="w-4 h-4" /> <span>Dashboard</span></button>
              <button onClick={() => setActiveView('articles')} className={getNavButtonClass('articles')}><FileText className="w-4 h-4" /> <span>Articles</span></button>

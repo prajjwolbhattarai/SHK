@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Mail, MapPin } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
@@ -12,7 +13,7 @@ const Footer: React.FC<FooterProps> = ({ categories, onCategoryClick }) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
-  const logoUrl = 'components/shklogo.jpg';
+  const logoUrl = './components/shklogo.jpg';
 
   const handleNavClick = (cat: string) => {
     if (location.pathname === '/' && onCategoryClick) {
