@@ -55,6 +55,17 @@
         }
       }
     </script>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.10.1"
+  }
+}
+</script>
 </head>
 <body class="bg-brand-surface text-slate-900 antialiased selection:bg-brand-copper selection:text-white">
     <div id="progress-bar-container" class="fixed top-0 left-0 w-full h-1 z-[60] bg-transparent"></div>
@@ -218,7 +229,7 @@ const STATIC_PAGES = [
 ];
 
 // State
-let ALL_ARTICLES = [...STATIC_PAGES]; // Initially only static pages
+let ALL_ARTICLES = [...STATIC_PAGES]; // Start with static, fetch will populate rest
 let DIRECTORY_DATA = [];
 let IS_LOADING = true;
 let FETCH_ERROR = false;
@@ -248,19 +259,30 @@ const languageManager = {
 // --- 3. FETCH LOGIC ---
 async function fetchLiveContent() {
     try {
-        console.log("Fetching live content from:", API_URL);
-        const response = await fetch(API_URL);
-        if (!response.ok) throw new Error('Network response was not ok');
+        // Cache busting to ensure we get fresh data from Google Script and ignore browser cache
+        const fetchUrl = `${API_URL}?action=read&t=${Date.now()}`;
+        console.log("Fetching live content from:", fetchUrl);
+        
+        const response = await fetch(fetchUrl, {
+             method: 'GET',
+             redirect: 'follow'
+        });
+
+        if (!response.ok) throw new Error(`Network response was not ok: ${response.status}`);
         
         const data = await response.json();
+        console.log("Data received from Google Script:", data);
         
         // Update Articles
-        if (data.articles && Array.isArray(data.articles)) {
+        if (data.articles && Array.isArray(data.articles) && data.articles.length > 0) {
             // Combine with static pages
             ALL_ARTICLES = [...data.articles, ...STATIC_PAGES];
+            console.log("Updated with live articles.");
         } else {
-             // Fallback to sample if API returns weird structure
-             ALL_ARTICLES = [...SAMPLE_ARTICLES, ...STATIC_PAGES];
+             console.warn("API returned empty articles list, checking fallback...");
+             if(ALL_ARTICLES.length <= STATIC_PAGES.length) {
+                 ALL_ARTICLES = [...SAMPLE_ARTICLES, ...STATIC_PAGES];
+             }
         }
 
         // Update Directory
@@ -269,12 +291,15 @@ async function fetchLiveContent() {
         }
 
         IS_LOADING = false;
+        FETCH_ERROR = false;
         renderPage(); // Re-render with new data
 
     } catch (error) {
         console.warn("Fetch Error (Using Sample Data):", error);
-        // Use Sample Articles on Error
-        ALL_ARTICLES = [...SAMPLE_ARTICLES, ...STATIC_PAGES];
+        // Use Sample Articles on Error if we don't have any yet
+        if(ALL_ARTICLES.length <= STATIC_PAGES.length) {
+            ALL_ARTICLES = [...SAMPLE_ARTICLES, ...STATIC_PAGES];
+        }
         FETCH_ERROR = true;
         IS_LOADING = false;
         renderPage(); 
@@ -531,7 +556,7 @@ function renderMagazinePage() {
     }
 
     // LOADING STATE (Spinner)
-    if (IS_LOADING) {
+    if (IS_LOADING && ALL_ARTICLES.length <= STATIC_PAGES.length) {
         contentHTML += `
         <div class="py-24 flex flex-col items-center justify-center text-center">
             <div class="loader mb-4"></div>
@@ -659,7 +684,7 @@ function renderDirectoryPage() {
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">`;
 
-    if (IS_LOADING) {
+    if (IS_LOADING && DIRECTORY_DATA.length === 0) {
         directoryHTML += `<div class="col-span-full flex flex-col items-center justify-center py-20"><div class="loader mb-4"></div><p>Lade Verzeichnis...</p></div>`;
     } else if (DIRECTORY_DATA.length === 0) {
         directoryHTML += `<div class="col-span-full text-center py-20 bg-gray-50 rounded"><p class="text-brand-steel">Keine Einträge gefunden. Bitte synchronisieren Sie das Verzeichnis im CMS.</p></div>`;

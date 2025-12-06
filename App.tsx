@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Magazine from './pages/Magazine';
-import CMS from './pages/CMS';
+import { CMS } from './pages/CMS';
 import Login from './pages/Login';
 import ArticleReader from './pages/ArticleReader';
 import Directory from './pages/Directory'; // Import new Directory page

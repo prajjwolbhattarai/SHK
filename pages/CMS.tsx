@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { Article, ContentType, Business, DirectoryCategory } from '../types';
 import { 
@@ -21,7 +22,7 @@ interface CMSProps {
 
 type ViewMode = 'dashboard' | 'articles' | 'pages' | 'categories' | 'directory' | 'analytics' | 'sync';
 
-const CMS: React.FC<CMSProps> = ({ articles, setArticles, categories, setCategories, directory, setDirectory, onLogout }) => {
+export const CMS: React.FC<CMSProps> = ({ articles, setArticles, categories, setCategories, directory, setDirectory, onLogout }) => {
   const [activeView, setActiveView] = useState<ViewMode>('dashboard');
   
   // Article State
@@ -371,5 +372,3 @@ const CMS: React.FC<CMSProps> = ({ articles, setArticles, categories, setCategor
     </div>
   );
 };
-
-export default CMS;
