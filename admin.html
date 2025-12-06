@@ -86,7 +86,7 @@ function render() {
 
 function renderMainContent() {
     if(appState.activeView === 'settings') {
-        return `<div class="bg-white p-8 rounded-sm shadow-sm max-w-2xl"><h2 class="text-xl font-bold mb-6">Settings</h2><label class="block text-xs font-bold mb-2">Google Apps Script URL</label><input id="script-url" value="${settings.articlesScriptUrl}" class="w-full border p-2 mb-4 rounded-sm text-sm"><button onclick="saveSettings()" class="bg-brand-dark text-white px-6 py-2 text-xs font-bold uppercase rounded-sm">Save</button><hr class="my-8"><div class="space-y-4"><h3 class="font-bold">Data Management</h3><button onclick="triggerSync()" class="w-full border border-gray-300 px-6 py-3 text-xs font-bold uppercase rounded-sm hover:bg-gray-50 flex items-center justify-center mb-2">${appState.syncState==='loading'?'Syncing...':'Sync with Google'}</button><button onclick="loadDemoData()" class="w-full border border-brand-copper text-brand-copper px-6 py-3 text-xs font-bold uppercase rounded-sm hover:bg-orange-50 flex items-center justify-center">Reset to Demo Data</button></div></div>`;
+        return `<div class="bg-white p-8 rounded-sm shadow-sm max-w-2xl"><h2 class="text-xl font-bold mb-6">Settings</h2><label class="block text-xs font-bold mb-2">Google Apps Script URL (Deploy "GoogleAppsScript.js" and paste URL here)</label><input id="script-url" value="${settings.articlesScriptUrl}" class="w-full border p-2 mb-4 rounded-sm text-sm"><button onclick="saveSettings()" class="bg-brand-dark text-white px-6 py-2 text-xs font-bold uppercase rounded-sm">Save URL</button><hr class="my-8"><div class="space-y-4"><h3 class="font-bold">Data Management</h3><button onclick="triggerSync()" class="w-full border border-gray-300 px-6 py-3 text-xs font-bold uppercase rounded-sm hover:bg-gray-50 flex items-center justify-center mb-2">${appState.syncState==='loading'?'Syncing...':'Sync with Google'}</button><button onclick="loadDemoData()" class="w-full border border-brand-copper text-brand-copper px-6 py-3 text-xs font-bold uppercase rounded-sm hover:bg-orange-50 flex items-center justify-center">Reset to Demo Data</button></div></div>`;
     }
     if(appState.activeView === 'articles') return renderArticlesList();
     return `<div class="bg-white p-8"><h2 class="text-2xl font-bold mb-4">Dashboard</h2><p>Welcome to SHK CMS.</p></div>`;
@@ -99,15 +99,49 @@ function renderArticlesList() {
 function saveSettings() {
     settings.articlesScriptUrl = document.getElementById('script-url').value;
     saveData();
-    alert('Saved');
+    alert('Settings Saved');
 }
 
 async function triggerSync() {
-    appState.syncState = 'loading'; render();
+    if (!settings.articlesScriptUrl) {
+      alert("Please save a Google Apps Script URL first.");
+      return;
+    }
+    appState.syncState = 'loading'; 
+    render();
+    
+    const payload = {
+        action: 'sync',
+        data: {
+          articles: articles,
+          directory: directory
+        }
+    };
+
     try {
-        await fetch(settings.articlesScriptUrl, { method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({action:'sync', articles, directory}) });
-        setTimeout(() => { appState.syncState = 'idle'; alert('Sync command sent! Check site in 30s.'); render(); }, 2000);
-    } catch(e) { console.error(e); appState.syncState = 'idle'; render(); }
+        const response = await fetch(settings.articlesScriptUrl, { 
+            method: 'POST', 
+            mode: 'cors',
+            headers: {
+                // Sending as text/plain avoids OPTIONS preflight check which GAS doesn't handle well
+                'Content-Type': 'text/plain;charset=utf-8' 
+            },
+            body: JSON.stringify(payload) 
+        });
+        
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+           setTimeout(() => { appState.syncState = 'idle'; alert('Success! Data saved to Google Doc.'); render(); }, 1000);
+        } else {
+           throw new Error(result.message || 'Unknown error');
+        }
+    } catch(e) { 
+        console.error(e); 
+        appState.syncState = 'idle'; 
+        alert('Sync failed: ' + e.message);
+        render(); 
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => { loadData(); render(); });

@@ -79,144 +79,10 @@
 // V A N I L L A   J S   A P P L I C A T I O N
 
 // --- 1. CONFIG & DATA STORE ---
-// The Web App URL that connects to your Google Doc/Sheet
+// PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
 const API_URL = 'https://script.google.com/macros/s/AKfycbxw9Sw74S1Yy5W0zVCRHZ7ZxTTOISUKZzk793WkeR8TW9eF61Mws4aGcOPRg1JaiUBuPQ/exec';
 
 const INITIAL_CATEGORIES = ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
-
-// 10 Sample Articles (Fallback Data)
-const SAMPLE_ARTICLES = [
-  {
-    id: 'art-1',
-    type: 'article',
-    title: 'Wärmeplanung Mannheim: Was Handwerker jetzt wissen müssen',
-    summary: 'Die Stadt Mannheim hat ihren kommunalen Wärmeplan vorgelegt. Für SHK-Betriebe ergeben sich daraus konkrete Handlungsfelder für die nächsten 5 Jahre.',
-    content: '<h2>Der Fahrplan steht</h2><p>Bis 2045 soll Mannheim klimaneutral sein. Der Schlüssel dazu liegt in der Wärmeversorgung. Für das lokale Handwerk bedeutet dies volle Auftragsbücher, aber auch Beratungsbedarf.</p><h3>Fernwärme oder Wärmepumpe?</h3><p>Der Plan weist detailliert aus, in welchen Straßenzügen der Fernwärmeausbau priorisiert wird und wo dezentrale Lösungen wie Wärmepumpen zum Einsatz kommen müssen. Betriebe sollten ihre Kunden jetzt aktiv auf Basis dieser Daten beraten.</p>',
-    category: 'Regional',
-    imageUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200',
-    author: 'Redaktion',
-    publishedAt: new Date().toISOString(),
-    featured: true,
-    views: 1240, shares: 45, readTime: 240
-  },
-  {
-    id: 'art-2',
-    type: 'article',
-    title: 'Fachkräftemangel: Azubi-Recruiting über TikTok',
-    summary: 'Ein Heidelberger SHK-Betrieb geht neue Wege in der Nachwuchsgewinnung und erhält über 50 Bewerbungen in einem Monat.',
-    content: '<h2>Dahin gehen, wo die Jugend ist</h2><p>Statt Stellenanzeigen in der Zeitung setzt die Firma "Sanitär Schmidt" auf kurze, humorvolle Videos aus dem Baustellen-Alltag. Der Erfolg gibt ihnen recht.</p><blockquote>"Wir zeigen, dass Handwerk nicht nur Dreck und Arbeit ist, sondern Technik, Teamwork und Spaß", so Geschäftsführer Markus Schmidt.</blockquote>',
-    category: 'Personal & Karriere',
-    imageUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=1200',
-    author: 'Sarah Weber',
-    publishedAt: new Date(Date.now() - 86400000).toISOString(),
-    featured: false,
-    views: 890, shares: 120, readTime: 180
-  },
-  {
-    id: 'art-3',
-    type: 'article',
-    title: 'Förderstopp für E-Mobilität: Folgen für den Firmen-Fuhrpark',
-    summary: 'Das überraschende Ende der Kaufprämie trifft viele Betriebe unvorbereitet. Lohnt sich der Umstieg auf E-Transporter noch?',
-    content: '<h2>Kalkulation neu gedacht</h2><p>Ohne die staatliche Förderung müssen SHK-Betriebe den Bleistift spitzen. Wir haben nachgerechnet: Bei einer Laufleistung von über 15.000km im Jahr und eigener PV-Anlage auf dem Lagerhallendach rechnet sich der Stromer immer noch.</p>',
-    category: 'Betriebs-Features',
-    imageUrl: 'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?auto=format&fit=crop&q=80&w=1200',
-    author: 'Finanz-Experte',
-    publishedAt: new Date(Date.now() - 172800000).toISOString(),
-    featured: false,
-    views: 650, shares: 12, readTime: 300
-  },
-  {
-    id: 'art-4',
-    type: 'article',
-    title: 'ISH Nachlese: Das barrierefreie Bad wird digital',
-    summary: 'Smarte Armaturen und höhenverstellbare WCs waren die Trends der Messe. Ein Überblick für Installateure.',
-    content: '<h2>Technik trifft Komfort</h2><p>Das Badezimmer von morgen denkt mit. Sensoren erkennen Stürze, Armaturen sparen Wasser und speichern Nutzerprofile. Für Installateure bedeutet das: E-Technik-Kenntnisse werden zur Pflicht.</p>',
-    category: 'Technologie',
-    imageUrl: 'https://images.unsplash.com/photo-1584622050111-993a426fbf0a?auto=format&fit=crop&q=80&w=1200',
-    author: 'Redaktion',
-    publishedAt: new Date(Date.now() - 259200000).toISOString(),
-    featured: false,
-    views: 1100, shares: 67, readTime: 420
-  },
-  {
-    id: 'art-5',
-    type: 'article',
-    title: 'Trinkwasserhygiene: Neue DIN-Normen ab 2025',
-    summary: 'Vermieter und Verwalter müssen handeln. Was SHK-Profis bei der Wartung jetzt beachten müssen.',
-    content: '<h2>Legionellen-Prävention verschärft</h2><p>Die Temperaturgrenzen wurden angepasst. Bestandsanlagen müssen möglicherweise nachgerüstet werden, um die neuen Hygiene-Standards zu erfüllen. Ein riesiges Auftragspotenzial für Wartungsverträge.</p>',
-    category: 'Branchen-News',
-    imageUrl: 'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?auto=format&fit=crop&q=80&w=1200',
-    author: 'Dr. Wasser',
-    publishedAt: new Date(Date.now() - 345600000).toISOString(),
-    featured: false,
-    views: 430, shares: 8, readTime: 360
-  },
-  {
-    id: 'art-6',
-    type: 'article',
-    title: 'Materialpreise stabilisieren sich auf hohem Niveau',
-    summary: 'Kupfer, Stahl und Keramik: Die extreme Volatilität scheint vorbei, doch "billig" wird es nicht mehr.',
-    content: '<h2>Planungssicherheit kehrt zurück</h2><p>Der Großhandel meldet entspannte Lieferketten. Preisgarantien für Angebote sind wieder für 4 Wochen möglich. Das entlastet die Kalkulation im Handwerk enorm.</p>',
-    category: 'Branchen-News',
-    imageUrl: 'https://images.unsplash.com/photo-1581094794329-cd136ce4dad9?auto=format&fit=crop&q=80&w=1200',
-    author: 'Markt-Analyst',
-    publishedAt: new Date(Date.now() - 432000000).toISOString(),
-    featured: false,
-    views: 980, shares: 33, readTime: 200
-  },
-  {
-    id: 'art-7',
-    type: 'article',
-    title: 'Großprojekt: Sanierung der Uniklinik Lüftungsanlage',
-    summary: 'Ein technisches Meisterwerk: Austausch von 5 Großgeräten im laufenden OP-Betrieb.',
-    content: '<h2>Präzision am offenen Herzen</h2><p>Die Firma "AirTech Rhein-Neckar" hat das Unmögliche möglich gemacht. In nur 48 Stunden wurden die zentralen Zu- und Abluftgeräte ausgetauscht. Wir waren vor Ort.</p>',
-    category: 'Regional',
-    imageUrl: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=1200',
-    author: 'Redaktion',
-    publishedAt: new Date(Date.now() - 518400000).toISOString(),
-    featured: false,
-    views: 1500, shares: 89, readTime: 600
-  },
-  {
-    id: 'art-8',
-    type: 'article',
-    title: 'Wasserstoff-Ready: Marketing-Gag oder Zukunft?',
-    summary: 'Viele Kessel werden als "H2-Ready" verkauft. Doch wann kommt der grüne Wasserstoff in die Leitung?',
-    content: '<h2>Warten auf das Netz</h2><p>Technisch sind die Geräte bereit. Doch die Infrastruktur hinkt hinterher. Experten warnen davor, Kunden falsche Hoffnungen auf baldige Nutzung zu machen.</p>',
-    category: 'Energie & Nachhaltigkeit',
-    imageUrl: 'https://images.unsplash.com/photo-1532996126620-e918996f6428?auto=format&fit=crop&q=80&w=1200',
-    author: 'Ing. Peters',
-    publishedAt: new Date(Date.now() - 604800000).toISOString(),
-    featured: false,
-    views: 2100, shares: 150, readTime: 480
-  },
-  {
-    id: 'art-9',
-    type: 'article',
-    title: 'Bürokratie-Abbau: Digitale Bauakte kommt',
-    summary: 'Die Baubehörden in Rheinland-Pfalz und Baden-Württemberg stellen um. Das müssen Sie wissen.',
-    content: '<h2>Papierlos zum Bauantrag</h2><p>Ab 2025 sollen Bauanträge nur noch digital eingereicht werden. Für viele Handwerker, die Zuarbeit leisten, bedeutet das: PDF statt Papierordner.</p>',
-    category: 'Betriebs-Features',
-    imageUrl: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&q=80&w=1200',
-    author: 'Rechtsabteilung',
-    publishedAt: new Date(Date.now() - 691200000).toISOString(),
-    featured: false,
-    views: 320, shares: 5, readTime: 240
-  },
-  {
-    id: 'art-10',
-    type: 'article',
-    title: 'Nachfolge im Handwerk: Eine emotionale Reise',
-    summary: 'Familienbetrieb Müller in 3. Generation übergeben. Ein Interview über Loslassen und Neustart.',
-    content: '<h2>Tradition trifft Moderne</h2><p>Seniorchef Hans Müller (68) übergibt an Tochter Lisa (32). Wie der Generationenkonflikt produktiv gelöst wurde und warum der Betrieb jetzt plötzlich "Agile Methoden" nutzt.</p>',
-    category: 'Personal & Karriere',
-    imageUrl: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&q=80&w=1200',
-    author: 'Lisa Müller',
-    publishedAt: new Date(Date.now() - 777600000).toISOString(),
-    featured: false,
-    views: 1800, shares: 200, readTime: 500
-  }
-];
 
 // Static pages are always available immediately
 const STATIC_PAGES = [
@@ -236,8 +102,8 @@ let FETCH_ERROR = false;
 
 // --- 2. LANGUAGE MANAGER ---
 const translations = {
-  en: { 'nav.home': 'Home', 'nav.directory': 'Directory', 'hero.title': 'The Leading SHK Industry Magazine.', 'hero.subtitle': 'Trusted industry coverage, insights, and success stories for sanitary, heating, and climate professionals in the Rhein-Neckar region.', 'hero.read_latest': 'Read Latest', 'hero.submit_story': 'Submit a Story', 'section.top_story': 'Top Story', 'section.latest_news': 'Latest Industry News', 'section.trust_title': 'Deeply Rooted in Rhein-Neckar', 'section.trust_text': 'We don\'t just report on the industry; we are part of the local ecosystem. Connecting businesses in Mannheim, Heidelberg, Ludwigshafen, and beyond.', 'section.explore_categories': 'Explore Topics', 'newsletter.title': 'Stay Informed. No Spam.', 'newsletter.text': 'Get the weekly digest of the most important SHK news in Rhein-Neckar. Used by over 2,000 local professionals.', 'newsletter.placeholder': 'Your work email...', 'newsletter.button': 'Subscribe', 'footer.about': 'The independent voice for the Sanitary, Heating, and Climate industry in the metropolitan region.', 'article.read_story': 'Read Story', 'article.watch_video': 'Watch Video', 'search.placeholder': 'Search articles...', 'search.no_results': 'No articles found matching your search.', 'btn.show_more': 'Show More', 'btn.load_more': 'Load More Articles', 'btn.view_category': 'View Category', 'nav.get_featured': 'Get Featured', 'cat.Branchen-News': 'Industry News', 'cat.Betriebs-Features': 'Company Features', 'cat.Personal & Karriere': 'HR & Careers', 'cat.Technologie': 'Technology', 'cat.Energie & Nachhaltigkeit': 'Energy & Sustainability', 'cat.Regional': 'Regional', 'article.read_time': 'min read', 'article.share': 'Share', 'loading.title': 'Loading Content...', 'loading.subtitle': 'Fetching the latest stories from our database.', 'error.title': 'Using Sample Data', 'error.subtitle': 'Live connection not configured. Showing sample articles.' },
-  de: { 'nav.home': 'Startseite', 'nav.directory': 'Verzeichnis', 'hero.title': 'Das führende SHK-Branchenmagazin.', 'hero.subtitle': 'Verlässliche Berichterstattung, Einblicke und Erfolgsgeschichten für Sanitär-, Heizungs- und Klimaprofis in der Metropolregion Rhein-Neckar.', 'hero.read_latest': 'Aktuelles lesen', 'hero.submit_story': 'Story einreichen', 'section.top_story': 'Top Story', 'section.latest_news': 'Neueste Branchennachrichten', 'section.trust_title': 'Tief verwurzelt in Rhein-Neckar', 'section.trust_text': 'Wir berichten nicht nur über die Branche; wir sind Teil des lokalen Ökosystems. Wir verbinden Unternehmen in Mannheim, Heidelberg, Ludwigshafen und darüber hinaus.', 'section.explore_categories': 'Themen Entdecken', 'newsletter.title': 'Informiert bleiben. Kein Spam.', 'newsletter.text': 'Erhalten Sie die wöchentliche Zusammenfassung der wichtigsten SHK-Nachrichten. Gelesen von über 2.000 lokalen Profis.', 'newsletter.placeholder': 'Ihre geschäftliche E-Mail...', 'newsletter.button': 'Abonnieren', 'footer.about': 'Die unabhängige Stimme für die Sanitär-, Heizungs- und Klimabranche in der Metropolregion.', 'article.read_story': 'Artikel lesen', 'article.watch_video': 'Video ansehen', 'search.placeholder': 'Artikel suchen...', 'search.no_results': 'Keine Artikel gefunden.', 'btn.show_more': 'Mehr Anzeigen', 'btn.load_more': 'Weitere Artikel laden', 'btn.view_category': 'Kategorie ansehen', 'nav.get_featured': 'Artikel Einreichen', 'cat.Branchen-News': 'Branchen-News', 'cat.Betriebs-Features': 'Betriebs-Features', 'cat.Personal & Karriere': 'Personal & Karriere', 'cat.Technologie': 'Technologie', 'cat.Energie & Nachhaltigkeit': 'Energie & Nachhaltigkeit', 'cat.Regional': 'Regional', 'article.read_time': 'Min Lesezeit', 'article.share': 'Teilen', 'loading.title': 'Lade Inhalte...', 'loading.subtitle': 'Die neuesten Stories werden abgerufen.', 'error.title': 'Verbindungsfehler', 'error.subtitle': 'Zeige Beispiel-Artikel (Offline Modus).' }
+  en: { 'nav.home': 'Home', 'nav.directory': 'Directory', 'hero.title': 'The Leading SHK Industry Magazine.', 'hero.subtitle': 'Trusted industry coverage, insights, and success stories for sanitary, heating, and climate professionals in the Rhein-Neckar region.', 'hero.read_latest': 'Read Latest', 'hero.submit_story': 'Submit a Story', 'section.top_story': 'Top Story', 'section.latest_news': 'Latest Industry News', 'section.trust_title': 'Deeply Rooted in Rhein-Neckar', 'section.trust_text': 'We don\'t just report on the industry; we are part of the local ecosystem. Connecting businesses in Mannheim, Heidelberg, Ludwigshafen, and beyond.', 'section.explore_categories': 'Explore Topics', 'newsletter.title': 'Stay Informed. No Spam.', 'newsletter.text': 'Get the weekly digest of the most important SHK news in Rhein-Neckar. Used by over 2,000 local professionals.', 'newsletter.placeholder': 'Your work email...', 'newsletter.button': 'Subscribe', 'footer.about': 'The independent voice for the Sanitary, Heating, and Climate industry in the metropolitan region.', 'article.read_story': 'Read Story', 'article.watch_video': 'Watch Video', 'search.placeholder': 'Search articles...', 'search.no_results': 'No articles found matching your search.', 'btn.show_more': 'Show More', 'btn.load_more': 'Load More Articles', 'btn.view_category': 'View Category', 'nav.get_featured': 'Get Featured', 'cat.Branchen-News': 'Industry News', 'cat.Betriebs-Features': 'Company Features', 'cat.Personal & Karriere': 'HR & Careers', 'cat.Technologie': 'Technology', 'cat.Energie & Nachhaltigkeit': 'Energy & Sustainability', 'cat.Regional': 'Regional', 'article.read_time': 'min read', 'article.share': 'Share', 'loading.title': 'Loading Content...', 'loading.subtitle': 'Connecting to Google Database...', 'error.title': 'Connection Error', 'error.subtitle': 'Could not fetch live articles. Using cache/static data.' },
+  de: { 'nav.home': 'Startseite', 'nav.directory': 'Verzeichnis', 'hero.title': 'Das führende SHK-Branchenmagazin.', 'hero.subtitle': 'Verlässliche Berichterstattung, Einblicke und Erfolgsgeschichten für Sanitär-, Heizungs- und Klimaprofis in der Metropolregion Rhein-Neckar.', 'hero.read_latest': 'Aktuelles lesen', 'hero.submit_story': 'Story einreichen', 'section.top_story': 'Top Story', 'section.latest_news': 'Neueste Branchennachrichten', 'section.trust_title': 'Tief verwurzelt in Rhein-Neckar', 'section.trust_text': 'Wir berichten nicht nur über die Branche; wir sind Teil des lokalen Ökosystems. Wir verbinden Unternehmen in Mannheim, Heidelberg, Ludwigshafen und darüber hinaus.', 'section.explore_categories': 'Themen Entdecken', 'newsletter.title': 'Informiert bleiben. Kein Spam.', 'newsletter.text': 'Erhalten Sie die wöchentliche Zusammenfassung der wichtigsten SHK-Nachrichten. Gelesen von über 2.000 lokalen Profis.', 'newsletter.placeholder': 'Ihre geschäftliche E-Mail...', 'newsletter.button': 'Abonnieren', 'footer.about': 'Die unabhängige Stimme für die Sanitär-, Heizungs- und Klimabranche in der Metropolregion.', 'article.read_story': 'Artikel lesen', 'article.watch_video': 'Video ansehen', 'search.placeholder': 'Artikel suchen...', 'search.no_results': 'Keine Artikel gefunden.', 'btn.show_more': 'Mehr Anzeigen', 'btn.load_more': 'Weitere Artikel laden', 'btn.view_category': 'Kategorie ansehen', 'nav.get_featured': 'Artikel Einreichen', 'cat.Branchen-News': 'Branchen-News', 'cat.Betriebs-Features': 'Betriebs-Features', 'cat.Personal & Karriere': 'Personal & Karriere', 'cat.Technologie': 'Technologie', 'cat.Energie & Nachhaltigkeit': 'Energie & Nachhaltigkeit', 'cat.Regional': 'Regional', 'article.read_time': 'Min Lesezeit', 'article.share': 'Teilen', 'loading.title': 'Lade Inhalte...', 'loading.subtitle': 'Verbindung zur Google-Datenbank wird hergestellt.', 'error.title': 'Verbindungsfehler', 'error.subtitle': 'Konnte keine Live-Artikel laden.' }
 };
 const languageManager = {
     currentLanguage: 'de',
@@ -260,12 +126,16 @@ const languageManager = {
 async function fetchLiveContent() {
     try {
         // Cache busting to ensure we get fresh data from Google Script and ignore browser cache
-        const fetchUrl = `${API_URL}?action=read&t=${Date.now()}`;
+        const fetchUrl = `${API_URL}?t=${Date.now()}&action=read`;
         console.log("Fetching live content from:", fetchUrl);
         
+        // Ensure redirect: follow is set for Google Apps Script redirects
         const response = await fetch(fetchUrl, {
              method: 'GET',
-             redirect: 'follow'
+             redirect: 'follow',
+             headers: {
+               "Content-Type": "text/plain;charset=utf-8"
+             }
         });
 
         if (!response.ok) throw new Error(`Network response was not ok: ${response.status}`);
@@ -278,11 +148,8 @@ async function fetchLiveContent() {
             // Combine with static pages
             ALL_ARTICLES = [...data.articles, ...STATIC_PAGES];
             console.log("Updated with live articles.");
-        } else {
-             console.warn("API returned empty articles list, checking fallback...");
-             if(ALL_ARTICLES.length <= STATIC_PAGES.length) {
-                 ALL_ARTICLES = [...SAMPLE_ARTICLES, ...STATIC_PAGES];
-             }
+        } else if (data.articles && data.articles.length === 0) {
+            console.warn("Database returned 0 articles. CMS needs to sync first.");
         }
 
         // Update Directory
@@ -295,11 +162,7 @@ async function fetchLiveContent() {
         renderPage(); // Re-render with new data
 
     } catch (error) {
-        console.warn("Fetch Error (Using Sample Data):", error);
-        // Use Sample Articles on Error if we don't have any yet
-        if(ALL_ARTICLES.length <= STATIC_PAGES.length) {
-            ALL_ARTICLES = [...SAMPLE_ARTICLES, ...STATIC_PAGES];
-        }
+        console.error("Fetch Error:", error);
         FETCH_ERROR = true;
         IS_LOADING = false;
         renderPage(); 
@@ -551,12 +414,12 @@ function renderMagazinePage() {
                 <p class="font-bold text-sm">${t('error.title')}</p>
                 <p class="text-xs">${t('error.subtitle')}</p>
             </div>
-            <button onclick="window.location.reload()" class="text-xs font-bold underline">Retry</button>
+            <button onclick="fetchLiveContent()" class="text-xs font-bold underline">Retry</button>
         </div>`;
     }
 
     // LOADING STATE (Spinner)
-    if (IS_LOADING && ALL_ARTICLES.length <= STATIC_PAGES.length) {
+    if (IS_LOADING) {
         contentHTML += `
         <div class="py-24 flex flex-col items-center justify-center text-center">
             <div class="loader mb-4"></div>
@@ -578,7 +441,7 @@ function renderMagazinePage() {
         
         // Empty State
         if (gridArticles.length === 0 && !FETCH_ERROR) {
-            contentHTML += `<div class="text-center py-32 bg-gray-50 rounded-sm border border-dashed border-gray-300"><p class="text-brand-steel font-medium text-lg">${appState.searchQuery ? t('search.no_results') : 'No stories found.'}</p></div>`;
+            contentHTML += `<div class="text-center py-32 bg-gray-50 rounded-sm border border-dashed border-gray-300"><p class="text-brand-steel font-medium text-lg">${appState.searchQuery ? t('search.no_results') : 'No stories found in database.'}</p></div>`;
         }
         
         // Load More
