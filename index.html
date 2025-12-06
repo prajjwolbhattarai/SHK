@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -164,7 +165,7 @@ const createHeaderHTML = (categories, activeCategory) => {
             <button id="mobile-menu-btn" class="p-2 text-brand-dark"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg></button>
           </div>
           <div class="flex-shrink-0 flex items-center justify-center lg:justify-start w-full lg:w-auto cursor-pointer" onclick="window.location.href='index.html'">
-            <img src="shklogo.jpg" alt="SHK Rhein-Neckar" class="w-auto object-contain h-12"/>
+            <img src="components/shklogo.jpg" alt="SHK Rhein-Neckar" class="w-auto object-contain h-12"/>
           </div>
           <div class="hidden lg:flex space-x-8 items-center h-full">
               <a href="index.html" data-category="All" class="nav-category-link relative h-full text-xs font-bold uppercase tracking-widest transition-colors flex items-center ${activeCategory === 'All' ? 'text-brand-copper' : 'text-brand-steel hover:text-brand-dark'}">
@@ -213,7 +214,7 @@ const createFooterHTML = (categories) => {
     <footer class="bg-white border-t border-gray-200 pt-16 pb-8">
       <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-12">
         <div class="col-span-1 md:col-span-4 lg:col-span-2">
-          <img src="shklogo.jpg" alt="SHK Rhein-Neckar" class="h-16 w-auto mb-4"/>
+          <img src="components/shklogo.jpg" alt="SHK Rhein-Neckar" class="h-16 w-auto mb-4"/>
           <p class="text-sm text-brand-steel leading-relaxed max-w-sm">${t('footer.about')}</p>
         </div>
         <div class="lg:col-start-3">

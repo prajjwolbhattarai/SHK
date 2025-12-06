@@ -4,6 +4,7 @@ import { Menu, X, Globe, Search } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Language } from '../types';
+import logo from './shklogo.jpg';
 
 interface HeaderProps {
   categories: string[];
@@ -24,7 +25,7 @@ const Header: React.FC<HeaderProps> = ({ categories, activeCategory, onCategoryC
   const navigate = useNavigate();
   const location = useLocation();
 
-  const logoUrl = "https://k.sinaimg.cn/n/sinakd20230526s/256/w256h0/20230526/519e-e3b97b1029e08097b692482596409605.jpg/w700d1q75cms.jpg";
+  const logoUrl = logo;
 
   const languages: { code: Language; label: string; flag: string }[] = [
     { code: 'en', label: 'English', flag: '🇬🇧' },

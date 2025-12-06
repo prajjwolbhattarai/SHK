@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Lock } from 'lucide-react';
+import logo from '../components/shklogo.jpg';
 
 interface LoginProps {
   onLogin: () => void;
@@ -34,7 +35,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         <div className="p-8">
           <div className="text-center mb-8">
              <img 
-               src="https://k.sinaimg.cn/n/sinakd20230526s/256/w256h0/20230526/519e-e3b97b1029e08097b692482596409605.jpg/w700d1q75cms.jpg" 
+               src={logo}
                alt="SHK Rhein-Neckar" 
                className="h-20 w-auto mx-auto mb-4" 
              />

@@ -3,6 +3,7 @@ import React from 'react';
 import { Mail, MapPin } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
+import logo from './shklogo.jpg';
 
 interface FooterProps {
   categories: string[];
@@ -13,7 +14,7 @@ const Footer: React.FC<FooterProps> = ({ categories, onCategoryClick }) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
-  const logoUrl = "https://k.sinaimg.cn/n/sinakd20230526s/256/w256h0/20230526/519e-e3b97b1029e08097b692482596409605.jpg/w700d1q75cms.jpg";
+  const logoUrl = logo;
 
   const handleNavClick = (cat: string) => {
     if (location.pathname === '/' && onCategoryClick) {
