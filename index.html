@@ -80,7 +80,7 @@
 
 // --- 1. CONFIG & DATA STORE ---
 // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
-const API_URL = 'https://script.google.com/macros/s/AKfycbxw9Sw74S1Yy5W0zVCRHZ7ZxTTOISUKZzk793WkeR8TW9eF61Mws4aGcOPRg1JaiUBuPQ/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbwYZFsr3q0MiziJwG9YW7lxJTmdd-ncG52Ofy4RHVvqYHKEh8T9nAQ3-B4GRtAOR847hw/exec';
 
 const INITIAL_CATEGORIES = ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
 
@@ -94,8 +94,22 @@ const STATIC_PAGES = [
   { id: 'page-jobs', type: 'page', title: 'Stellenmarkt', summary: 'Jobs in der Region', content: `<h2>SHK Jobs Rhein-Neckar</h2><p>Inserieren Sie hier. Kontakt: <a href="mailto:jobs@shk-rhein-neckar.de">jobs@shk-rhein-neckar.de</a></p>`, imageUrl: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&q=80&w=1200', category: 'Page', author: 'HR', publishedAt: new Date().toISOString(), featured: false, views: 0, shares: 0, readTime: 0 }
 ];
 
+// 10 SAMPLE ARTICLES (Fallback data if fetch fails)
+const SAMPLE_ARTICLES = [
+  {id:'art-1',type:'article',title:'Wärmeplanung Mannheim: Was Handwerker jetzt wissen müssen',summary:'Die Stadt Mannheim hat ihren kommunalen Wärmeplan vorgelegt. Für SHK-Betriebe ergeben sich daraus konkrete Handlungsfelder.',content:'<h2>Der Fahrplan steht</h2><p>Bis 2045 soll Mannheim klimaneutral sein...</p>',category:'Regional',imageUrl:'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200',author:'Redaktion',publishedAt:new Date().toISOString(),featured:true,views:1240,shares:45,readTime:240},
+  {id:'art-2',type:'article',title:'Fachkräftemangel: Azubi-Recruiting über TikTok',summary:'Ein Heidelberger SHK-Betrieb geht neue Wege in der Nachwuchsgewinnung.',content:'<h2>Dahin gehen, wo die Jugend ist</h2><p>Statt Stellenanzeigen in der Zeitung setzt die Firma...</p>',category:'Personal & Karriere',imageUrl:'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=1200',author:'Sarah Weber',publishedAt:new Date().toISOString(),featured:false,views:890,shares:120,readTime:180},
+  {id:'art-3',type:'article',title:'Förderstopp für E-Mobilität: Folgen für den Fuhrpark',summary:'Lohnt sich der Umstieg auf E-Transporter noch?',content:'<h2>Kalkulation neu gedacht</h2><p>Ohne die staatliche Förderung müssen SHK-Betriebe rechnen...</p>',category:'Betriebs-Features',imageUrl:'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?auto=format&fit=crop&q=80&w=1200',author:'Finanz-Experte',publishedAt:new Date().toISOString(),featured:false,views:650,shares:12,readTime:300},
+  {id:'art-4',type:'article',title:'ISH Nachlese: Das barrierefreie Bad wird digital',summary:'Smarte Armaturen und höhenverstellbare WCs waren die Trends.',content:'<h2>Technik trifft Komfort</h2><p>Das Badezimmer von morgen denkt mit...</p>',category:'Technologie',imageUrl:'https://images.unsplash.com/photo-1584622050111-993a426fbf0a?auto=format&fit=crop&q=80&w=1200',author:'Redaktion',publishedAt:new Date().toISOString(),featured:false,views:1100,shares:67,readTime:420},
+  {id:'art-5',type:'article',title:'Trinkwasserhygiene: Neue DIN-Normen ab 2025',summary:'Vermieter und Verwalter müssen handeln.',content:'<h2>Legionellen-Prävention verschärft</h2><p>Die Temperaturgrenzen wurden angepasst...</p>',category:'Branchen-News',imageUrl:'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?auto=format&fit=crop&q=80&w=1200',author:'Dr. Wasser',publishedAt:new Date().toISOString(),featured:false,views:430,shares:8,readTime:360},
+  {id:'art-6',type:'article',title:'Materialpreise stabilisieren sich',summary:'Kupfer, Stahl und Keramik bleiben teuer, aber stabil.',content:'<h2>Planungssicherheit kehrt zurück</h2><p>Der Großhandel meldet entspannte Lieferketten...</p>',category:'Branchen-News',imageUrl:'https://images.unsplash.com/photo-1581094794329-cd136ce4dad9?auto=format&fit=crop&q=80&w=1200',author:'Analyst',publishedAt:new Date().toISOString(),featured:false,views:980,shares:33,readTime:200},
+  {id:'art-7',type:'article',title:'Großprojekt: Uniklinik Lüftung',summary:'Austausch von 5 Großgeräten im laufenden OP-Betrieb.',content:'<h2>Präzision am offenen Herzen</h2><p>Die Firma AirTech hat das Unmögliche möglich gemacht...</p>',category:'Regional',imageUrl:'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=1200',author:'Redaktion',publishedAt:new Date().toISOString(),featured:false,views:1500,shares:89,readTime:600},
+  {id:'art-8',type:'article',title:'Wasserstoff-Ready: Marketing oder Zukunft?',summary:'Wann kommt der grüne Wasserstoff wirklich?',content:'<h2>Warten auf das Netz</h2><p>Technisch sind die Geräte bereit...</p>',category:'Energie & Nachhaltigkeit',imageUrl:'https://images.unsplash.com/photo-1532996126620-e918996f6428?auto=format&fit=crop&q=80&w=1200',author:'Ing. Peters',publishedAt:new Date().toISOString(),featured:false,views:2100,shares:150,readTime:480},
+  {id:'art-9',type:'article',title:'Digitale Bauakte kommt',summary:'Behörden stellen auf papierlose Anträge um.',content:'<h2>Papierlos zum Bauantrag</h2><p>Ab 2025 sollen Bauanträge nur noch digital eingereicht werden...</p>',category:'Betriebs-Features',imageUrl:'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&q=80&w=1200',author:'Recht',publishedAt:new Date().toISOString(),featured:false,views:320,shares:5,readTime:240},
+  {id:'art-10',type:'article',title:'Nachfolge im Handwerk',summary:'Familienbetrieb Müller in 3. Generation übergeben.',content:'<h2>Tradition trifft Moderne</h2><p>Seniorchef Hans Müller übergibt an Tochter Lisa...</p>',category:'Personal & Karriere',imageUrl:'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&q=80&w=1200',author:'Lisa Müller',publishedAt:new Date().toISOString(),featured:false,views:1800,shares:200,readTime:500}
+];
+
 // State
-let ALL_ARTICLES = [...STATIC_PAGES]; // Start with static, fetch will populate rest
+let ALL_ARTICLES = [...SAMPLE_ARTICLES, ...STATIC_PAGES]; // Start with sample data so it's not empty
 let DIRECTORY_DATA = [];
 let IS_LOADING = true;
 let FETCH_ERROR = false;
@@ -148,8 +162,9 @@ async function fetchLiveContent() {
             // Combine with static pages
             ALL_ARTICLES = [...data.articles, ...STATIC_PAGES];
             console.log("Updated with live articles.");
-        } else if (data.articles && data.articles.length === 0) {
-            console.warn("Database returned 0 articles. CMS needs to sync first.");
+        } else {
+             // If live data is empty, keep sample data
+             console.log("Live data empty, keeping sample data.");
         }
 
         // Update Directory
@@ -165,6 +180,7 @@ async function fetchLiveContent() {
         console.error("Fetch Error:", error);
         FETCH_ERROR = true;
         IS_LOADING = false;
+        // Keep using SAMPLE_ARTICLES if fetch fails
         renderPage(); 
     }
 }

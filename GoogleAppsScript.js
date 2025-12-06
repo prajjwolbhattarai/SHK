@@ -1,35 +1,9 @@
 // --- CONFIGURATION ---
-// 1. Run the 'setup' function once to create the database document.
+// 1. Copy this entire code into your Google Apps Script editor.
 // 2. Deploy as Web App -> Execute as: Me -> Access: Anyone.
 
-function setup() {
-  // Check if we already have a doc id saved
-  var props = PropertiesService.getScriptProperties();
-  var docId = props.getProperty('DB_DOC_ID');
-  
-  if (!docId) {
-    // Create a new Google Doc to act as our JSON database
-    var doc = DocumentApp.create('SHK_CMS_Database_DO_NOT_DELETE');
-    var body = doc.getBody();
-    
-    // Initialize with empty valid JSON structure
-    var initialData = {
-      articles: [],
-      directory: [],
-      lastUpdated: new Date().toISOString()
-    };
-    
-    body.setText(JSON.stringify(initialData, null, 2));
-    
-    // Save the ID for future use
-    props.setProperty('DB_DOC_ID', doc.getId());
-    
-    Logger.log('SUCCESS! Database Doc created. ID: ' + doc.getId());
-    Logger.log('File Name: SHK_CMS_Database_DO_NOT_DELETE');
-  } else {
-    Logger.log('Setup already complete. Doc ID: ' + docId);
-  }
-}
+// The ID of your specific Google Doc.
+const DOC_ID = '13sOT5LQ3rEZpRtyLFddn6XQB2BLXYbRb0Tvdig4ve_I';
 
 function doGet(e) {
   return handleRequest(e);
@@ -44,14 +18,8 @@ function handleRequest(e) {
   lock.tryLock(10000); // Wait up to 10s for other requests to finish
   
   try {
-    var props = PropertiesService.getScriptProperties();
-    var docId = props.getProperty('DB_DOC_ID');
-    
-    if (!docId) {
-      return createResponse({ status: 'error', message: 'Database not setup. Run setup() function in script editor.' });
-    }
-    
-    var doc = DocumentApp.openById(docId);
+    // Open the specific Doc by ID
+    var doc = DocumentApp.openById(DOC_ID);
     var body = doc.getBody();
     
     // --- READ MODE (GET) ---
@@ -73,8 +41,11 @@ function handleRequest(e) {
       // Basic validation
       if (incomingData.action === 'sync' && incomingData.data) {
         var newContent = JSON.stringify(incomingData.data, null, 2);
+        
+        // Overwrite the entire doc content
         body.setText(newContent);
         doc.saveAndClose();
+        
         return createResponse({ status: 'success', message: 'Data saved to Google Doc', timestamp: new Date().toISOString() });
       }
     }

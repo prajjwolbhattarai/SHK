@@ -25,7 +25,8 @@
 <script>
 // --- V A N I L L A   J S   C M S ---
 
-const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxw9Sw74S1Yy5W0zVCRHZ7ZxTTOISUKZzk793WkeR8TW9eF61Mws4aGcOPRg1JaiUBuPQ/exec';
+// PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
+const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYZFsr3q0MiziJwG9YW7lxJTmdd-ncG52Ofy4RHVvqYHKEh8T9nAQ3-B4GRtAOR847hw/exec';
 
 // 10 Sample Articles Data for Initialization
 const SAMPLE_DATA_ARTICLES = [
@@ -53,7 +54,11 @@ function loadData() {
     directory = JSON.parse(localStorage.getItem('shk_directory')) || [];
     categories = JSON.parse(localStorage.getItem('shk_categories')) || ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
     settings = JSON.parse(localStorage.getItem('shk_settings')) || settings;
-    // Do not auto-seed here to respect empty state, let user decide via button
+    // Ensure the default URL is set if not already present
+    if (!settings.articlesScriptUrl) {
+        settings.articlesScriptUrl = DEFAULT_SCRIPT_URL;
+        localStorage.setItem('shk_settings', JSON.stringify(settings));
+    }
 }
 
 function saveData() {
@@ -86,7 +91,7 @@ function render() {
 
 function renderMainContent() {
     if(appState.activeView === 'settings') {
-        return `<div class="bg-white p-8 rounded-sm shadow-sm max-w-2xl"><h2 class="text-xl font-bold mb-6">Settings</h2><label class="block text-xs font-bold mb-2">Google Apps Script URL (Deploy "GoogleAppsScript.js" and paste URL here)</label><input id="script-url" value="${settings.articlesScriptUrl}" class="w-full border p-2 mb-4 rounded-sm text-sm"><button onclick="saveSettings()" class="bg-brand-dark text-white px-6 py-2 text-xs font-bold uppercase rounded-sm">Save URL</button><hr class="my-8"><div class="space-y-4"><h3 class="font-bold">Data Management</h3><button onclick="triggerSync()" class="w-full border border-gray-300 px-6 py-3 text-xs font-bold uppercase rounded-sm hover:bg-gray-50 flex items-center justify-center mb-2">${appState.syncState==='loading'?'Syncing...':'Sync with Google'}</button><button onclick="loadDemoData()" class="w-full border border-brand-copper text-brand-copper px-6 py-3 text-xs font-bold uppercase rounded-sm hover:bg-orange-50 flex items-center justify-center">Reset to Demo Data</button></div></div>`;
+        return `<div class="bg-white p-8 rounded-sm shadow-sm max-w-2xl"><h2 class="text-xl font-bold mb-6">Settings</h2><label class="block text-xs font-bold mb-2">Google Apps Script URL</label><input id="script-url" value="${settings.articlesScriptUrl}" class="w-full border p-2 mb-4 rounded-sm text-sm"><button onclick="saveSettings()" class="bg-brand-dark text-white px-6 py-2 text-xs font-bold uppercase rounded-sm">Save URL</button><hr class="my-8"><div class="space-y-4"><h3 class="font-bold">Data Management</h3><button onclick="triggerSync()" class="w-full border border-gray-300 px-6 py-3 text-xs font-bold uppercase rounded-sm hover:bg-gray-50 flex items-center justify-center mb-2">${appState.syncState==='loading'?'Syncing...':'Sync with Google'}</button><button onclick="loadDemoData()" class="w-full border border-brand-copper text-brand-copper px-6 py-3 text-xs font-bold uppercase rounded-sm hover:bg-orange-50 flex items-center justify-center">Reset to Demo Data</button></div></div>`;
     }
     if(appState.activeView === 'articles') return renderArticlesList();
     return `<div class="bg-white p-8"><h2 class="text-2xl font-bold mb-4">Dashboard</h2><p>Welcome to SHK CMS.</p></div>`;

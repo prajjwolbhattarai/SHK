@@ -1,9 +1,8 @@
-
 import { Article, Business } from '../types';
 
 // IMPORTANT: Replace this with your actual Google Apps Script Web App URL.
 // It must be deployed to be accessible.
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxw9Sw74S1Yy5W0zVCRHZ7ZxTTOISUKZzk793WkeR8TW9eF61Mws4aGcOPRg1JaiUBuPQ/exec'; 
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYZFsr3q0MiziJwG9YW7lxJTmdd-ncG52Ofy4RHVvqYHKEh8T9nAQ3-B4GRtAOR847hw/exec'; 
 
 interface SyncPayload {
   articles: Article[];
