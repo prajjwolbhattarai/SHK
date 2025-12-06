@@ -13,6 +13,15 @@ function doPost(e) {
   return handleRequest(e);
 }
 
+// Handle CORS Preflight (OPTIONS request) which browsers often send before POST
+function doOptions(e) {
+  return ContentService.createTextOutput("")
+    .setMimeType(ContentService.MimeType.TEXT)
+    .append("Access-Control-Allow-Origin: *")
+    .append("Access-Control-Allow-Methods: GET, POST, OPTIONS")
+    .append("Access-Control-Allow-Headers: Content-Type");
+}
+
 function handleRequest(e) {
   var lock = LockService.getScriptLock();
   lock.tryLock(10000); // Wait up to 10s for other requests to finish
@@ -30,7 +39,7 @@ function handleRequest(e) {
       if (!text || text.trim() === "") {
          return createResponse({ articles: [], directory: [] });
       }
-      return ContentService.createTextOutput(text).setMimeType(ContentService.MimeType.JSON);
+      return createResponse(JSON.parse(text)); // Return as proper JSON
     }
     
     // --- WRITE MODE (POST) ---

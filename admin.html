@@ -18,6 +18,15 @@
         }
       }
     </script>
+    <style>
+      .rich-editor h2 { font-size: 1.5em; font-weight: bold; margin-top: 1em; margin-bottom: 0.5em; color: #0f172a; font-family: 'Montserrat', sans-serif; }
+      .rich-editor h3 { font-size: 1.25em; font-weight: bold; margin-top: 1em; margin-bottom: 0.5em; color: #0f172a; }
+      .rich-editor p { margin-bottom: 1em; line-height: 1.6; color: #374151; }
+      .rich-editor ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
+      .rich-editor ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 1em; }
+      .rich-editor blockquote { border-left: 4px solid #b45309; padding-left: 1em; font-style: italic; color: #4b5563; margin-bottom: 1em; }
+      .rich-editor img { max-width: 100%; border-radius: 4px; margin: 1em 0; }
+    </style>
 </head>
 <body class="bg-gray-100 font-sans text-brand-dark">
     <div id="app-root"></div>
@@ -25,80 +34,471 @@
 <script>
 // --- V A N I L L A   J S   C M S ---
 
-// PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
+// CONFIG
 const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYZFsr3q0MiziJwG9YW7lxJTmdd-ncG52Ofy4RHVvqYHKEh8T9nAQ3-B4GRtAOR847hw/exec';
 
-// 10 Sample Articles Data for Initialization
-const SAMPLE_DATA_ARTICLES = [
-  {id:'art-1',type:'article',title:'Wärmeplanung Mannheim: Was Handwerker jetzt wissen müssen',summary:'Die Stadt Mannheim hat ihren kommunalen Wärmeplan vorgelegt. Für SHK-Betriebe ergeben sich daraus konkrete Handlungsfelder.',content:'<h2>Der Fahrplan steht</h2><p>Bis 2045 soll Mannheim klimaneutral sein...</p>',category:'Regional',imageUrl:'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200',author:'Redaktion',publishedAt:new Date().toISOString(),featured:true,views:1240,shares:45,readTime:240},
-  {id:'art-2',type:'article',title:'Fachkräftemangel: Azubi-Recruiting über TikTok',summary:'Ein Heidelberger SHK-Betrieb geht neue Wege in der Nachwuchsgewinnung.',content:'<h2>Dahin gehen, wo die Jugend ist</h2><p>Statt Stellenanzeigen in der Zeitung setzt die Firma...</p>',category:'Personal & Karriere',imageUrl:'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=1200',author:'Sarah Weber',publishedAt:new Date().toISOString(),featured:false,views:890,shares:120,readTime:180},
-  {id:'art-3',type:'article',title:'Förderstopp für E-Mobilität: Folgen für den Fuhrpark',summary:'Lohnt sich der Umstieg auf E-Transporter noch?',content:'<h2>Kalkulation neu gedacht</h2><p>Ohne die staatliche Förderung müssen SHK-Betriebe rechnen...</p>',category:'Betriebs-Features',imageUrl:'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?auto=format&fit=crop&q=80&w=1200',author:'Finanz-Experte',publishedAt:new Date().toISOString(),featured:false,views:650,shares:12,readTime:300},
-  {id:'art-4',type:'article',title:'ISH Nachlese: Das barrierefreie Bad wird digital',summary:'Smarte Armaturen und höhenverstellbare WCs waren die Trends.',content:'<h2>Technik trifft Komfort</h2><p>Das Badezimmer von morgen denkt mit...</p>',category:'Technologie',imageUrl:'https://images.unsplash.com/photo-1584622050111-993a426fbf0a?auto=format&fit=crop&q=80&w=1200',author:'Redaktion',publishedAt:new Date().toISOString(),featured:false,views:1100,shares:67,readTime:420},
-  {id:'art-5',type:'article',title:'Trinkwasserhygiene: Neue DIN-Normen ab 2025',summary:'Vermieter und Verwalter müssen handeln.',content:'<h2>Legionellen-Prävention verschärft</h2><p>Die Temperaturgrenzen wurden angepasst...</p>',category:'Branchen-News',imageUrl:'https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?auto=format&fit=crop&q=80&w=1200',author:'Dr. Wasser',publishedAt:new Date().toISOString(),featured:false,views:430,shares:8,readTime:360},
-  {id:'art-6',type:'article',title:'Materialpreise stabilisieren sich',summary:'Kupfer, Stahl und Keramik bleiben teuer, aber stabil.',content:'<h2>Planungssicherheit kehrt zurück</h2><p>Der Großhandel meldet entspannte Lieferketten...</p>',category:'Branchen-News',imageUrl:'https://images.unsplash.com/photo-1581094794329-cd136ce4dad9?auto=format&fit=crop&q=80&w=1200',author:'Analyst',publishedAt:new Date().toISOString(),featured:false,views:980,shares:33,readTime:200},
-  {id:'art-7',type:'article',title:'Großprojekt: Uniklinik Lüftung',summary:'Austausch von 5 Großgeräten im laufenden OP-Betrieb.',content:'<h2>Präzision am offenen Herzen</h2><p>Die Firma AirTech hat das Unmögliche möglich gemacht...</p>',category:'Regional',imageUrl:'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=1200',author:'Redaktion',publishedAt:new Date().toISOString(),featured:false,views:1500,shares:89,readTime:600},
-  {id:'art-8',type:'article',title:'Wasserstoff-Ready: Marketing oder Zukunft?',summary:'Wann kommt der grüne Wasserstoff wirklich?',content:'<h2>Warten auf das Netz</h2><p>Technisch sind die Geräte bereit...</p>',category:'Energie & Nachhaltigkeit',imageUrl:'https://images.unsplash.com/photo-1532996126620-e918996f6428?auto=format&fit=crop&q=80&w=1200',author:'Ing. Peters',publishedAt:new Date().toISOString(),featured:false,views:2100,shares:150,readTime:480},
-  {id:'art-9',type:'article',title:'Digitale Bauakte kommt',summary:'Behörden stellen auf papierlose Anträge um.',content:'<h2>Papierlos zum Bauantrag</h2><p>Ab 2025 sollen Bauanträge nur noch digital eingereicht werden...</p>',category:'Betriebs-Features',imageUrl:'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&q=80&w=1200',author:'Recht',publishedAt:new Date().toISOString(),featured:false,views:320,shares:5,readTime:240},
-  {id:'art-10',type:'article',title:'Nachfolge im Handwerk',summary:'Familienbetrieb Müller in 3. Generation übergeben.',content:'<h2>Tradition trifft Moderne</h2><p>Seniorchef Hans Müller übergibt an Tochter Lisa...</p>',category:'Personal & Karriere',imageUrl:'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&q=80&w=1200',author:'Lisa Müller',publishedAt:new Date().toISOString(),featured:false,views:1800,shares:200,readTime:500}
-];
-
+// DATA STORE
 let articles = [];
 let directory = [];
-let categories = [];
-let settings = { articlesScriptUrl: DEFAULT_SCRIPT_URL, userRole: 'Administrator' };
+let categories = ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional', 'Page'];
+let settings = { articlesScriptUrl: DEFAULT_SCRIPT_URL };
 
-const appState = { isAuthenticated: false, activeView: 'dashboard', modalOpen: false, modalType: null, editingItem: null, syncState: 'idle' };
+// STATE
+const appState = { 
+    isAuthenticated: false, 
+    activeView: 'dashboard', 
+    editingItem: null, // Holds the object being edited
+    syncState: 'idle' 
+};
 
+// --- INITIALIZATION ---
 function loadData() {
-    articles = JSON.parse(localStorage.getItem('shk_articles')) || [];
-    directory = JSON.parse(localStorage.getItem('shk_directory')) || [];
-    categories = JSON.parse(localStorage.getItem('shk_categories')) || ['Branchen-News', 'Betriebs-Features', 'Personal & Karriere', 'Technologie', 'Energie & Nachhaltigkeit', 'Regional'];
-    settings = JSON.parse(localStorage.getItem('shk_settings')) || settings;
-    // Ensure the default URL is set if not already present
-    if (!settings.articlesScriptUrl) {
-        settings.articlesScriptUrl = DEFAULT_SCRIPT_URL;
-        localStorage.setItem('shk_settings', JSON.stringify(settings));
-    }
+    const storedArticles = localStorage.getItem('shk_articles');
+    const storedDirectory = localStorage.getItem('shk_directory');
+    const storedSettings = localStorage.getItem('shk_settings');
+
+    articles = storedArticles ? JSON.parse(storedArticles) : [];
+    directory = storedDirectory ? JSON.parse(storedDirectory) : [];
+    if(storedSettings) settings = JSON.parse(storedSettings);
 }
 
 function saveData() {
     localStorage.setItem('shk_articles', JSON.stringify(articles));
     localStorage.setItem('shk_directory', JSON.stringify(directory));
-    localStorage.setItem('shk_categories', JSON.stringify(categories));
     localStorage.setItem('shk_settings', JSON.stringify(settings));
 }
 
-function loadDemoData() {
-    if(confirm('This will overwrite current articles with the demo set. Continue?')) {
-        articles = [...SAMPLE_DATA_ARTICLES];
-        saveData();
-        render();
-        alert('Demo articles loaded! You can now Sync to push them to Google.');
-    }
+function generateId(prefix) {
+    return prefix + '-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
 }
 
+// --- CORE RENDER FUNCTION ---
 function render() {
     const root = document.getElementById('app-root');
     appState.isAuthenticated = sessionStorage.getItem('shk_auth') === 'true';
+
+    // LOGIN SCREEN
     if (!appState.isAuthenticated) {
-        root.innerHTML = `<div class="min-h-screen bg-brand-dark flex flex-col justify-center items-center p-4"><div class="bg-white w-full max-w-sm rounded-sm shadow-2xl p-8"><div class="text-center mb-8"><img src="components/shklogo.jpg" alt="Logo" class="h-16 mx-auto mb-2"/><p class="text-xs font-bold text-gray-400 uppercase tracking-widest">CMS Login</p></div><form id="login-form" class="space-y-4"><div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Password</label><input type="password" id="password" class="w-full border border-gray-300 p-3 rounded-sm text-sm focus:border-brand-copper outline-none" required></div><button type="submit" class="w-full bg-brand-dark text-white py-3 rounded-sm font-bold uppercase text-xs tracking-wider hover:bg-brand-copper transition">Sign In</button></form></div></div>`;
-        document.getElementById('login-form').addEventListener('submit', (e) => { e.preventDefault(); sessionStorage.setItem('shk_auth', 'true'); render(); });
-    } else {
-        root.innerHTML = `<div class="flex h-screen overflow-hidden"><aside class="w-64 bg-brand-dark flex flex-col"><div class="h-20 flex items-center justify-center border-b border-gray-800"><img src="components/shklogo.jpg" class="h-8 bg-white p-1 rounded-sm"/></div><div class="flex-grow py-4 space-y-1">${['dashboard','articles','directory','settings'].map(v=>`<button onclick="appState.activeView='${v}';render()" class="w-full text-left px-6 py-3 text-sm font-bold uppercase text-gray-400 hover:text-white hover:bg-white/5 ${appState.activeView===v?'bg-brand-copper text-white':''}">${v}</button>`).join('')}</div></aside><main class="flex-1 p-8 overflow-auto">${renderMainContent()}</main></div>`;
-        lucide.createIcons();
+        root.innerHTML = `
+        <div class="min-h-screen bg-brand-dark flex flex-col justify-center items-center p-4">
+            <div class="bg-white w-full max-w-sm rounded-sm shadow-2xl p-8">
+                <div class="text-center mb-8">
+                    <img src="components/shklogo.jpg" alt="Logo" class="h-16 mx-auto mb-2"/>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">CMS Login</p>
+                </div>
+                <form id="login-form" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Password</label>
+                        <input type="password" id="password" class="w-full border border-gray-300 p-3 rounded-sm text-sm focus:border-brand-copper outline-none" required placeholder="Enter any password for demo">
+                    </div>
+                    <button type="submit" class="w-full bg-brand-dark text-white py-3 rounded-sm font-bold uppercase text-xs tracking-wider hover:bg-brand-copper transition">Sign In</button>
+                </form>
+            </div>
+        </div>`;
+        
+        setTimeout(() => {
+            document.getElementById('login-form').addEventListener('submit', (e) => { 
+                e.preventDefault(); 
+                sessionStorage.setItem('shk_auth', 'true'); 
+                render(); 
+            });
+        }, 0);
+        return;
     }
+
+    // MAIN APP LAYOUT
+    root.innerHTML = `
+    <div class="flex h-screen overflow-hidden">
+        <!-- SIDEBAR -->
+        <aside class="w-64 bg-brand-dark flex flex-col flex-shrink-0 text-gray-400">
+            <div class="h-20 flex items-center justify-center border-b border-gray-800">
+                <img src="components/shklogo.jpg" class="h-8 bg-white p-1 rounded-sm"/>
+            </div>
+            <div class="flex-grow py-6 space-y-1 px-3">
+                ${['dashboard', 'articles', 'directory', 'settings'].map(view => `
+                    <button onclick="changeView('${view}')" 
+                        class="w-full text-left px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-wider transition flex items-center
+                        ${appState.activeView === view ? 'bg-brand-copper text-white' : 'hover:bg-white/5 hover:text-white'}">
+                        <i data-lucide="${getIconForView(view)}" class="w-4 h-4 mr-3"></i> ${view}
+                    </button>
+                `).join('')}
+            </div>
+            <div class="p-4 border-t border-gray-800">
+                 <button onclick="logout()" class="flex items-center text-sm font-medium hover:text-white transition"><i data-lucide="log-out" class="w-4 h-4 mr-2"></i> Logout</button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 overflow-auto bg-gray-100 p-8">
+            <header class="flex justify-between items-center mb-8">
+                <h1 class="text-3xl font-display font-bold text-brand-dark capitalize">${appState.activeView.replace('_', ' ')}</h1>
+                <div class="flex items-center space-x-3">
+                    <span class="w-2 h-2 rounded-full ${navigator.onLine ? 'bg-green-500' : 'bg-red-500'}"></span>
+                    <span class="text-xs font-bold text-gray-500 uppercase">${navigator.onLine ? 'Online' : 'Offline'}</span>
+                </div>
+            </header>
+            ${renderMainContent()}
+        </main>
+    </div>`;
+    
+    lucide.createIcons();
 }
+
+function getIconForView(view) {
+    const icons = { dashboard: 'layout-dashboard', articles: 'file-text', directory: 'building', settings: 'settings' };
+    return icons[view] || 'circle';
+}
+
+function changeView(view) {
+    appState.activeView = view;
+    appState.editingItem = null; // Reset editor when changing main views
+    render();
+}
+
+function logout() {
+    sessionStorage.removeItem('shk_auth');
+    render();
+}
+
+// --- CONTENT RENDERERS ---
 
 function renderMainContent() {
-    if(appState.activeView === 'settings') {
-        return `<div class="bg-white p-8 rounded-sm shadow-sm max-w-2xl"><h2 class="text-xl font-bold mb-6">Settings</h2><label class="block text-xs font-bold mb-2">Google Apps Script URL</label><input id="script-url" value="${settings.articlesScriptUrl}" class="w-full border p-2 mb-4 rounded-sm text-sm"><button onclick="saveSettings()" class="bg-brand-dark text-white px-6 py-2 text-xs font-bold uppercase rounded-sm">Save URL</button><hr class="my-8"><div class="space-y-4"><h3 class="font-bold">Data Management</h3><button onclick="triggerSync()" class="w-full border border-gray-300 px-6 py-3 text-xs font-bold uppercase rounded-sm hover:bg-gray-50 flex items-center justify-center mb-2">${appState.syncState==='loading'?'Syncing...':'Sync with Google'}</button><button onclick="loadDemoData()" class="w-full border border-brand-copper text-brand-copper px-6 py-3 text-xs font-bold uppercase rounded-sm hover:bg-orange-50 flex items-center justify-center">Reset to Demo Data</button></div></div>`;
+    // 1. DASHBOARD
+    if (appState.activeView === 'dashboard') {
+        const totalViews = articles.reduce((acc, curr) => acc + (curr.views || 0), 0);
+        return `
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
+                <div class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Total Articles</div>
+                <div class="text-4xl font-display font-bold text-brand-dark">${articles.length}</div>
+            </div>
+            <div class="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
+                 <div class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Directory Entries</div>
+                 <div class="text-4xl font-display font-bold text-brand-dark">${directory.length}</div>
+            </div>
+            <div class="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
+                 <div class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Total Views</div>
+                 <div class="text-4xl font-display font-bold text-brand-dark">${totalViews.toLocaleString()}</div>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
+            <h3 class="font-bold text-gray-800 mb-4">Quick Actions</h3>
+            <div class="flex space-x-4">
+                <button onclick="startEditArticle()" class="bg-brand-copper text-white px-4 py-2 rounded-sm text-sm font-bold uppercase hover:bg-orange-700">New Article</button>
+                <button onclick="changeView('settings')" class="border border-gray-300 px-4 py-2 rounded-sm text-sm font-bold uppercase hover:bg-gray-50">Sync Data</button>
+            </div>
+        </div>
+        `;
     }
-    if(appState.activeView === 'articles') return renderArticlesList();
-    return `<div class="bg-white p-8"><h2 class="text-2xl font-bold mb-4">Dashboard</h2><p>Welcome to SHK CMS.</p></div>`;
+
+    // 2. ARTICLES
+    if (appState.activeView === 'articles') {
+        if (appState.editingItem) return renderArticleEditor();
+        return `
+        <div class="bg-white rounded-sm shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                <div class="font-bold text-gray-700">All Articles</div>
+                <button onclick="startEditArticle()" class="flex items-center bg-brand-dark text-white px-3 py-1.5 rounded-sm text-xs font-bold uppercase tracking-wider hover:bg-brand-copper transition"><i data-lucide="plus" class="w-3 h-3 mr-1"></i> New</button>
+            </div>
+            <table class="w-full text-left">
+                <thead class="bg-gray-50 text-xs uppercase font-bold text-gray-500 border-b border-gray-200">
+                    <tr><th class="p-4">Title</th><th class="p-4">Category</th><th class="p-4">Date</th><th class="p-4 text-right">Actions</th></tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    ${articles.length === 0 ? '<tr><td colspan="4" class="p-8 text-center text-gray-400">No articles found. Load from cloud or create new.</td></tr>' : 
+                      articles.map(a => `
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-4 font-medium text-brand-dark max-w-md truncate">${a.title}</td>
+                            <td class="p-4"><span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-[10px] uppercase font-bold">${a.category}</span></td>
+                            <td class="p-4 text-sm text-gray-500">${new Date(a.publishedAt).toLocaleDateString()}</td>
+                            <td class="p-4 text-right space-x-2">
+                                <button onclick="startEditArticle('${a.id}')" class="text-brand-steel hover:text-brand-copper"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                <button onclick="deleteArticle('${a.id}')" class="text-brand-steel hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>`;
+    }
+
+    // 3. DIRECTORY
+    if (appState.activeView === 'directory') {
+        if (appState.editingItem) return renderDirectoryEditor();
+        return `
+        <div class="bg-white rounded-sm shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                <div class="font-bold text-gray-700">Directory Entries</div>
+                <button onclick="startEditBusiness()" class="flex items-center bg-brand-dark text-white px-3 py-1.5 rounded-sm text-xs font-bold uppercase tracking-wider hover:bg-brand-copper transition"><i data-lucide="plus" class="w-3 h-3 mr-1"></i> New</button>
+            </div>
+            <table class="w-full text-left">
+                <thead class="bg-gray-50 text-xs uppercase font-bold text-gray-500 border-b border-gray-200">
+                    <tr><th class="p-4">Name</th><th class="p-4">Category</th><th class="p-4">City</th><th class="p-4 text-right">Actions</th></tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    ${directory.length === 0 ? '<tr><td colspan="4" class="p-8 text-center text-gray-400">No entries found.</td></tr>' : 
+                      directory.map(b => `
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-4 font-medium text-brand-dark">${b.name}</td>
+                            <td class="p-4"><span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-[10px] uppercase font-bold">${b.category}</span></td>
+                            <td class="p-4 text-sm text-gray-500">${b.city}</td>
+                            <td class="p-4 text-right space-x-2">
+                                <button onclick="startEditBusiness('${b.id}')" class="text-brand-steel hover:text-brand-copper"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                <button onclick="deleteBusiness('${b.id}')" class="text-brand-steel hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>`;
+    }
+
+    // 4. SETTINGS
+    if (appState.activeView === 'settings') {
+        return `
+        <div class="max-w-2xl bg-white p-8 rounded-sm shadow-sm border border-gray-200">
+            <h2 class="text-xl font-bold mb-6 flex items-center"><i data-lucide="cloud" class="w-5 h-5 mr-2 text-brand-copper"></i> Cloud Synchronization</h2>
+            
+            <div class="mb-8 p-4 bg-gray-50 rounded-sm border border-gray-200">
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Google Apps Script URL</label>
+                <input id="script-url" value="${settings.articlesScriptUrl}" class="w-full border border-gray-300 p-2 rounded-sm text-sm focus:border-brand-copper outline-none mb-2">
+                <button onclick="saveSettings()" class="text-xs font-bold text-brand-copper hover:underline">Save URL</button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                 <button onclick="performSync('pull')" class="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-sm hover:border-brand-copper hover:bg-orange-50 transition group">
+                     <i data-lucide="download-cloud" class="w-8 h-8 text-gray-400 group-hover:text-brand-copper mb-2"></i>
+                     <span class="font-bold text-brand-dark">Pull from Cloud</span>
+                     <span class="text-xs text-center text-gray-500 mt-1">Overwrite local CMS with Google Doc data</span>
+                 </button>
+
+                 <button onclick="performSync('push')" class="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-sm hover:border-brand-copper hover:bg-orange-50 transition group">
+                     <i data-lucide="upload-cloud" class="w-8 h-8 text-gray-400 group-hover:text-brand-copper mb-2"></i>
+                     <span class="font-bold text-brand-dark">Push to Cloud</span>
+                     <span class="text-xs text-center text-gray-500 mt-1">Save local CMS changes to Google Doc</span>
+                 </button>
+            </div>
+            
+            <div id="sync-status" class="mt-6 text-center text-sm font-medium ${appState.syncState === 'error' ? 'text-red-500' : 'text-gray-600'}">
+                ${appState.syncState === 'loading' ? '<span class="animate-pulse">Syncing... please wait.</span>' : ''}
+            </div>
+        </div>`;
+    }
 }
 
-function renderArticlesList() {
-    return `<div class="flex justify-between mb-6"><h2 class="text-xl font-bold">Articles</h2><span class="text-xs text-gray-500">${articles.length} items</span></div><div class="bg-white shadow-sm border border-gray-200"><table class="w-full text-left"><thead class="bg-gray-50 text-xs uppercase font-bold text-gray-500"><tr><th class="p-4">Title</th><th class="p-4">Category</th></tr></thead><tbody>${articles.map(a=>`<tr><td class="p-4 font-medium">${a.title}</td><td class="p-4">${a.category}</td></tr>`).join('')}</tbody></table></div>`;
+// --- ARTICLE EDITOR ---
+function renderArticleEditor() {
+    const a = appState.editingItem;
+    return `
+    <div class="flex flex-col lg:flex-row gap-6">
+        <!-- Main Editor -->
+        <div class="flex-grow bg-white p-6 rounded-sm shadow-sm border border-gray-200">
+            <div class="mb-4">
+                <input id="edit-title" value="${a.title}" placeholder="Article Headline" class="w-full text-2xl font-display font-bold border-b-2 border-gray-100 py-2 outline-none focus:border-brand-copper placeholder-gray-300">
+            </div>
+            
+            <!-- Toolbar -->
+            <div class="flex flex-wrap gap-1 p-2 bg-gray-50 border border-gray-200 rounded-t-sm mb-0">
+                <button onclick="execCmd('bold')" class="p-1.5 hover:bg-gray-200 rounded"><i data-lucide="bold" class="w-4 h-4"></i></button>
+                <button onclick="execCmd('italic')" class="p-1.5 hover:bg-gray-200 rounded"><i data-lucide="italic" class="w-4 h-4"></i></button>
+                <div class="w-px h-6 bg-gray-300 mx-1"></div>
+                <button onclick="execCmd('formatBlock', 'H2')" class="p-1.5 hover:bg-gray-200 rounded font-bold text-xs">H2</button>
+                <button onclick="execCmd('formatBlock', 'H3')" class="p-1.5 hover:bg-gray-200 rounded font-bold text-xs">H3</button>
+                <button onclick="execCmd('formatBlock', 'P')" class="p-1.5 hover:bg-gray-200 rounded text-xs">P</button>
+                <div class="w-px h-6 bg-gray-300 mx-1"></div>
+                <button onclick="execCmd('insertUnorderedList')" class="p-1.5 hover:bg-gray-200 rounded"><i data-lucide="list" class="w-4 h-4"></i></button>
+                <button onclick="execCmd('createLink', prompt('URL:'))" class="p-1.5 hover:bg-gray-200 rounded"><i data-lucide="link" class="w-4 h-4"></i></button>
+            </div>
+            
+            <!-- Content Area -->
+            <div id="edit-content" contenteditable="true" class="rich-editor border border-gray-200 rounded-b-sm p-6 min-h-[400px] outline-none focus:ring-1 focus:ring-brand-copper/20">${a.content}</div>
+        </div>
+
+        <!-- Sidebar Options -->
+        <div class="w-full lg:w-80 space-y-6">
+            <div class="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Meta Data</h3>
+                
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Category</label>
+                    <select id="edit-category" class="w-full border border-gray-300 p-2 rounded-sm text-sm bg-white">
+                        ${categories.map(c => `<option value="${c}" ${c === a.category ? 'selected' : ''}>${c}</option>`).join('')}
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Author</label>
+                    <input id="edit-author" value="${a.author}" class="w-full border border-gray-300 p-2 rounded-sm text-sm">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Image URL</label>
+                    <input id="edit-image" value="${a.imageUrl}" onchange="document.getElementById('img-preview').src = this.value" class="w-full border border-gray-300 p-2 rounded-sm text-sm mb-2">
+                    <div class="aspect-video bg-gray-100 rounded-sm overflow-hidden">
+                        <img id="img-preview" src="${a.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'}" class="w-full h-full object-cover">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Summary</label>
+                    <textarea id="edit-summary" rows="3" class="w-full border border-gray-300 p-2 rounded-sm text-sm">${a.summary}</textarea>
+                </div>
+                
+                <div class="flex gap-2 pt-4 border-t border-gray-100">
+                     <button onclick="saveArticleChanges()" class="flex-1 bg-green-600 text-white py-2 rounded-sm font-bold uppercase text-xs hover:bg-green-700">Save</button>
+                     <button onclick="cancelEdit()" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-sm font-bold uppercase text-xs hover:bg-gray-300">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>`;
+}
+
+// --- DIRECTORY EDITOR ---
+function renderDirectoryEditor() {
+    const b = appState.editingItem;
+    const cats = ['Heizung', 'Sanitär', 'Klima', 'Lüftung', 'Elektro'];
+    return `
+    <div class="max-w-2xl mx-auto bg-white p-8 rounded-sm shadow-sm border border-gray-200">
+        <h2 class="text-xl font-bold mb-6">Edit Business Entry</h2>
+        
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Company Name</label>
+                <input id="dir-name" value="${b.name}" class="w-full border p-2 rounded-sm text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Category</label>
+                <select id="dir-category" class="w-full border p-2 rounded-sm text-sm bg-white">
+                    ${cats.map(c => `<option value="${c}" ${c === b.category ? 'selected' : ''}>${c}</option>`).join('')}
+                </select>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+             <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Description</label>
+             <textarea id="dir-desc" rows="3" class="w-full border p-2 rounded-sm text-sm">${b.description}</textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-4">
+             <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">City</label><input id="dir-city" value="${b.city}" class="w-full border p-2 rounded-sm text-sm"></div>
+             <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">ZIP</label><input id="dir-zip" value="${b.zip}" class="w-full border p-2 rounded-sm text-sm"></div>
+        </div>
+
+        <div class="mb-4">
+             <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Address</label>
+             <input id="dir-address" value="${b.address}" class="w-full border p-2 rounded-sm text-sm">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-6">
+             <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Phone</label><input id="dir-phone" value="${b.phone}" class="w-full border p-2 rounded-sm text-sm"></div>
+             <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Website</label><input id="dir-website" value="${b.website}" class="w-full border p-2 rounded-sm text-sm"></div>
+        </div>
+        
+        <div class="mb-6">
+             <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Logo URL</label>
+             <input id="dir-logo" value="${b.logoUrl}" class="w-full border p-2 rounded-sm text-sm">
+        </div>
+
+        <div class="flex gap-4">
+             <button onclick="saveDirectoryChanges()" class="bg-green-600 text-white px-6 py-2 rounded-sm font-bold uppercase text-xs hover:bg-green-700">Save Entry</button>
+             <button onclick="cancelEdit()" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-sm font-bold uppercase text-xs hover:bg-gray-300">Cancel</button>
+        </div>
+    </div>`;
+}
+
+// --- ACTIONS ---
+
+function execCmd(command, value = null) {
+    document.execCommand(command, false, value);
+}
+
+// Article Actions
+function startEditArticle(id = null) {
+    if (id) {
+        const article = articles.find(a => a.id === id);
+        appState.editingItem = { ...article }; // Clone
+    } else {
+        appState.editingItem = {
+            id: generateId('art'),
+            title: '', summary: '', content: '<p>Start writing...</p>',
+            category: 'Branchen-News', author: 'Redaktion',
+            imageUrl: '', publishedAt: new Date().toISOString(),
+            views: 0
+        };
+    }
+    render();
+}
+
+function saveArticleChanges() {
+    const item = appState.editingItem;
+    item.title = document.getElementById('edit-title').value;
+    item.content = document.getElementById('edit-content').innerHTML;
+    item.category = document.getElementById('edit-category').value;
+    item.author = document.getElementById('edit-author').value;
+    item.imageUrl = document.getElementById('edit-image').value;
+    item.summary = document.getElementById('edit-summary').value;
+
+    const idx = articles.findIndex(a => a.id === item.id);
+    if (idx >= 0) articles[idx] = item;
+    else articles.unshift(item);
+
+    saveData();
+    cancelEdit();
+}
+
+function deleteArticle(id) {
+    if(confirm('Delete this article?')) {
+        articles = articles.filter(a => a.id !== id);
+        saveData();
+        render();
+    }
+}
+
+// Directory Actions
+function startEditBusiness(id = null) {
+    if (id) {
+        appState.editingItem = { ...directory.find(b => b.id === id) };
+    } else {
+        appState.editingItem = {
+            id: generateId('dir'),
+            name: '', category: 'Heizung', city: '', zip: '', address: '',
+            phone: '', website: '', description: '', logoUrl: ''
+        };
+    }
+    render();
+}
+
+function saveDirectoryChanges() {
+    const item = appState.editingItem;
+    item.name = document.getElementById('dir-name').value;
+    item.category = document.getElementById('dir-category').value;
+    item.city = document.getElementById('dir-city').value;
+    item.zip = document.getElementById('dir-zip').value;
+    item.address = document.getElementById('dir-address').value;
+    item.phone = document.getElementById('dir-phone').value;
+    item.website = document.getElementById('dir-website').value;
+    item.description = document.getElementById('dir-desc').value;
+    item.logoUrl = document.getElementById('dir-logo').value;
+
+    const idx = directory.findIndex(b => b.id === item.id);
+    if (idx >= 0) directory[idx] = item;
+    else directory.unshift(item);
+
+    saveData();
+    cancelEdit();
+}
+
+function deleteBusiness(id) {
+    if(confirm('Delete this entry?')) {
+        directory = directory.filter(b => b.id !== id);
+        saveData();
+        render();
+    }
+}
+
+function cancelEdit() {
+    appState.editingItem = null;
+    render();
 }
 
 function saveSettings() {
@@ -107,49 +507,72 @@ function saveSettings() {
     alert('Settings Saved');
 }
 
-async function triggerSync() {
-    if (!settings.articlesScriptUrl) {
-      alert("Please save a Google Apps Script URL first.");
-      return;
-    }
-    appState.syncState = 'loading'; 
-    render();
-    
-    const payload = {
-        action: 'sync',
-        data: {
-          articles: articles,
-          directory: directory
-        }
-    };
+// --- SYNC LOGIC ---
 
+async function performSync(mode) {
+    if (!settings.articlesScriptUrl) {
+        alert("Please save a Google Apps Script URL first.");
+        return;
+    }
+    
+    appState.syncState = 'loading';
+    document.getElementById('sync-status').innerHTML = '<span class="animate-pulse">Syncing... please wait.</span>';
+    
     try {
-        const response = await fetch(settings.articlesScriptUrl, { 
-            method: 'POST', 
-            mode: 'cors',
-            headers: {
-                // Sending as text/plain avoids OPTIONS preflight check which GAS doesn't handle well
-                'Content-Type': 'text/plain;charset=utf-8' 
-            },
-            body: JSON.stringify(payload) 
-        });
+        let response;
+        if (mode === 'push') {
+            // PUSH: POST Request
+            response = await fetch(settings.articlesScriptUrl, { 
+                method: 'POST', 
+                mode: 'cors',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ 
+                    action: 'sync', 
+                    data: { articles, directory } 
+                }) 
+            });
+        } else {
+            // PULL: GET Request
+            // Cache busting
+            const url = `${settings.articlesScriptUrl}?action=read&t=${Date.now()}`;
+            response = await fetch(url, { method: 'GET', redirect: 'follow' });
+        }
+        
+        if (!response.ok) throw new Error('Network response was not ok');
         
         const result = await response.json();
         
-        if (result.status === 'success') {
-           setTimeout(() => { appState.syncState = 'idle'; alert('Success! Data saved to Google Doc.'); render(); }, 1000);
+        if (mode === 'pull') {
+            // Update local state with cloud data
+            if (result.articles) articles = result.articles;
+            if (result.directory) directory = result.directory;
+            saveData();
+            alert('Cloud data loaded successfully!');
         } else {
-           throw new Error(result.message || 'Unknown error');
+             // Push successful
+             if (result.status === 'success') {
+                 alert('Data pushed to Cloud successfully!');
+             } else {
+                 throw new Error(result.message || 'Unknown error');
+             }
         }
-    } catch(e) { 
-        console.error(e); 
-        appState.syncState = 'idle'; 
-        alert('Sync failed: ' + e.message);
-        render(); 
+        
+        appState.syncState = 'idle';
+        render(); // Re-render to show updated data
+
+    } catch (error) {
+        console.error("Sync Error:", error);
+        appState.syncState = 'error';
+        document.getElementById('sync-status').innerText = 'Sync Error: ' + error.message;
+        alert('Sync failed. Check console for details.');
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => { loadData(); render(); });
+// INIT
+document.addEventListener('DOMContentLoaded', () => {
+    loadData();
+    render();
+});
 </script>
 </body>
 </html>
