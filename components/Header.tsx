@@ -3,7 +3,6 @@ import { Menu, X, Globe, Search } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Language } from '../types';
-import logo from './shklogo.jpg';
 
 interface HeaderProps {
   categories: string[];
@@ -24,7 +23,8 @@ const Header: React.FC<HeaderProps> = ({ categories, activeCategory, onCategoryC
   const navigate = useNavigate();
   const location = useLocation();
 
-  const logoUrl = logo;
+  // Use string path instead of import to avoid bundler issues with images
+  const logoUrl = 'components/shklogo.jpg';
 
   const languages: { code: Language; label: string; flag: string }[] = [
     { code: 'en', label: 'English', flag: '🇬🇧' },

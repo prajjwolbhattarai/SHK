@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Lock } from 'lucide-react';
-import logo from '../components/shklogo.jpg';
 
 interface LoginProps {
   onLogin: () => void;
@@ -12,6 +11,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const logoUrl = 'components/shklogo.jpg';
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +34,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         <div className="p-8">
           <div className="text-center mb-8">
              <img 
-               src={logo}
+               src={logoUrl}
                alt="SHK Rhein-Neckar" 
                className="h-20 w-auto mx-auto mb-4" 
              />

@@ -1,5 +1,4 @@
-
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Magazine from './pages/Magazine';
 import CMS from './pages/CMS';
@@ -8,6 +7,7 @@ import ArticleReader from './pages/ArticleReader';
 import Directory from './pages/Directory'; // Import new Directory page
 import { Article, Business } from './types';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { fetchLiveContent } from './services/googleApiService';
 
 const INITIAL_CATEGORIES = [
   'Branchen-News',
@@ -298,6 +298,26 @@ const App: React.FC = () => {
   const [directory, setDirectory] = useState<Business[]>(MOCK_DIRECTORY);
   const [categories, setCategories] = useState<string[]>(INITIAL_CATEGORIES);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Attempt to fetch live content on mount
+  useEffect(() => {
+    const init = async () => {
+        const liveData = await fetchLiveContent();
+        if (liveData && liveData.articles && Array.isArray(liveData.articles)) {
+            // Merge logic: prefer live articles if ID collision (unlikely with random UUIDs in CMS)
+            // But if live content is empty, we keep mocked content? 
+            // Better to prepend live articles to static pages or replace mocked articles.
+            // Requirement: "imported articles will be shown... while rest remains static"
+            // We assume liveData.articles are the "imported/uploaded" ones.
+            // We keep STATIC_PAGES always.
+            setArticles([...liveData.articles, ...STATIC_PAGES]);
+        }
+        if (liveData && liveData.directory && Array.isArray(liveData.directory)) {
+            setDirectory(liveData.directory);
+        }
+    };
+    init();
+  }, []);
 
   return (
     <LanguageProvider>
