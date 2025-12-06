@@ -12,7 +12,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const logoUrl = './components/shklogo.jpg';
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +34,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         <div className="p-8">
           <div className="text-center mb-8">
              <img 
-               src={logoUrl}
+               src="https://k.sinaimg.cn/n/sinakd20230526s/256/w256h0/20230526/519e-e3b97b1029e08097b692482596409605.jpg/w700d1q75cms.jpg" 
                alt="SHK Rhein-Neckar" 
                className="h-20 w-auto mx-auto mb-4" 
              />

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Article, ContentType, Business, DirectoryCategory } from '../types';
 import { 
@@ -24,7 +23,6 @@ type ViewMode = 'dashboard' | 'articles' | 'pages' | 'categories' | 'directory' 
 
 const CMS: React.FC<CMSProps> = ({ articles, setArticles, categories, setCategories, directory, setDirectory, onLogout }) => {
   const [activeView, setActiveView] = useState<ViewMode>('dashboard');
-  const logoUrl = './components/shklogo.jpg';
   
   // Article State
   const [isEditingArticle, setIsEditingArticle] = useState(false);
@@ -127,9 +125,9 @@ const CMS: React.FC<CMSProps> = ({ articles, setArticles, categories, setCategor
   };
 
   const handleDeleteBusiness = (id: string) => {
-      if (window.confirm('Are you sure you want to delete this directory entry?')) {
-          setDirectory(prev => prev.filter(b => b.id !== id));
-      }
+    if (window.confirm('Are you sure you want to delete this directory entry?')) {
+      setDirectory(prev => prev.filter(b => b.id !== id));
+    }
   };
 
   const handleCreateBusiness = () => {
@@ -178,246 +176,13 @@ const CMS: React.FC<CMSProps> = ({ articles, setArticles, categories, setCategor
     setSyncState('loading');
     try {
       const response = await syncDataWithGoogle({ articles, directory });
-      if (response && response.articles) setArticles(response.articles);
-      if (response && response.directory) setDirectory(response.directory);
+      setArticles(response.articles);
+      setDirectory(response.directory);
       setSyncState('success');
     } catch (error) {
       setSyncState('error');
     }
     setTimeout(() => setSyncState('idle'), 3000); // Reset state after 3s
-  };
-
-  const getNavButtonClass = (view: ViewMode) => {
-    const isActive = activeView === view;
-    return `w-full flex items-center space-x-3 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-wider transition ${isActive ? 'bg-brand-copper text-white' : 'hover:bg-white/5 hover:text-white'}`;
-  };
-
-  // Helper to render content based on activeView
-  const renderContent = () => {
-    switch (activeView) {
-      case 'dashboard':
-        return (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Articles</h3>
-                <FileText className="w-4 h-4 text-brand-copper" />
-              </div>
-              <p className="text-3xl font-display font-bold text-brand-dark">{totalArticles}</p>
-            </div>
-            <div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Views</h3>
-                <Eye className="w-4 h-4 text-brand-copper" />
-              </div>
-              <p className="text-3xl font-display font-bold text-brand-dark">{totalViews.toLocaleString()}</p>
-            </div>
-            <div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Shares</h3>
-                <Share2 className="w-4 h-4 text-brand-copper" />
-              </div>
-              <p className="text-3xl font-display font-bold text-brand-dark">{totalShares.toLocaleString()}</p>
-            </div>
-            <div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Avg Read Time</h3>
-                <Clock className="w-4 h-4 text-brand-copper" />
-              </div>
-              <p className="text-3xl font-display font-bold text-brand-dark">{avgReadTime}s</p>
-            </div>
-            <div className="md:col-span-4 lg:col-span-2 bg-white p-6 rounded-sm shadow-sm border">
-              <h3 className="font-bold text-gray-800 mb-4">Top Articles</h3>
-              <div className="space-y-3">
-                {topArticles.map(a => (
-                  <div key={a.id} className="flex justify-between items-center text-sm">
-                    <span className="font-medium text-gray-700">{a.title}</span>
-                    <span className="font-bold text-brand-copper">{a.views.toLocaleString()} views</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="md:col-span-4 lg:col-span-2 bg-white p-6 rounded-sm shadow-sm border">
-              <h3 className="font-bold text-gray-800 mb-4">Recent Activity</h3>
-            </div>
-          </div>
-        );
-      case 'articles':
-      case 'pages':
-        return (
-          <div>
-            <div className="flex justify-end mb-6">
-              <button onClick={() => handleCreateArticle(activeView === 'pages' ? 'page' : 'article')} className="flex items-center bg-brand-copper text-white px-5 py-2.5 rounded-sm hover:bg-orange-800 transition shadow-sm font-bold uppercase text-xs tracking-wider">
-                <Plus className="w-4 h-4 mr-2" /> New
-              </button>
-            </div>
-            <div className="bg-white rounded-sm shadow-sm border border-gray-200 overflow-hidden">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider font-semibold border-b border-gray-200">
-                  <tr>
-                    <th className="p-4 pl-6">Title</th>
-                    {activeView === 'articles' && <th className="p-4">Category</th>}
-                    <th className="p-4">Author</th>
-                    <th className="p-4 text-right pr-6">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {(activeView === 'articles' ? newsArticles : staticPages).map(article => (
-                    <tr key={article.id} className="hover:bg-gray-50 transition group">
-                      <td className="p-4 pl-6 font-medium text-gray-900">{article.title}</td>
-                      {activeView === 'articles' && (
-                        <td className="p-4">
-                          <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded-sm text-[10px] uppercase font-bold tracking-wide border border-gray-200">
-                            {article.category}
-                          </span>
-                        </td>
-                      )}
-                      <td className="p-4 text-gray-600 text-sm">{article.author}</td>
-                      <td className="p-4 text-right space-x-2 pr-6">
-                        <button onClick={() => handleEditArticle(article)} className="text-gray-400 hover:text-brand-copper p-1 transition">
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button onClick={() => handleDeleteArticle(article.id)} className="text-gray-400 hover:text-red-500 p-1 transition">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {(activeView === 'articles' ? newsArticles : staticPages).length === 0 && (
-                    <tr>
-                      <td colSpan={4} className="p-8 text-center text-gray-400 text-sm">No content found.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
-      case 'directory':
-        return (
-          <div>
-            <div className="flex justify-end mb-6">
-              <button onClick={handleCreateBusiness} className="flex items-center bg-brand-copper text-white px-5 py-2.5 rounded-sm hover:bg-orange-800 transition shadow-sm font-bold uppercase text-xs tracking-wider">
-                <Plus className="w-4 h-4 mr-2" /> New Entry
-              </button>
-            </div>
-            <div className="bg-white rounded-sm shadow-sm border border-gray-200 overflow-hidden">
-              <table className="w-full text-left">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Category</th>
-                    <th>City</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {directory.map(b => (
-                    <tr key={b.id}>
-                      <td className="p-4">{b.name}</td>
-                      <td>{b.category}</td>
-                      <td>{b.city}</td>
-                      <td>
-                        <button onClick={()=>handleEditBusiness(b)}><Edit/></button>
-                        <button onClick={()=>handleDeleteBusiness(b.id)}><Trash2/></button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
-      case 'categories':
-        return (
-          <div className="max-w-2xl">
-            <div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200 mb-6">
-              <h3 className="font-bold text-gray-800 mb-4">Create New Category</h3>
-              <div className="flex gap-2">
-                <input type="text" value={newCategory} onChange={(e) => setNewCategory(e.target.value)} placeholder="Category Name (e.g., Innovation)" className="flex-grow border border-gray-300 rounded-sm px-4 py-2 focus:border-brand-copper outline-none" />
-                <button onClick={handleAddCategory} className="bg-brand-dark text-white px-6 py-2 rounded-sm font-bold uppercase text-xs hover:bg-brand-copper transition">Create</button>
-              </div>
-            </div>
-            <div className="bg-white rounded-sm shadow-sm border border-gray-200 overflow-hidden">
-              <table className="w-full text-left">
-                <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-bold border-b border-gray-200">
-                  <tr>
-                    <th className="p-4">Name</th>
-                    <th className="p-4">Article Count</th>
-                    <th className="p-4 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {categories.map(cat => (
-                    <tr key={cat}>
-                      <td className="p-4 font-bold text-gray-700">{cat}</td>
-                      <td className="p-4 text-gray-500">{articles.filter(a => a.category === cat).length} Articles</td>
-                      <td className="p-4 text-right">
-                        <button onClick={() => handleDeleteCategory(cat)} className="text-gray-400 hover:text-red-500 transition">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
-      case 'analytics':
-        return (
-          <div className="space-y-8">
-            <div className="bg-white p-6 rounded-sm shadow-sm border">
-              <h3 className="text-sm font-bold uppercase text-gray-500 mb-6">Performance by Category</h3>
-              <div className="space-y-4">
-                {viewsByCategory.map((cat, idx) => (
-                  <div key={idx}>
-                    <div className="flex justify-between text-xs font-bold mb-1">
-                      <span>{cat.name}</span>
-                      <span className="text-gray-500">{cat.views.toLocaleString()} Views</span>
-                    </div>
-                    <div className="w-full bg-gray-100 rounded-full h-2">
-                      <div className="bg-brand-copper h-2 rounded-full" style={{ width: `${(cat.views / (totalViews || 1)) * 100}%` }}></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="bg-white rounded-sm shadow-sm border">
-              <div className="p-6 border-b">
-                <h3 className="text-sm font-bold uppercase text-gray-500">Top Articles</h3>
-              </div>
-              <table className="w-full">
-                <tbody>
-                  {topArticles.map(a => (
-                    <tr key={a.id} className="border-b">
-                      <td className="p-4">{a.title}</td>
-                      <td className="text-right p-4">{a.views.toLocaleString()} views</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
-      case 'sync':
-        return (
-          <div className="max-w-xl mx-auto text-center">
-            <div className="bg-white p-12 rounded-sm shadow-sm border">
-              <RefreshCw className="w-12 h-12 mx-auto text-brand-copper mb-4" />
-              <h2 className="text-2xl font-bold font-display text-brand-dark mb-2">Sync Center</h2>
-              <p className="text-brand-steel mb-8">Push your local changes to the Google Docs & Sheets database, and pull the latest version. This is your main save/load point.</p>
-              <button onClick={handleSync} disabled={syncState === 'loading'} className="bg-brand-dark text-white font-bold uppercase tracking-wider text-sm px-8 py-4 rounded-sm hover:bg-brand-copper transition disabled:opacity-50 w-64 h-16 flex items-center justify-center mx-auto">
-                {syncState === 'loading' ? <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin"/> : 'Sync Now'}
-              </button>
-              {syncState === 'success' && <p className="mt-4 text-green-600 font-bold flex items-center justify-center"><CheckCircle className="w-5 h-5 mr-2" /> Sync Successful!</p>}
-              {syncState === 'error' && <p className="mt-4 text-red-600 font-bold flex items-center justify-center"><ServerCrash className="w-5 h-5 mr-2" /> Sync Failed!</p>}
-            </div>
-          </div>
-        );
-      default:
-        return null;
-    }
   };
 
   // --- RENDER LOGIC ---
@@ -545,20 +310,53 @@ const CMS: React.FC<CMSProps> = ({ articles, setArticles, categories, setCategor
     );
   }
 
+  // Helper to render content based on activeView
+  const renderContent = () => {
+    switch (activeView) {
+      case 'dashboard':
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6"><div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200"><div className="flex items-center justify-between mb-2"><h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Articles</h3><FileText className="w-4 h-4 text-brand-copper" /></div><p className="text-3xl font-display font-bold text-brand-dark">{totalArticles}</p></div><div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200"><div className="flex items-center justify-between mb-2"><h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Views</h3><Eye className="w-4 h-4 text-brand-copper" /></div><p className="text-3xl font-display font-bold text-brand-dark">{totalViews.toLocaleString()}</p></div><div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200"><div className="flex items-center justify-between mb-2"><h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Shares</h3><Share2 className="w-4 h-4 text-brand-copper" /></div><p className="text-3xl font-display font-bold text-brand-dark">{totalShares.toLocaleString()}</p></div><div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200"><div className="flex items-center justify-between mb-2"><h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Avg Read Time</h3><Clock className="w-4 h-4 text-brand-copper" /></div><p className="text-3xl font-display font-bold text-brand-dark">{avgReadTime}s</p></div><div className="md:col-span-4 lg:col-span-2 bg-white p-6 rounded-sm shadow-sm border"><h3 className="font-bold text-gray-800 mb-4">Top Articles</h3><div className="space-y-3">{topArticles.map(a => <div key={a.id} className="flex justify-between items-center text-sm"><span className="font-medium text-gray-700">{a.title}</span><span className="font-bold text-brand-copper">{a.views.toLocaleString()} views</span></div>)}</div></div><div className="md:col-span-4 lg:col-span-2 bg-white p-6 rounded-sm shadow-sm border"><h3 className="font-bold text-gray-800 mb-4">Recent Activity</h3></div></div>
+        );
+      case 'articles':
+      case 'pages':
+        return (
+          <div><div className="flex justify-end mb-6"><button onClick={() => handleCreateArticle(activeView === 'pages' ? 'page' : 'article')} className="flex items-center bg-brand-copper text-white px-5 py-2.5 rounded-sm hover:bg-orange-800 transition shadow-sm font-bold uppercase text-xs tracking-wider"><Plus className="w-4 h-4 mr-2" /> New</button></div><div className="bg-white rounded-sm shadow-sm border border-gray-200 overflow-hidden"><table className="w-full text-left border-collapse"><thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider font-semibold border-b border-gray-200"><tr><th className="p-4 pl-6">Title</th>{activeView === 'articles' && <th className="p-4">Category</th>}<th className="p-4">Author</th><th className="p-4 text-right pr-6">Actions</th></tr></thead><tbody className="divide-y divide-gray-100">{(activeView === 'articles' ? newsArticles : staticPages).map(article => (<tr key={article.id} className="hover:bg-gray-50 transition group"><td className="p-4 pl-6 font-medium text-gray-900">{article.title}</td>{activeView === 'articles' && (<td className="p-4"><span className="bg-gray-100 text-gray-700 px-2 py-1 rounded-sm text-[10px] uppercase font-bold tracking-wide border border-gray-200">{article.category}</span></td>)}<td className="p-4 text-gray-600 text-sm">{article.author}</td><td className="p-4 text-right space-x-2 pr-6"><button onClick={() => handleEditArticle(article)} className="text-gray-400 hover:text-brand-copper p-1 transition"><Edit className="w-4 h-4" /></button><button onClick={() => handleDeleteArticle(article.id)} className="text-gray-400 hover:text-red-500 p-1 transition"><Trash2 className="w-4 h-4" /></button></td></tr>))}{(activeView === 'articles' ? newsArticles : staticPages).length === 0 && (<tr><td colSpan={4} className="p-8 text-center text-gray-400 text-sm">No content found.</td></tr>)}</tbody></table></div></div>
+        );
+      case 'directory':
+        return (
+          <div><div className="flex justify-end mb-6"><button onClick={handleCreateBusiness} className="flex items-center bg-brand-copper text-white px-5 py-2.5 rounded-sm hover:bg-orange-800 transition shadow-sm font-bold uppercase text-xs tracking-wider"><Plus className="w-4 h-4 mr-2" /> New Entry</button></div><div className="bg-white rounded-sm shadow-sm border border-gray-200 overflow-hidden"><table className="w-full text-left"><thead><tr><th>Name</th><th>Category</th><th>City</th><th>Actions</th></tr></thead><tbody>{directory.map(b => <tr key={b.id}><td className="p-4">{b.name}</td><td>{b.category}</td><td>{b.city}</td><td><button onClick={()=>handleEditBusiness(b)}><Edit/></button><button onClick={()=>handleDeleteBusiness(b.id)}><Trash2/></button></td></tr>)}</tbody></table></div></div>
+        );
+      case 'categories':
+        return (
+          <div className="max-w-2xl"><div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200 mb-6"><h3 className="font-bold text-gray-800 mb-4">Create New Category</h3><div className="flex gap-2"><input type="text" value={newCategory} onChange={(e) => setNewCategory(e.target.value)} placeholder="Category Name (e.g., Innovation)" className="flex-grow border border-gray-300 rounded-sm px-4 py-2 focus:border-brand-copper outline-none" /><button onClick={handleAddCategory} className="bg-brand-dark text-white px-6 py-2 rounded-sm font-bold uppercase text-xs hover:bg-brand-copper transition">Create</button></div></div><div className="bg-white rounded-sm shadow-sm border border-gray-200 overflow-hidden"><table className="w-full text-left"><thead className="bg-gray-50 text-gray-500 text-xs uppercase font-bold border-b border-gray-200"><tr><th className="p-4">Name</th><th className="p-4">Article Count</th><th className="p-4 text-right">Action</th></tr></thead><tbody className="divide-y divide-gray-100">{categories.map(cat => (<tr key={cat}><td className="p-4 font-bold text-gray-700">{cat}</td><td className="p-4 text-gray-500">{articles.filter(a => a.category === cat).length} Articles</td><td className="p-4 text-right"><button onClick={() => handleDeleteCategory(cat)} className="text-gray-400 hover:text-red-500 transition"><Trash2 className="w-4 h-4" /></button></td></tr>))}</tbody></table></div></div>
+        );
+      case 'analytics':
+        return (
+          <div className="space-y-8"><div className="bg-white p-6 rounded-sm shadow-sm border"><h3 className="text-sm font-bold uppercase text-gray-500 mb-6">Performance by Category</h3><div className="space-y-4">{viewsByCategory.map((cat, idx) => (<div key={idx}><div className="flex justify-between text-xs font-bold mb-1"><span>{cat.name}</span><span className="text-gray-500">{cat.views.toLocaleString()} Views</span></div><div className="w-full bg-gray-100 rounded-full h-2"><div className="bg-brand-copper h-2 rounded-full" style={{ width: `${(cat.views / (totalViews || 1)) * 100}%` }}></div></div></div>))}</div><div className="bg-white rounded-sm shadow-sm border"><div className="p-6 border-b"><h3 className="text-sm font-bold uppercase text-gray-500">Top Articles</h3></div><table className="w-full"><tbody>{topArticles.map(a => <tr key={a.id} className="border-b"><td className="p-4">{a.title}</td><td className="text-right p-4">{a.views.toLocaleString()} views</td></tr>)}</tbody></table></div></div>
+        );
+      case 'sync':
+        return (
+          <div className="max-w-xl mx-auto text-center"><div className="bg-white p-12 rounded-sm shadow-sm border"><RefreshCw className="w-12 h-12 mx-auto text-brand-copper mb-4" /><h2 className="text-2xl font-bold font-display text-brand-dark mb-2">Sync Center</h2><p className="text-brand-steel mb-8">Push your local changes to the Google Docs & Sheets database, and pull the latest version. This is your main save/load point.</p><button onClick={handleSync} disabled={syncState === 'loading'} className="bg-brand-dark text-white font-bold uppercase tracking-wider text-sm px-8 py-4 rounded-sm hover:bg-brand-copper transition disabled:opacity-50 w-64 h-16 flex items-center justify-center mx-auto">{syncState === 'loading' ? <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin"/> : 'Sync Now'}</button>{syncState === 'success' && <p className="mt-4 text-green-600 font-bold flex items-center justify-center"><CheckCircle className="w-5 h-5 mr-2" /> Sync Successful!</p>}{syncState === 'error' && <p className="mt-4 text-red-600 font-bold flex items-center justify-center"><ServerCrash className="w-5 h-5 mr-2" /> Sync Failed!</p>}</div></div>
+        );
+      default:
+        return null;
+    }
+  };
+
   // --- Main Dashboard View ---
   return (
     <div className="min-h-screen bg-gray-100 font-sans flex">
       <aside className="w-64 bg-brand-dark text-gray-400 flex flex-col fixed h-full z-10">
         <div className="p-6">
-           <div className="flex items-center space-x-2 text-white mb-8"><img src={logoUrl} alt="CMS Logo" className="h-10 w-auto rounded-sm bg-white" /><span className="text-xs uppercase tracking-wider font-medium opacity-50">CMS</span></div>
+           <div className="flex items-center space-x-2 text-white mb-8"><img src="https://k.sinaimg.cn/n/sinakd20230526s/256/w256h0/20230526/519e-e3b97b1029e08097b692482596409605.jpg/w700d1q75cms.jpg" alt="SHK CMS" className="h-10 w-auto rounded-sm bg-white" /><span className="text-xs uppercase tracking-wider font-medium opacity-50">CMS</span></div>
            <nav className="space-y-2">
-             <button onClick={() => setActiveView('dashboard')} className={getNavButtonClass('dashboard')}><Home className="w-4 h-4" /> <span>Dashboard</span></button>
-             <button onClick={() => setActiveView('articles')} className={getNavButtonClass('articles')}><FileText className="w-4 h-4" /> <span>Articles</span></button>
-             <button onClick={() => setActiveView('pages')} className={getNavButtonClass('pages')}><Layout className="w-4 h-4" /> <span>Pages</span></button>
-             <button onClick={() => setActiveView('categories')} className={getNavButtonClass('categories')}><Tag className="w-4 h-4" /> <span>Categories</span></button>
-             <button onClick={() => setActiveView('directory')} className={getNavButtonClass('directory')}><Building className="w-4 h-4" /> <span>Directory</span></button>
-             <button onClick={() => setActiveView('analytics')} className={getNavButtonClass('analytics')}><BarChart className="w-4 h-4" /> <span>Analytics</span></button>
-             <button onClick={() => setActiveView('sync')} className={getNavButtonClass('sync')}><RefreshCw className="w-4 h-4" /> <span>Sync Center</span></button>
+             <button onClick={() => setActiveView('dashboard')} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-wider transition ${activeView === 'dashboard' ? 'bg-brand-copper text-white' : 'hover:bg-white/5 hover:text-white'}`}><Home className="w-4 h-4" /> <span>Dashboard</span></button>
+             <button onClick={() => setActiveView('articles')} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-wider transition ${activeView === 'articles' ? 'bg-brand-copper text-white' : 'hover:bg-white/5 hover:text-white'}`}><FileText className="w-4 h-4" /> <span>Articles</span></button>
+             <button onClick={() => setActiveView('pages')} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-wider transition ${activeView === 'pages' ? 'bg-brand-copper text-white' : 'hover:bg-white/5 hover:text-white'}`}><Layout className="w-4 h-4" /> <span>Pages</span></button>
+             <button onClick={() => setActiveView('categories')} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-wider transition ${activeView === 'categories' ? 'bg-brand-copper text-white' : 'hover:bg-white/5 hover:text-white'}`}><Tag className="w-4 h-4" /> <span>Categories</span></button>
+             <button onClick={() => setActiveView('directory')} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-wider transition ${activeView === 'directory' ? 'bg-brand-copper text-white' : 'hover:bg-white/5 hover:text-white'}`}><Building className="w-4 h-4" /> <span>Directory</span></button>
+             <button onClick={() => setActiveView('analytics')} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-wider transition ${activeView === 'analytics' ? 'bg-brand-copper text-white' : 'hover:bg-white/5 hover:text-white'}`}><BarChart className="w-4 h-4" /> <span>Analytics</span></button>
+             <button onClick={() => setActiveView('sync')} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-sm text-sm font-bold uppercase tracking-wider transition ${activeView === 'sync' ? 'bg-brand-copper text-white' : 'hover:bg-white/5 hover:text-white'}`}><RefreshCw className="w-4 h-4" /> <span>Sync Center</span></button>
            </nav>
         </div>
         <div className="mt-auto p-6 border-t border-gray-800"><button onClick={onLogout} className="flex items-center space-x-2 text-sm font-medium hover:text-white transition"><LogOut className="w-4 h-4" /> <span>Logout</span></button></div>

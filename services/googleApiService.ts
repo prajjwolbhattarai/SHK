@@ -3,7 +3,7 @@ import { Article, Business } from '../types';
 
 // IMPORTANT: Replace this with your actual Google Apps Script Web App URL.
 // It must be deployed to be accessible.
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxw9Sw74S1Yy5W0zVCRHZ7ZxTTOISUKZzk793WkeR8TW9eF61Mws4aGcOPRg1JaiUBuPQ/exec'; 
+const APPS_SCRIPT_URL = ''; 
 
 interface SyncPayload {
   articles: Article[];
@@ -16,21 +16,32 @@ interface FetchResponse {
 }
 
 /**
- * Syncs CMS state to Google Apps Script.
+ * This function sends the current state of the CMS to your Google Apps Script backend.
+ * Your script should be configured to handle a POST request, parse the JSON body,
+ * and update your Google Doc (for articles) and Google Sheet (for directory).
  */
 export const syncDataWithGoogle = async (payload: SyncPayload): Promise<FetchResponse> => {
-  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('AKfycbxw9Sw74S1Yy5W0zVCRHZ7ZxTTOISUKZzk793WkeR8TW9eF61Mws4aGcOPRg1JaiUBuPQ')) {
-    console.warn("Google Apps Script URL is not configured or is a placeholder. Sync skipped.");
+  if (!APPS_SCRIPT_URL) {
+    console.error("Google Apps Script URL is not configured in services/googleApiService.ts.");
+    // Simulate a successful response in development if the URL is not set.
+    // This allows the UI to function without a live backend.
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+    console.log("DEV MODE: Simulating successful sync.");
     return Promise.resolve({ articles: payload.articles, directory: payload.directory });
   }
 
   try {
     const response = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
+      // The 'mode: no-cors' is often a necessary evil when calling Apps Script from a different origin (like localhost or github.io)
+      // if you haven't set up CORS headers correctly in the script response. A proper CORS setup is better.
       mode: 'cors', 
       headers: {
+        // Apps Script's `doPost(e)` function receives the data in `e.postData.contents`.
+        // Sending as text/plain is the most reliable way to get raw JSON string.
         'Content-Type': 'text/plain;charset=utf-8', 
       },
+      // We stringify the entire payload. Your Apps Script will need to do `JSON.parse(e.postData.contents)`.
       body: JSON.stringify({ action: 'sync', data: payload }), 
     });
 
@@ -45,26 +56,4 @@ export const syncDataWithGoogle = async (payload: SyncPayload): Promise<FetchRes
     console.error("Failed to sync data with Google:", error);
     throw error;
   }
-};
-
-/**
- * Fetches the latest data from Google Apps Script.
- */
-export const fetchLiveContent = async (): Promise<FetchResponse | null> => {
-    // Prevent fetching if the URL is clearly a placeholder or empty
-    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('AKfycbxw9Sw74S1Yy5W0zVCRHZ7ZxTTOISUKZzk793WkeR8TW9eF61Mws4aGcOPRg1JaiUBuPQ')) {
-        console.log("Using local/generated content (Google Apps Script URL is default/placeholder).");
-        return null;
-    }
-
-    try {
-        const response = await fetch(APPS_SCRIPT_URL);
-        if (!response.ok) throw new Error('Network response was not ok');
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        // Log as warning to avoid panicking the user, return null to fallback to static content
-        console.warn("Could not fetch live content (using offline mode):", error);
-        return null;
-    }
 };

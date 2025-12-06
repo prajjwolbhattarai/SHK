@@ -13,7 +13,7 @@ const Footer: React.FC<FooterProps> = ({ categories, onCategoryClick }) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
-  const logoUrl = './components/shklogo.jpg';
+  const logoUrl = "https://k.sinaimg.cn/n/sinakd20230526s/256/w256h0/20230526/519e-e3b97b1029e08097b692482596409605.jpg/w700d1q75cms.jpg";
 
   const handleNavClick = (cat: string) => {
     if (location.pathname === '/' && onCategoryClick) {

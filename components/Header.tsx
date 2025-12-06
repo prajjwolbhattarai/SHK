@@ -24,8 +24,7 @@ const Header: React.FC<HeaderProps> = ({ categories, activeCategory, onCategoryC
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Use string path relative to the public root
-  const logoUrl = './components/shklogo.jpg';
+  const logoUrl = "https://k.sinaimg.cn/n/sinakd20230526s/256/w256h0/20230526/519e-e3b97b1029e08097b692482596409605.jpg/w700d1q75cms.jpg";
 
   const languages: { code: Language; label: string; flag: string }[] = [
     { code: 'en', label: 'English', flag: '🇬🇧' },
